@@ -1,0 +1,87 @@
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+.xwflow-surface {
+  height: 100%;
+  overflow: auto;
+}
+
+.xwflow-surface[hidden] {
+  display: none !important;
+}
+
+html[data-page="landing"],
+html[data-page="landing"] body {
+  background: #07060e;
+}
+
+html[data-page="studio"],
+html[data-page="studio"] body {
+  background: #07080d;
+  color: #eceef5;
+}
+
+.xwflow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 16px;
+  min-height: 56px;
+}
+
+.xwflow-sidebar {
+  min-width: 220px;
+  height: 100%;
+}
+
+.xwflow-page {
+  height: 100%;
+  overflow: auto;
+  padding: 20px 24px 48px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.xwflow-toolbar,
+.xwflow-actions,
+.xwflow-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+}
+
+.xwflow-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.xwflow-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.xwflow-stats {
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .xwflow-split {
+    grid-template-columns: 1fr;
+  }
+
+  .xwflow-sidebar {
+    min-width: 0;
+  }
+}

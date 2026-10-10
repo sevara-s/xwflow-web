@@ -1,55 +1,81 @@
-import { appConfig } from "../config";
+import { config } from "../config";
+import { catalog } from "../content/catalog";
 
-export function formatWhen(iso: string | null | undefined): string {
-  if (!iso) return appConfig.emptyValue;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return appConfig.emptyValue;
-  return new Intl.DateTimeFormat(appConfig.locale, {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: appConfig.timeZone,
-  }).format(date);
+const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+const relative = new Intl.RelativeTimeFormat(config.locale, { numeric: "auto" });
+const numbers = new Intl.NumberFormat(config.locale);
+const dayMonth = new Intl.DateTimeFormat(config.locale, { day: "2-digit", month: "short" });
+const dayMonthYear = new Intl.DateTimeFormat(config.locale, { day: "2-digit", month: "short", year: "numeric" });
+const clock = new Intl.DateTimeFormat(config.locale, { hour: "2-digit", minute: "2-digit", hour12: false });
+const weekday = new Intl.DateTimeFormat(config.locale, { weekday: "short" });
+
+export function formatNumber(value: number): string {
+  return numbers.format(value);
 }
 
-export function formatAgo(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "";
-  const delta = Date.now() - then;
-  const minutes = Math.round(delta / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.round(delta / 3600000);
-  if (hours < 24) return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
-  const days = Math.round(delta / 86400000);
-  if (days <= 1) return "yesterday";
-  if (days < 14) return `${days} days ago`;
-  const weeks = Math.round(days / 7);
-  return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+/** "1,055 ms" */
+export function formatMs(value: number): string {
+  return catalog.units.ms.replace("{n}", numbers.format(Math.round(value)));
 }
 
-export function formatUpdated(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const then = new Date(iso);
-  if (Number.isNaN(then.getTime())) return "";
-  const start = (date: Date) => Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-  const days = Math.round((start(new Date()) - start(then)) / 86400000);
-  if (days <= 0) return "Today";
-  if (days === 1) return "Yesterday";
-  if (days < 14) return `${days} days ago`;
-  const weeks = Math.round(days / 7);
-  return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+/** "2 min ago", "1 hour ago" for the recent past, then days. */
+export function formatAgo(at: number, now = Date.now()): string {
+  const diff = at - now;
+  const abs = Math.abs(diff);
+  if (abs < MINUTE) return catalog.time.justNow;
+  if (abs < HOUR) return catalog.time.minutesAgo.replace("{n}", String(Math.round(abs / MINUTE)));
+  if (abs < DAY) return relative.format(Math.round(diff / HOUR), "hour");
+  return formatDay(at, now);
 }
 
-export function formatVersion(number: number | null): string {
-  if (number === null) return appConfig.emptyValue;
-  return new Intl.NumberFormat(appConfig.locale).format(number);
+/** "Today", "Yesterday", "3 days ago", "1 week ago". */
+export function formatDay(at: number, now = Date.now()): string {
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const days = Math.floor((start.getTime() - at) / DAY) + 1;
+  if (at >= start.getTime()) return capitalize(relative.format(0, "day"));
+  if (days < 7) return capitalize(relative.format(-days, "day"));
+  return capitalize(relative.format(-Math.floor(days / 7), "week"));
 }
 
-export function debounce(waitMs: number, fn: (value: string) => void): (value: string) => void {
-  let timer = 0;
-  return (value) => {
-    window.clearTimeout(timer);
-    timer = window.setTimeout(() => fn(value), waitMs);
-  };
+/** "In 6 days" */
+export function formatIn(at: number, now = Date.now()): string {
+  return relative.format(Math.max(1, Math.round((at - now) / DAY)), "day");
+}
+
+/** "09 Oct, 12:05" */
+export function formatStamp(at: number): string {
+  return `${dayMonth.format(at)}, ${clock.format(at)}`;
+}
+
+/** "09 Oct 2026, 12:04" */
+export function formatStampLong(at: number): string {
+  return `${dayMonthYear.format(at)}, ${clock.format(at)}`;
+}
+
+/** "08 Oct" */
+export function formatDayMonth(at: number): string {
+  return dayMonth.format(at);
+}
+
+/** "09 Oct 2026" */
+export function formatDate(at: number): string {
+  return dayMonthYear.format(at);
+}
+
+/** "Mon 08:00" for a weekday and a time of day. */
+export function formatWeekly(weekdayIndex: number, hour: number, minute: number): string {
+  const anchor = new Date(2024, 0, 7 + weekdayIndex, hour, minute);
+  return `${weekday.format(anchor)} ${clock.format(anchor)}`;
+}
+
+export function fill(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ""));
+}
+
+function capitalize(text: string): string {
+  return text.charAt(0).toLocaleUpperCase(config.locale) + text.slice(1);
 }

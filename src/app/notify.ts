@@ -11,6 +11,6 @@ export function notify(message: string, variant: "success" | "warning" | "danger
   toaster?.show({ message, variant });
 }
 
-export function errorMessage(error: unknown, fallback = catalog.errors.save): string {
+export function errorMessage(error: unknown, fallback: string = catalog.errors.save): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }

@@ -1,152 +1,128 @@
-import { catalog } from "../content/catalog";
-import type { RunStatus } from "../types/domain";
+import type { ConnectionHealth, FlowStatus, RunMode, RunStatus } from "../types/domain";
+
+export type NotationView = "flowchart" | "swimlane" | "bpmn" | "sequence" | "sim" | "3d";
+
+export const notationViews: readonly NotationView[] = ["flowchart", "swimlane", "bpmn", "sequence", "sim", "3d"];
 
 export type Route =
-  | { name: "landing"; section: string | null }
-  | { name: "overview" }
-  | { name: "processes"; q: string }
-  | { name: "process"; processId: string }
-  | { name: "runs"; q: string; status: RunStatus | "" }
-  | { name: "run"; runId: string }
-  | { name: "assistant" }
-  | { name: "templates" }
-  | { name: "insights" }
-  | { name: "settings" }
-  | { name: "notFound"; path: string };
+  | { zone: "site"; page: "landing" | "integrations" | "pricing" | "selfHost" | "notations"; section: string | null }
+  | { zone: "studio"; page: "assistant" }
+  | { zone: "studio"; page: "flows"; q: string; status: FlowStatus | ""; folder: string }
+  | { zone: "studio"; page: "runs"; q: string; status: RunStatus | ""; mode: RunMode | ""; range: "7d" | "all" }
+  | { zone: "studio"; page: "run"; runId: string; attempt: string | null }
+  | { zone: "studio"; page: "connections"; q: string; health: ConnectionHealth | "" }
+  | { zone: "editor"; page: "editor"; flowId: string; node: string | null }
+  | { zone: "editor"; page: "view"; flowId: string; view: NotationView }
+  | { zone: "admin"; page: "overview" | "branding" | "audit" }
+  | { zone: "system"; page: "health" }
+  | { zone: "denied"; page: "denied" }
+  | { zone: "notFound"; page: "notFound"; path: string };
 
-const studioPages = new Set(["assistant", "templates", "insights", "settings"]);
+export const paths = {
+  home: "/",
+  integrations: "/integrations",
+  pricing: "/pricing",
+  selfHost: "/self-host",
+  notations: "/notations",
+  studio: "/studio",
+  flows: "/studio/flows",
+  runs: "/studio/runs",
+  connections: "/studio/connections",
+  admin: "/admin",
+  branding: "/admin/branding",
+  audit: "/admin/audit",
+  health: "/system/health",
+  denied: "/denied",
+  flow: (flowId: string) => `/studio/flows/${encodeURIComponent(flowId)}`,
+  flowView: (flowId: string, view: NotationView) => `/studio/flows/${encodeURIComponent(flowId)}/${view}`,
+  run: (runId: string) => `/studio/runs/${encodeURIComponent(runId)}`,
+};
 
-const runStatuses = new Set<RunStatus>(["queued", "running", "succeeded", "failed"]);
-const landingSections = new Set<string>(catalog.landing.nav.map((item) => item.id));
-
-export function href(path: string, query?: Record<string, string>): string {
+/** A hash link: href("/studio/runs", { status: "failed" }) -> "#/studio/runs?status=failed". */
+export function href(path: string, query?: Record<string, string | null | undefined>): string {
   const params = new URLSearchParams();
-  if (query) {
-    for (const [key, value] of Object.entries(query)) {
-      if (value) params.set(key, value);
-    }
-  }
+  for (const [key, value] of Object.entries(query ?? {})) if (value) params.set(key, value);
   const search = params.toString();
   return search ? `#${path}?${search}` : `#${path}`;
 }
 
-export function processPath(processId: string): string {
-  return `${catalog.paths.processes}/${encodeURIComponent(processId)}`;
+export function navigate(path: string, query?: Record<string, string | null | undefined>): void {
+  const target = href(path, query);
+  if (window.location.hash === target) window.dispatchEvent(new HashChangeEvent("hashchange"));
+  else window.location.hash = target;
 }
 
-export function runPath(runId: string): string {
-  return `${catalog.paths.runs}/${encodeURIComponent(runId)}`;
+/** Update the query of the current route without adding a history entry. */
+export function replaceQuery(path: string, query: Record<string, string | null | undefined>): void {
+  history.replaceState(null, "", href(path, query));
 }
+
+function oneOf<T extends string>(value: string | null, allowed: readonly T[]): T | "" {
+  return value && (allowed as readonly string[]).includes(value) ? (value as T) : "";
+}
+
+const sitePages: Record<string, Extract<Route, { zone: "site" }>["page"]> = {
+  "": "landing",
+  integrations: "integrations",
+  pricing: "pricing",
+  "self-host": "selfHost",
+  notations: "notations",
+};
 
 export function parseLocation(hash = window.location.hash): Route {
-  const raw = hash.replace(/^#/, "") || catalog.paths.home;
+  const raw = hash.replace(/^#/, "") || "/";
   const cut = raw.indexOf("?");
   const path = cut === -1 ? raw : raw.slice(0, cut);
   const query = new URLSearchParams(cut === -1 ? "" : raw.slice(cut + 1));
-  const parts = path.split("/").filter(Boolean);
+  const parts = path.split("/").filter(Boolean).map(decodeURIComponent);
+  const [first = "", second, third] = parts;
 
-  if (parts.length === 0 || (parts.length === 1 && (parts[0] === "home" || parts[0] === "landing"))) {
-    return { name: "landing", section: null };
+  if (parts.length <= 1 && first in sitePages) {
+    return { zone: "site", page: sitePages[first], section: query.get("section") };
   }
-  if (parts.length === 1 && parts[0] && landingSections.has(parts[0])) {
-    return { name: "landing", section: parts[0] };
-  }
-  if (parts.length === 1 && parts[0] === "overview") return { name: "overview" };
-  if (parts.length === 1 && parts[0] === "processes") {
-    return { name: "processes", q: query.get("q") ?? "" };
-  }
-  if (parts.length === 2 && parts[0] === "processes" && parts[1]) {
-    return { name: "process", processId: decodeURIComponent(parts[1]) };
-  }
-  if (parts.length === 1 && parts[0] === "runs") {
-    const status = query.get("status") ?? "";
-    return {
-      name: "runs",
-      q: query.get("q") ?? "",
-      status: runStatuses.has(status as RunStatus) ? (status as RunStatus) : "",
-    };
-  }
-  if (parts.length === 2 && parts[0] === "runs" && parts[1]) {
-    return { name: "run", runId: decodeURIComponent(parts[1]) };
-  }
-  if (parts.length === 1 && parts[0] && studioPages.has(parts[0])) {
-    const name = parts[0];
-    if (name === "assistant" || name === "templates" || name === "insights" || name === "settings") {
-      return { name };
+  if (first === "studio") {
+    if (!second) return { zone: "studio", page: "assistant" };
+    if (second === "flows" && !third) {
+      return {
+        zone: "studio",
+        page: "flows",
+        q: query.get("q") ?? "",
+        status: oneOf(query.get("status"), ["published", "changed", "draft"] as const),
+        folder: query.get("folder") ?? "",
+      };
+    }
+    if (second === "flows" && third && parts.length === 3) {
+      return { zone: "editor", page: "editor", flowId: third, node: query.get("node") };
+    }
+    if (second === "flows" && third && parts.length === 4) {
+      const view = oneOf(parts[3], notationViews);
+      if (view) return { zone: "editor", page: "view", flowId: third, view };
+    }
+    if (second === "runs" && !third) {
+      return {
+        zone: "studio",
+        page: "runs",
+        q: query.get("q") ?? "",
+        status: oneOf(query.get("status"), ["running", "succeeded", "retried", "failed"] as const),
+        mode: oneOf(query.get("mode"), ["production", "test", "retry", "replay"] as const),
+        range: query.get("range") === "all" ? "all" : "7d",
+      };
+    }
+    if (second === "runs" && third) return { zone: "studio", page: "run", runId: third, attempt: query.get("attempt") };
+    if (second === "connections") {
+      return {
+        zone: "studio",
+        page: "connections",
+        q: query.get("q") ?? "",
+        health: oneOf(query.get("health"), ["healthy", "expiring", "broken"] as const),
+      };
     }
   }
-  return { name: "notFound", path };
-}
-
-export function routeIdentity(route: Route): string {
-  switch (route.name) {
-    case "landing":
-      return "landing";
-    case "process":
-      return `process:${route.processId}`;
-    case "run":
-      return `run:${route.runId}`;
-    case "notFound":
-      return `missing:${route.path}`;
-    default:
-      return route.name;
+  if (first === "admin" && parts.length <= 2) {
+    if (!second) return { zone: "admin", page: "overview" };
+    if (second === "branding" || second === "audit") return { zone: "admin", page: second };
   }
-}
-
-export function sectionId(route: Route): string {
-  if (route.name === "landing") return "home";
-  if (route.name === "process") return "processes";
-  if (route.name === "run") return "runs";
-  if (route.name === "notFound") return "overview";
-  return route.name;
-}
-
-type QueryListener = (route: Route) => void;
-
-const queryListeners = new Set<QueryListener>();
-
-export function onQueryChange(listener: QueryListener, scope: { track(item: { destroy(): void }): void }): void {
-  queryListeners.add(listener);
-  scope.track({
-    destroy() {
-      queryListeners.delete(listener);
-    },
-  });
-}
-
-export function navigate(path: string, query?: Record<string, string>): void {
-  const next = href(path, query);
-  if (window.location.hash === next) {
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
-    return;
-  }
-  window.location.hash = next;
-}
-
-export function replaceQuery(path: string, query?: Record<string, string>): void {
-  const next = href(path, query);
-  if (`${window.location.pathname}${window.location.search}${next}` === `${window.location.pathname}${window.location.search}${window.location.hash}`) {
-    return;
-  }
-  history.replaceState(null, "", next);
-  for (const listener of queryListeners) listener(parseLocation());
-}
-
-export function startRouter(render: (route: Route) => void): void {
-  let identity = "";
-  const apply = () => {
-    const route = parseLocation();
-    const nextIdentity = routeIdentity(route);
-    if (!window.location.hash) {
-      history.replaceState(null, "", href(catalog.paths.home));
-    }
-    if (nextIdentity === identity) {
-      for (const listener of queryListeners) listener(route);
-      return;
-    }
-    identity = nextIdentity;
-    render(route);
-  };
-  window.addEventListener("hashchange", apply);
-  apply();
+  if (first === "system" && second === "health") return { zone: "system", page: "health" };
+  if (first === "denied") return { zone: "denied", page: "denied" };
+  return { zone: "notFound", page: "notFound", path };
 }

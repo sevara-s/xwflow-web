@@ -3,7 +3,11 @@ export interface Disposable {
 }
 
  
-export class MountScope {
+export interface Tracker {
+  track<T extends Disposable>(item: T): T;
+}
+
+export class MountScope implements Tracker {
   private items: Disposable[] = [];
 
   track<T extends Disposable>(item: T): T {

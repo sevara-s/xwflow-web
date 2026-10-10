@@ -1,0 +1,75 @@
+.xwflow-scene {
+  --xwflow-scene-x: 54deg;
+  --xwflow-scene-z: -26deg;
+  --xwflow-scene-zoom: 1;
+  position: relative;
+  perspective: 1700px;
+  perspective-origin: 50% 30%;
+  min-height: 420px;
+}
+.xwflow-scene[data-orbit] { cursor: grab; touch-action: none; }
+.xwflow-scene[data-orbiting] { cursor: grabbing; }
+.xwflow-scene__plane {
+  position: absolute;
+  left: 50%;
+  top: 20px;
+  transform-style: preserve-3d;
+  transform: scale(var(--xwflow-scene-zoom)) rotateX(var(--xwflow-scene-x)) rotateZ(var(--xwflow-scene-z));
+  transition: transform 0.25s ease;
+}
+.xwflow-scene[data-orbiting] .xwflow-scene__plane { transition: none; }
+.xwflow-scene__floor {
+  position: absolute;
+  inset: 0;
+  border-radius: 40px;
+  background-color: rgba(10, 10, 24, 0.6);
+  background-image: linear-gradient(rgba(155, 107, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(155, 107, 255, 0.22) 1px, transparent 1px);
+  background-size: 48px 48px;
+  box-shadow: 0 0 0 1px rgba(155, 107, 255, 0.25), 0 0 120px rgba(155, 107, 255, 0.25) inset;
+  -webkit-mask: radial-gradient(closest-side, #000 65%, transparent 100%);
+  mask: radial-gradient(closest-side, #000 65%, transparent 100%);
+}
+.xwflow-scene__ring {
+  position: absolute;
+  left: 48%;
+  top: 24%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #2ee6ff, #9b6bff, #ff4fa3, #ff8a3d, #c8ff3d, #2ee6ff);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+  filter: drop-shadow(0 0 30px rgba(155, 107, 255, 0.6));
+  transform: translateZ(1px);
+  animation: xwflow-scene-spin 18s linear infinite;
+}
+.xwflow-scene__canvas { position: absolute; inset: 0; transform-style: preserve-3d; }
+
+/* The embedded XWFlowCanvas becomes a transparent, 3D-preserving layer. */
+.xwflow-scene .xwflow-canvas {
+  position: absolute;
+  inset: 0;
+  background: none;
+  border: 0;
+  overflow: visible;
+  transform-style: preserve-3d;
+}
+.xwflow-scene .xwflow-canvas__viewport,
+.xwflow-scene .xwflow-canvas__stage { overflow: visible; transform-style: preserve-3d; }
+.xwflow-scene .xwflow-canvas__viewport { cursor: inherit; }
+.xwflow-scene .xwflow-canvas__node {
+  transform: translateZ(var(--xwflow-z, 60px));
+  animation: xwflow-scene-hover 6s ease-in-out infinite;
+}
+.xwflow-scene .xwflow-canvas__wires { width: 4000px; height: 4000px; transform: translateZ(2px); }
+
+@keyframes xwflow-scene-hover {
+  0%, 100% { transform: translateZ(var(--xwflow-z, 60px)); }
+  50% { transform: translateZ(calc(var(--xwflow-z, 60px) + 18px)); }
+}
+@keyframes xwflow-scene-spin { to { transform: translateZ(1px) rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .xwflow-scene .xwflow-canvas__node,
+  .xwflow-scene__ring { animation: none; }
+}

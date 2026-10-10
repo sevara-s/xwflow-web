@@ -1,7 +1,8 @@
 import { api } from "../api/client";
 import { catalog } from "../content/catalog";
 import type { Workspace } from "../types/domain";
-import { XWUIEmpty, XWUIProgressSpinner } from "../xwui";
+import type { Node } from "../ui/kit";
+import { XWUIComposer, XWUIEmpty, XWUIProgressSpinner, type XWUIToast } from "../xwui";
 import { el } from "./dom";
 import { MountScope } from "./mount";
 import { mountToaster } from "./notify";
@@ -10,9 +11,12 @@ import { href, parseLocation, paths, type Route } from "./router";
 import { mountAdminShell } from "./shells/admin";
 import { mountBareShell } from "./shells/bare";
 import { mountSiteShell } from "./shells/site";
+import { siteShell } from "./shells/site-view";
+import type { PageView, ViewContext } from "./view";
 import { mountStudioShell, type Shell } from "./shells/studio";
 
-type PageModule = { render: PageRenderer<never> };
+/** A page either composes XWUI nodes (`view`) or, until it moves, renders into the legacy shell. */
+type PageModule = { render?: PageRenderer<never>; view?: PageView<never> };
 
 /** Pages load on demand, one chunk each. */
 const pages: Record<string, () => Promise<PageModule>> = {
@@ -44,10 +48,37 @@ function shellKind(route: Route): ShellKind {
   return "bare";
 }
 
+/** The shell a composed page sits in. */
+function composedShell(route: Route, page: Node[]): Node[] {
+  if (route.zone === "site") return siteShell(route, page);
+  return page;
+}
+
+/**
+ * Composed pages use the xwflow XWUI preset; pages not yet moved still use the
+ * legacy app theme. The html carries the axes of whichever is on screen.
+ */
+const THEMES = {
+  composed: { theme: "xwflow-neon", accent: "xwflow", font: "xwflow" },
+  legacy: { theme: "dark", accent: "lime", font: "manrope" },
+} as const;
+
+function useTheme(mode: keyof typeof THEMES): void {
+  const axes = THEMES[mode];
+  const html = document.documentElement;
+  html.dataset.theme = axes.theme;
+  html.dataset.accent = axes.accent;
+  html.dataset.font = axes.font;
+}
+
+const toastNode: Node = { tag: "xwui-toast", key: "toaster", ref: (instance) => mountToaster(instance as Pick<XWUIToast, "show">) };
+
 export async function mountApplication(root: HTMLElement): Promise<void> {
   const toastHost = el("div", "xwflow-toasts");
   document.body.append(toastHost);
   mountToaster(toastHost);
+  let composer: XWUIComposer | null = null;
+  let leave: Array<() => void> = [];
 
   let workspace: Workspace | null = null;
   let shell: Shell | null = null;
@@ -60,6 +91,62 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
     const current = ++generation;
     workspace ??= await api.getWorkspace();
     if (current !== generation) return;
+
+    const loader = pages[`${route.zone}/${route.page}`];
+    leave.splice(0).forEach((stop) => stop());
+    const peek = loader ? await loader() : null;
+    if (current !== generation) return;
+    if (peek?.view) {
+      // A composed page: the whole screen is one XWUIComposer tree.
+      useTheme("composed");
+      pageScope.destroy();
+      shell?.destroy();
+      shell = null;
+      kind = null;
+      if (!composer) {
+        root.replaceChildren();
+        composer = new XWUIComposer(root, { tree: [] });
+      }
+      const context: ViewContext = {
+        route,
+        workspace,
+        refresh: () => void show(),
+        instance: <T,>(key: string) => composer?.getInstanceByKey<T>(key),
+        onLeave: (stop) => leave.push(stop),
+      };
+      composer.setTree(composedShell(route, [{ tag: "xwui-progress-spinner", data: { label: catalog.loading } }]));
+      try {
+        const page = await (peek.view as PageView)(context);
+        if (current !== generation) return;
+        composer.setTree([...composedShell(route, page), toastNode]);
+        window.scrollTo({ top: 0 });
+        if (route.zone === "site" && route.section) {
+          requestAnimationFrame(() => composer?.getElementByKey(`band-${route.section}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+        }
+      } catch (error) {
+        if (current !== generation) return;
+        const missing = (error as { code?: string }).code === "not_found";
+        composer.setTree(
+          composedShell(route, [
+            {
+              tag: "xwui-empty",
+              data: {
+                icon: missing ? "search" : "alert-triangle",
+                title: missing ? catalog.errors.missing : catalog.errors.load,
+                description: error instanceof Error ? error.message : "",
+              },
+            },
+          ]),
+        );
+      }
+      return;
+    }
+    useTheme("legacy");
+    if (composer) {
+      composer.destroy();
+      composer = null;
+      root.replaceChildren();
+    }
 
     const nextKind = shellKind(route);
     if (!shell || kind !== nextKind) {
@@ -87,7 +174,6 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
     body.replaceChildren();
     window.scrollTo({ top: 0 });
 
-    const loader = pages[`${route.zone}/${route.page}`];
     if (!loader) {
       scope.track(
         new XWUIEmpty(body, {

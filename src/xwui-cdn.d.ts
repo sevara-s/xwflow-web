@@ -101,4 +101,36 @@ declare module "https://xwui.dev/esm/basic.bundle.js" {
   export class XWUIProgressSpinner extends XWUIComponent {}
   export class XWUITag extends XWUIComponent {}
   export class XWUITypography extends XWUIComponent {}
+
+  /** One XWUI component in a composed tree (XWUIComposer). */
+  export interface XWUIComposerNode {
+    tag: string;
+    data?: Record<string, unknown>;
+    config?: Record<string, unknown>;
+    slots?: Record<string, XWUIComposerNode | XWUIComposerNode[] | string>;
+    on?: Record<string, (event: Event, instance: unknown) => void>;
+    ref?: (instance: unknown, element: HTMLElement) => void;
+    key?: string;
+  }
+  export class XWUIComposer extends XWUIComponent {
+    setTree(tree: XWUIComposerNode | XWUIComposerNode[]): void;
+    getElementByKey(key: string): HTMLElement | undefined;
+    getInstanceByKey<T = unknown>(key: string): T | undefined;
+  }
+  export class XWUIFlowCanvas extends XWUIComponent {
+    fit(): void;
+    zoom(factor: number): void;
+    tidy(): void;
+    select(id: string): void;
+    setData(data: object): void;
+    on(event: "select" | "move" | "tidy", handler: (detail: never) => void): () => void;
+  }
+  export class XWUIFlowScene extends XWUIComponent {
+    zoom(factor: number): void;
+    reset(): void;
+    setData(data: object): void;
+  }
+  export class XWUIStatusGlyph extends XWUIComponent {
+    setTone(tone: string, label?: string): void;
+  }
 }

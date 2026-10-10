@@ -8,6 +8,10 @@ export {
   XWUIButtonCopy,
   XWUICodeBlock,
   XWUIComponent,
+  XWUIComposer,
+  XWUIFlowCanvas,
+  XWUIFlowScene,
+  XWUIStatusGlyph,
   XWUIDialog,
   XWUIDisplayChip,
   XWUIDisplayStatistic,
@@ -31,3 +35,4 @@ export {
   XWUITypography,
   XWUIUptimeBar,
 } from "https://xwui.dev/esm/basic.bundle.js";
+export type { XWUIComposerNode } from "https://xwui.dev/esm/basic.bundle.js";

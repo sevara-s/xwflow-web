@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "XWFlowGauge",
+  "name": "XWFlow Gauge",
+  "description": "A ring that fills with progress and shows \"value/total\" in its centre.",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": [
+        "value",
+        "total",
+        "caption",
+        "label"
+      ],
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        },
+        "caption": {
+          "type": "string",
+          "description": "Word under the number, e.g. \"recorded\"."
+        },
+        "label": {
+          "type": "string",
+          "description": "Spoken label, e.g. \"3 of 5 steps recorded\"."
+        }
+      }
+    },
+    "conf_comp": {
+      "type": "object",
+      "properties": {
+        "tone": {
+          "type": "string",
+          "enum": [
+            "green",
+            "red",
+            "cyan"
+          ]
+        },
+        "size": {
+          "type": "number"
+        },
+        "className": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

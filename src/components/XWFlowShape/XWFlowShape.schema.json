@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "XWFlowShape",
+  "name": "XWFlow Shape",
+  "description": "Decorative depth: a glowing orb, a gradient ring, a glass cube or a soft halo. Hidden from assistive technology.",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "object"
+        }
+      }
+    },
+    "conf_comp": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "number",
+          "description": "Edge length or diameter in pixels."
+        },
+        "color": {
+          "type": "string",
+          "enum": [
+            "lime",
+            "cyan",
+            "violet",
+            "pink",
+            "orange"
+          ],
+          "description": "Any xwflow palette name: lime, cyan, violet, pink, orange."
+        },
+        "thickness": {
+          "type": "number",
+          "description": "Ring thickness in pixels."
+        },
+        "place": {
+          "type": "object",
+          "description": "Absolute placement inside a positioned parent, as CSS lengths."
+        },
+        "still": {
+          "type": "boolean",
+          "description": "Stop animating, for small or repeated shapes."
+        },
+        "className": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

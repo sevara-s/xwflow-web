@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "XWFlowBrand",
+  "name": "XWFlow Brand",
+  "description": "The xwflow mark and wordmark, linking home.",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": [
+        "label",
+        "href"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string"
+        }
+      }
+    },
+    "conf_comp": {
+      "type": "object",
+      "properties": {
+        "markOnly": {
+          "type": "boolean",
+          "description": "Show only the mark, for compact headers."
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md"
+          ]
+        }
+      }
+    }
+  }
+}

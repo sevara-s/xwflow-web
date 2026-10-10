@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "XWFlowCanvas",
+  "name": "XWFlow Canvas",
+  "description": "The flow canvas. It draws steps as cards wired output to input, with frames and sticky notes. Editable canvases support selecting, dragging, wheel and button zoom, fit, tidy up and a minimap; read-only canvases only fit and display.",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": [
+        "graph",
+        "views",
+        "selectedId",
+        "labels"
+      ],
+      "properties": {
+        "graph": {
+          "type": "object"
+        },
+        "views": {
+          "type": "object",
+          "description": "Presentation for each node, keyed by node id."
+        },
+        "selectedId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "labels": {
+          "type": "object"
+        }
+      }
+    },
+    "conf_comp": {
+      "type": "object",
+      "properties": {
+        "nodeWidth": {
+          "type": "number",
+          "description": "Node card width in pixels."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "description": "Read-only canvases cannot be dragged or zoomed."
+        },
+        "tools": {
+          "type": "boolean",
+          "description": "Show zoom, fit and tidy tools."
+        },
+        "minimap": {
+          "type": "boolean"
+        },
+        "insets": {
+          "type": "object",
+          "description": "Space the fit leaves for floating panels."
+        },
+        "maxFitScale": {
+          "type": "number",
+          "description": "Fit never enlarges past this scale."
+        },
+        "height": {
+          "type": "number",
+          "description": "Fixed height for embedded canvases; full-bleed canvases fill their parent."
+        },
+        "className": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

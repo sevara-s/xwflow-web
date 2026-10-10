@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "XWFlowIsoTiles",
+  "name": "XWFlow Iso Tiles",
+  "description": "Services as lifted tiles on an isometric plane, coloured by state; failing ones pulse.",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": [
+        "tiles",
+        "label"
+      ],
+      "properties": {
+        "tiles": {
+          "type": "array"
+        },
+        "label": {
+          "type": "string",
+          "description": "Spoken summary of the drawing."
+        }
+      }
+    },
+    "conf_comp": {
+      "type": "object",
+      "properties": {
+        "variant": {
+          "type": "string",
+          "enum": [
+            "tile",
+            "hub"
+          ],
+          "description": "`tile` for big squares (reachability), `hub` for small nodes (topology)."
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "tilt": {
+          "type": "object"
+        },
+        "floor": {
+          "type": "boolean",
+          "description": "Draw the glowing grid floor under the tiles."
+        },
+        "links": {
+          "type": "boolean",
+          "description": "Wires from the first tile to every other tile."
+        },
+        "className": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

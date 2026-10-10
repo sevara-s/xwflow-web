@@ -119,8 +119,7 @@ export interface StepDetail {
 }
 
 export interface PaletteGroup {
-  id: string;
-  label: string;
+  group: StepGroup;
   items: Array<{ id: string; label: string; group: StepGroup }>;
 }
 
@@ -235,4 +234,92 @@ export interface AssistantDraft {
   prompt: string;
   title: string;
   graph: FlowGraph;
+}
+
+/* ------------------------------------------------------------------ */
+/* Public website                                                      */
+/* ------------------------------------------------------------------ */
+
+export interface NodeType {
+  id: string;
+  label: string;
+  group: StepGroup;
+  summary: string;
+  palette: boolean;
+  featured?: boolean;
+}
+
+export interface Dialect {
+  code: string;
+  name: string;
+  /** Import depth from the adapter catalog; null until the catalog states it. */
+  depth: string | null;
+}
+
+export type NotationFamily = "automation" | "process" | "software" | "simulation" | "analysis" | "views";
+export type NotationViewId = "editor" | "flowchart" | "swimlane" | "bpmn" | "sequence" | "sim" | "3d" | "receipt";
+
+export interface Notation {
+  id: string;
+  name: string;
+  family: NotationFamily;
+  dims: string;
+  standard: string;
+  summary: string;
+  tags: string[];
+  view: NotationViewId | null;
+  concept: boolean;
+}
+
+export interface Tenant {
+  name: string;
+  color: "cyan" | "pink" | "lime";
+  hue: number;
+}
+
+export interface Landing {
+  stats: { connectors: number; dialects: number; rowsPerAttempt: number; vendorMarks: number };
+  marquee: Array<{ id: string; label: string; group: StepGroup }>;
+  flow: { id: string; name: string; graph: FlowGraph };
+  receipt: RunDetail | null;
+  tenants: Tenant[];
+  notations: Array<Pick<Notation, "id" | "name" | "family" | "view" | "concept">>;
+  dialects: Dialect[];
+}
+
+export type Cell = { kind: "included" } | { kind: "text"; text: string } | { kind: "requires"; tier: string };
+
+export interface PricingTier {
+  id: string;
+  tag: { label: string; color: "lime" | "violet" | "pink" };
+  name: string;
+  blurb: string;
+  price: { kind: "free" } | { kind: "quote"; amount: number | null; unit: string | null } | { kind: "contact" };
+  cta: { label: string; target: "selfHost" | "contact"; style: "glass" | "primary" | "gradient" };
+  features: string[];
+  planned: boolean;
+  highlighted: boolean;
+}
+
+export interface Pricing {
+  tiers: PricingTier[];
+  comparison: Array<{ capability: string; core: Cell; commercial: Cell }>;
+}
+
+export type CodeToken =
+  | { comment: string }
+  | { command: string; args?: string; value?: string; url?: string }
+  | { placeholder: string };
+
+export interface SelfHost {
+  defaults: Array<{ id: string; label: string; value: string }>;
+  steps: Array<{ id: string; title: string; body: string; code: CodeToken[] }>;
+  pendingCommands: number;
+}
+
+export interface NotationGallery {
+  items: Notation[];
+  total: number;
+  /** The flow every thumbnail draws. */
+  sample: { flowId: string; runId: string | null; steps: Array<{ id: string; name: string; type: string; group: StepGroup }> };
 }

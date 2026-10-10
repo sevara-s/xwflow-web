@@ -164,35 +164,6 @@ const stepDetails = {
   },
 };
 
-const palette = [
-  {
-    id: "triggers",
-    label: "Triggers",
-    items: [
-      { id: "webhook", label: "Webhook", group: "trigger" },
-      { id: "schedule", label: "Schedule", group: "trigger" },
-    ],
-  },
-  {
-    id: "control",
-    label: "Control flow",
-    items: [
-      { id: "condition", label: "Condition", group: "control" },
-      { id: "wait", label: "Wait", group: "control" },
-      { id: "merge", label: "Merge", group: "control" },
-    ],
-  },
-  {
-    id: "data",
-    label: "Data",
-    items: [
-      { id: "code", label: "Code", group: "data" },
-      { id: "setFields", label: "Set fields", group: "data" },
-    ],
-  },
-  { id: "ai", label: "AI", items: [{ id: "aiCondition", label: "AI condition", group: "ai" }] },
-  { id: "apps", label: "Apps and APIs", items: [{ id: "http", label: "HTTP request", group: "integration" }] },
-];
 
 /** The recorded attempts of the run the receipt board shows. */
 function orderAlertAttempts() {
@@ -366,7 +337,6 @@ export function seedStudio(now) {
     workspace: workspace(now),
     flows: flows(now),
     stepDetails,
-    palette,
     runs: runs(now),
     runsPerHour,
     connections: connections(now),

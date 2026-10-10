@@ -16,6 +16,13 @@ import type {
   RunSummary,
   StepDetail,
   Workspace,
+  Landing,
+  NodeType,
+  NotationFamily,
+  NotationGallery,
+  Pricing,
+  SelfHost,
+  StepGroup,
 } from "../types/domain";
 
 export interface StepPatch {
@@ -51,3 +58,10 @@ export function addConnection(input: { name: string; auth: Connection["auth"]; a
 export function getAssistantHome(): Promise<AssistantHome>;
 export function draftFlow(prompt: string): Promise<AssistantDraft>;
 export function saveDraft(draft: AssistantDraft): Promise<FlowSummary>;
+
+export function getLanding(): Promise<Landing>;
+export function listNodeTypes(query?: { q?: string; group?: StepGroup | "" }): Promise<{ items: NodeType[]; total: number }>;
+export function getPricing(): Promise<Pricing>;
+export function getSelfHost(): Promise<SelfHost>;
+export function getNotations(query?: { family?: NotationFamily | "" }): Promise<NotationGallery>;
+export function requestQuote(input: { email: string; need: string }): Promise<{ reference: string }>;

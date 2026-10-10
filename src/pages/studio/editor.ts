@@ -159,7 +159,7 @@ export async function render(context: PageContext<EditorRoute>): Promise<void> {
     for (const group of detail.palette) {
       const items = group.items.filter((item) => !q || item.label.toLowerCase().includes(q));
       if (!items.length) continue;
-      paletteList.append(el("div", "xwflow-editor__palette-group", group.label));
+      paletteList.append(el("div", "xwflow-editor__palette-group", catalog.studio.groupLabels[group.group]));
       for (const item of items) {
         shown += 1;
         const button = el("button", "xwflow-editor__palette-item");

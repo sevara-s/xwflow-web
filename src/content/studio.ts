@@ -312,6 +312,10 @@ export const studio = {
     message: { label: "Post a message", icon: "message-square" },
     appendRow: { label: "Append a row", icon: "table" },
     needsConnection: { label: "Needs a connection", icon: "link" },
+    fieldChanged: { label: "Field changed", icon: "file-text" },
+    switch: { label: "Switch", icon: "git-pull-request" },
+    subFlow: { label: "Sub-flow", icon: "layers" },
   },
+  groupLabels: { trigger: "Triggers", control: "Control flow", data: "Data", ai: "AI", integration: "Apps and APIs" },
   groupIcons: { trigger: "zap", control: "git-branch", data: "database", ai: "sparkles", integration: "plug" },
 } as const;

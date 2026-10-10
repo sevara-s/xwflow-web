@@ -1,185 +1,30 @@
- 
+/**
+ * Local dummy API for xwflow. Pages reach data only through these async
+ * functions. Each call waits a short, simulated network latency and returns
+ * a copy, so the UI can never mutate the store by accident.
+ *
+ * The workspace is kept for the browser session (sessionStorage). Clearing
+ * site data restores the sample workspace.
+ */
 
-const STORE_KEY = "xwflow.dummy.v1";
-const LATENCY_MS = { read: 220, write: 480 };
+import { linearGraph, seedStudio } from "./data/studio.js";
 
-const workspace = {
-  organization: "Northwind Operations",
-  actor: "Amina Rahman",
-};
+const STORE_KEY = "xwflow.dummy.v2";
+const LATENCY_MS = { read: 180, write: 420 };
+/** How long one step takes when the dummy engine plays a new run. */
+const STEP_MS = 650;
+/** How long the seeded "running now" run keeps running after load. */
+const SEEDED_RUN_MS = 10 * 60_000;
 
-const defaults = {
-  stepName: "New step",
-  stepKind: "task",
-  stepSummary: "",
-  succeededNote: "Completed.",
-  runningNote: "In progress.",
-  pendingNote: "Waiting.",
-};
-
-const stepTimingMs = 900;
+let store = load();
+const listeners = new Set();
 
 function wait(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-function uid(prefix) {
-  return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function clone(value) {
-  return JSON.parse(JSON.stringify(value));
-}
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function seed() {
-  const invoiceDraft = [
-    step("receive", "Receive invoice", "trigger", "A supplier invoice arrives with a purchase order."),
-    step("budget", "Check budget", "task", "Confirm the cost centre can cover the amount."),
-    step("decide", "Manager decision", "decision", "Approve, send back, or reject."),
-    step("settle", "Record the outcome", "end", "Write the decision onto the invoice."),
-  ];
-  const invoiceV1 = invoiceDraft.slice(0, 3).map(copyStep);
-  const hireDraft = [
-    step("offer", "Offer accepted", "trigger", "The candidate accepts the offer."),
-    step("accounts", "Provision accounts", "task", "Create mail, payroll, and building access."),
-    step("equipment", "Issue equipment", "task", "Laptop and badge are assigned."),
-    step("orient", "Orientation", "end", "The manager confirms the first week plan."),
-  ];
-  const incidentDraft = [
-    step("detect", "Detect", "trigger", "Monitoring or a person reports the incident."),
-    step("triage", "Triage", "task", "Severity and the owning team are set."),
-    step("tell", "Communicate", "end", "Stakeholders receive the status."),
-  ];
-
-  const processes = [
-    {
-      id: "proc_invoice",
-      name: "Invoice approval",
-      description: "Check a supplier invoice and record an approval decision.",
-      owner: "Finance",
-      updatedAt: "2026-10-02T09:30:00.000Z",
-      draft: invoiceDraft,
-      versions: [
-        version("ver_invoice_1", 1, "2026-09-12T08:00:00.000Z", "First published path, without the outcome record.", invoiceV1),
-        version("ver_invoice_2", 2, "2026-10-02T09:30:00.000Z", "Adds the step that writes the decision back.", invoiceDraft.map(copyStep)),
-      ],
-    },
-    {
-      id: "proc_hire",
-      name: "New hire onboarding",
-      description: "Take an accepted offer through to the first day.",
-      owner: "People",
-      updatedAt: "2026-10-08T11:00:00.000Z",
-      draft: hireDraft,
-      versions: [
-        version("ver_hire_1", 1, "2026-10-08T11:00:00.000Z", "Initial onboarding path.", hireDraft.map(copyStep)),
-      ],
-    },
-    {
-      id: "proc_incident",
-      name: "Incident response",
-      description: "Triage an operational incident and tell the people who need to know.",
-      owner: "Operations",
-      updatedAt: "2026-10-09T07:15:00.000Z",
-      draft: incidentDraft,
-      versions: [],
-    },
-  ];
-
-  const runs = [
-    frozenRun({
-      id: "run_invoice_ok",
-      processId: "proc_invoice",
-      versionNumber: 1,
-      startedAt: "2026-09-18T10:00:00.000Z",
-      startedBy: workspace.actor,
-      outcome: "succeeded",
-      steps: invoiceV1,
-    }),
-    frozenRun({
-      id: "run_invoice_bad",
-      processId: "proc_invoice",
-      versionNumber: 2,
-      startedAt: "2026-10-06T14:10:00.000Z",
-      startedBy: workspace.actor,
-      outcome: "failed",
-      failAt: 2,
-      failNote: "The cost centre was closed. The invoice was sent back.",
-      steps: invoiceDraft,
-    }),
-    {
-      mode: "live",
-      id: "run_hire_live",
-      processId: "proc_hire",
-      versionNumber: 1,
-      startedAt: new Date(Date.now() - stepTimingMs * 1.4).toISOString(),
-      startedBy: workspace.actor,
-      steps: hireDraft.map(copyStep),
-    },
-  ];
-
-  return { processes, runs };
-}
-
-function step(id, name, kind, summary) {
-  return { id: `step_${id}`, name, kind, summary };
-}
-
-function copyStep(item) {
-  return { id: item.id, name: item.name, kind: item.kind, summary: item.summary };
-}
-
-function version(id, number, publishedAt, note, steps) {
-  return { id, number, publishedAt, note, steps: steps.map(copyStep) };
-}
-
-function frozenRun({ id, processId, versionNumber, startedAt, startedBy, outcome, steps, failAt, failNote }) {
-  const start = Date.parse(startedAt);
-  const recorded = steps.map((item, index) => {
-    const stepStart = new Date(start + index * stepTimingMs).toISOString();
-    const stepEnd = new Date(start + (index + 1) * stepTimingMs).toISOString();
-    if (outcome === "failed" && index > failAt) {
-      return recordStep(item, "skipped", null, null, defaults.pendingNote);
-    }
-    if (outcome === "failed" && index === failAt) {
-      return recordStep(item, "failed", stepStart, stepEnd, failNote);
-    }
-    return recordStep(item, "succeeded", stepStart, stepEnd, defaults.succeededNote);
-  });
-  const finishedAt = outcome === "failed"
-    ? recorded[failAt].finishedAt
-    : recorded[recorded.length - 1].finishedAt;
-  return {
-    mode: "frozen",
-    snapshot: {
-      id,
-      processId,
-      versionNumber,
-      status: outcome,
-      startedAt,
-      finishedAt,
-      startedBy,
-      steps: recorded,
-    },
-  };
-}
-
-function recordStep(item, status, startedAt, finishedAt, note) {
-  return {
-    id: item.id,
-    name: item.name,
-    kind: item.kind,
-    status,
-    startedAt,
-    finishedAt,
-    note,
-  };
+  return structuredClone(value);
 }
 
 function load() {
@@ -187,310 +32,517 @@ function load() {
     const raw = sessionStorage.getItem(STORE_KEY);
     if (raw) return JSON.parse(raw);
   } catch {
-    /* a blocked storage is treated as a fresh workspace */
+    // Storage can be unavailable (private mode); fall back to a fresh seed.
   }
-  const state = seed();
-  save(state);
-  return state;
+  const now = Date.now();
+  const studio = seedStudio(now);
+  for (const run of studio.runs) {
+    if (run.status === "running") run.finishAt = now + SEEDED_RUN_MS;
+  }
+  return { seededAt: now, sequence: 0x7f3b, ...studio };
 }
 
-function save(state) {
+function save() {
   try {
-    sessionStorage.setItem(STORE_KEY, JSON.stringify(state));
+    sessionStorage.setItem(STORE_KEY, JSON.stringify(store));
   } catch {
-    /* the in-memory object still serves this page */
+    // Persistence is a convenience only.
   }
+  for (const listener of listeners) listener();
 }
 
-function state() {
-  if (!state.current) state.current = load();
-  return state.current;
+function notFound(kind, id) {
+  const error = new Error(`${kind} ${id} was not found.`);
+  error.code = "not_found";
+  return error;
 }
 
-function processById(id) {
-  const found = state().processes.find((item) => item.id === id);
-  if (!found) throw new Error("Process not found.");
-  return found;
+function nextId(prefix) {
+  store.sequence += 1;
+  return `${prefix}_${store.sequence.toString(16)}`;
 }
 
-function latestVersion(process) {
-  return process.versions[process.versions.length - 1] ?? null;
+function matches(text, q) {
+  return !q || text.toLowerCase().includes(q.trim().toLowerCase());
 }
 
-function summarizeProcess(process) {
-  const published = latestVersion(process);
+/* ------------------------------------------------------------------ */
+/* Run engine                                                          */
+/* ------------------------------------------------------------------ */
+
+/** Finish runs whose time has come. Called before every read. */
+function settleRuns() {
+  const now = Date.now();
+  let changed = false;
+  for (const run of store.runs) {
+    if (run.status !== "running" || !run.finishAt || run.finishAt > now) continue;
+    run.status = run.willFail ? "failed" : "succeeded";
+    run.durationMs = run.finishAt - run.startedAt;
+    run.attempts = playAttempts(findFlow(run.flowId).graph, run.status, run.startedAt);
+    changed = true;
+  }
+  if (changed) save();
+}
+
+function scheduleSettle(run) {
+  setTimeout(() => settleRuns(), Math.max(0, run.finishAt - Date.now()) + 20);
+}
+
+for (const run of store.runs) {
+  if (run.status === "running" && run.finishAt) scheduleSettle(run);
+}
+
+/** Order a graph's nodes the way the engine walks them. */
+function walkOrder(graph) {
+  const incoming = new Map(graph.nodes.map((node) => [node.id, 0]));
+  for (const edge of graph.edges) incoming.set(edge.to, (incoming.get(edge.to) ?? 0) + 1);
+  const queue = graph.nodes.filter((node) => incoming.get(node.id) === 0);
+  const order = [];
+  const seen = new Set();
+  while (queue.length) {
+    const node = queue.shift();
+    if (seen.has(node.id)) continue;
+    seen.add(node.id);
+    order.push(node);
+    for (const edge of graph.edges.filter((item) => item.from === node.id)) {
+      const target = graph.nodes.find((item) => item.id === edge.to);
+      if (target) queue.push(target);
+    }
+  }
+  return order;
+}
+
+/** Produce the attempts a run records when it plays a flow's graph. */
+function playAttempts(graph, status, startedAt) {
+  const order = walkOrder(graph);
+  const failAt = status === "failed" ? Math.max(1, order.length - 1) : -1;
+  let offset = 0;
+  return order.map((node, index) => {
+    const base = { id: `${node.id}_${startedAt}`, nodeId: node.id, step: node.name, payload: "none", inCount: 0, outCount: 0 };
+    if (node.state === "disabled") {
+      return { ...base, tryIndex: null, tryCount: null, result: { kind: "disabled" }, durationMs: null, offsetMs: null, io: { input: {}, output: {}, error: null } };
+    }
+    if (failAt !== -1 && index > failAt) {
+      return { ...base, tryIndex: null, tryCount: null, result: { kind: "notRun" }, durationMs: null, offsetMs: null, io: { input: {}, output: {}, error: null } };
+    }
+    const durationMs = node.group === "trigger" ? null : 120 + ((index * 173) % 600);
+    const failed = index === failAt;
+    const attempt = {
+      ...base,
+      tryIndex: 1,
+      tryCount: 1,
+      result: failed ? { kind: "failed", code: 500 } : index === 0 ? { kind: "received" } : { kind: "succeeded" },
+      payload: "stored",
+      inCount: index === 0 ? 0 : 1,
+      outCount: failed ? 0 : 1,
+      durationMs,
+      offsetMs: offset,
+      io: {
+        input: index === 0 ? {} : { from: order[index - 1].name },
+        output: failed ? {} : { ok: true, step: node.name },
+        error: failed ? { status: 500, message: "The step returned an error." } : null,
+      },
+    };
+    offset += (durationMs ?? 0) + 4;
+    return attempt;
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Projections                                                         */
+/* ------------------------------------------------------------------ */
+
+function findFlow(id) {
+  const flow = store.flows.find((item) => item.id === id);
+  if (!flow) throw notFound("Flow", id);
+  return flow;
+}
+
+function lastRunOf(flowId) {
+  const runs = store.runs.filter((run) => run.flowId === flowId).sort((a, b) => b.startedAt - a.startedAt);
+  return runs[0] ? { status: runs[0].status, at: runs[0].startedAt } : null;
+}
+
+function summarize(flow) {
+  const { graph, ...rest } = flow;
   return {
-    id: process.id,
-    name: process.name,
-    description: process.description,
-    owner: process.owner,
-    updatedAt: process.updatedAt,
-    stepCount: process.draft.length,
-    latestVersion: published ? published.number : null,
-    state: published ? "published" : "draft",
-    runCount: runCountFor(process.id),
+    ...rest,
+    chain: walkOrder(graph).map((node) => node.group),
+    lastRun: lastRunOf(flow.id),
   };
 }
 
-function runProcessId(record) {
-  return record.mode === "frozen" ? record.snapshot.processId : record.processId;
+function runSummary(run) {
+  const flow = store.flows.find((item) => item.id === run.flowId);
+  return {
+    id: run.id,
+    flowId: run.flowId,
+    flowName: flow ? flow.name : run.flowId,
+    status: run.status,
+    mode: run.mode,
+    startedAt: run.startedAt,
+    durationMs: run.durationMs,
+  };
 }
 
-function materialize(record, at = Date.now()) {
-  if (record.mode === "frozen") return clone(record.snapshot);
-  const elapsed = at - Date.parse(record.startedAt);
-  const steps = record.steps.map((item, index) => {
-    const start = index * stepTimingMs;
-    const end = start + stepTimingMs;
-    if (elapsed < start) return recordStep(item, "pending", null, null, defaults.pendingNote);
-    const startedAt = new Date(Date.parse(record.startedAt) + start).toISOString();
-    if (elapsed < end) return recordStep(item, "running", startedAt, null, defaults.runningNote);
-    const finishedAt = new Date(Date.parse(record.startedAt) + end).toISOString();
-    return recordStep(item, "succeeded", startedAt, finishedAt, defaults.succeededNote);
-  });
-  const statuses = steps.map((item) => item.status);
-  let status = "running";
-  if (statuses.every((item) => item === "pending")) status = "queued";
-  if (statuses.every((item) => item === "succeeded")) status = "succeeded";
-  const finishedAt = status === "succeeded" ? steps[steps.length - 1].finishedAt : null;
+function flowCounts() {
+  const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
   return {
-    id: record.id,
-    processId: record.processId,
-    versionNumber: record.versionNumber,
-    status,
-    startedAt: record.startedAt,
-    finishedAt,
-    startedBy: record.startedBy,
+    published: store.flows.filter((flow) => flow.status === "published").length,
+    running: store.runs.filter((run) => run.status === "running").length,
+    failed24h: store.runs.filter((run) => run.status === "failed" && run.startedAt >= dayAgo).length,
+    drafts: store.flows.filter((flow) => flow.status === "draft").length,
+  };
+}
+
+function runCounts() {
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const recent = store.runs.filter((run) => run.startedAt >= weekAgo);
+  return {
+    running: store.runs.filter((run) => run.status === "running").length,
+    succeeded7d: recent.filter((run) => run.status === "succeeded" || run.status === "retried").length,
+    failed7d: recent.filter((run) => run.status === "failed").length,
+    asOf: Date.now(),
+    perHour: store.runsPerHour,
+  };
+}
+
+function runDetail(run) {
+  const flow = findFlow(run.flowId);
+  const attempts = run.attempts ?? playAttempts(flow.graph, run.status === "running" ? "succeeded" : run.status, run.startedAt);
+  const groups = new Map(flow.graph.nodes.map((node) => [node.id, node.group]));
+  const visible = (run.status === "running" ? attempts.slice(0, 1) : attempts).map((item) => ({
+    ...item,
+    group: groups.get(item.nodeId) ?? "integration",
+  }));
+  const steps = new Set(flow.graph.nodes.map((node) => node.id));
+  const recorded = new Set(
+    visible.filter((item) => item.result.kind !== "disabled" && item.result.kind !== "notRun").map((item) => item.nodeId),
+  );
+  const failure = visible.find((item) => item.result.kind === "failed");
+  const recovered = failure ? visible.some((item) => item.nodeId === failure.nodeId && item.result.kind === "succeeded") : false;
+  const sameFlow = store.runs.filter((item) => item.flowId === run.flowId).sort((a, b) => a.startedAt - b.startedAt);
+  return {
+    ...runSummary(run),
+    number: sameFlow.findIndex((item) => item.id === run.id) + 1,
+    attempts: visible,
+    stepCount: steps.size,
+    recordedSteps: recorded.size,
+    retentionDays: store.retentionDays,
+    expiresAt: run.startedAt + store.retentionDays * 24 * 60 * 60 * 1000,
+    problem: failure
+      ? { step: failure.step, tryIndex: failure.tryIndex, tryCount: failure.tryCount, code: failure.result.code, recovered }
+      : null,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Workspace                                                           */
+/* ------------------------------------------------------------------ */
+
+export async function getWorkspace() {
+  await wait(LATENCY_MS.read);
+  const { usage, ...rest } = store.workspace;
+  return clone({ ...rest, usage: { ...usage, ratio: usage.included ? usage.used / usage.included : 0 } });
+}
+
+/** Lets live screens refresh when the dummy engine changes data. */
+export function subscribe(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/* ------------------------------------------------------------------ */
+/* Flows                                                               */
+/* ------------------------------------------------------------------ */
+
+export async function listFlows(query = {}) {
+  await wait(LATENCY_MS.read);
+  settleRuns();
+  const flows = store.flows
+    .filter((flow) => matches(`${flow.name} ${flow.folder}`, query.q))
+    .filter((flow) => !query.status || flow.status === query.status)
+    .filter((flow) => !query.folder || flow.folder === query.folder)
+    .map(summarize);
+  const folders = [...new Set(store.flows.map((flow) => flow.folder))].sort();
+  return clone({ flows, counts: flowCounts(), folders });
+}
+
+export async function getFlow(flowId) {
+  await wait(LATENCY_MS.read);
+  settleRuns();
+  const flow = findFlow(flowId);
+  const steps = flow.graph.nodes.map((node) => ({
+    nodeId: node.id,
+    fields: store.stepDetails[node.id]?.fields ?? [],
+    retry: store.stepDetails[node.id]?.retry ?? { enabled: false, tries: 1, delayMs: 0 },
+  }));
+  const runs = store.runs.filter((run) => run.flowId === flowId).sort((a, b) => b.startedAt - a.startedAt);
+  const recorded = runs.find((run) => run.attempts) ?? runs[0];
+  return clone({
+    flow: summarize(flow),
+    graph: flow.graph,
     steps,
-  };
-}
-
-function summarizeRun(detail, processName) {
-  return {
-    id: detail.id,
-    processId: detail.processId,
-    processName,
-    versionNumber: detail.versionNumber,
-    status: detail.status,
-    startedAt: detail.startedAt,
-    finishedAt: detail.finishedAt,
-    startedBy: detail.startedBy,
-  };
-}
-
-function allRuns() {
-  return state().runs.map((record) => {
-    const detail = materialize(record);
-    const process = state().processes.find((item) => item.id === detail.processId);
-    return { detail, summary: summarizeRun(detail, process ? process.name : detail.processId) };
+    palette: store.palette,
+    latestRunId: recorded ? recorded.id : null,
   });
 }
 
-function matches(haystack, query) {
-  if (!query) return true;
-  return haystack.toLowerCase().includes(query.trim().toLowerCase());
-}
-
-export async function getOverview() {
-  await wait(LATENCY_MS.read);
-  const processes = state().processes.map(summarizeProcess);
-  const runs = allRuns()
-    .map((item) => item.summary)
-    .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
-  return {
-    organization: workspace.organization,
-    actor: workspace.actor,
-    counts: {
-      processes: processes.length,
-      published: processes.filter((item) => item.state === "published").length,
-      activeRuns: runs.filter((item) => item.status === "queued" || item.status === "running").length,
-      failedRuns: runs.filter((item) => item.status === "failed").length,
-    },
-    recentRuns: runs.slice(0, 5),
-    recentProcesses: processes.slice(0, 5),
-  };
-}
-
-export async function listProcesses(query = {}) {
-  await wait(LATENCY_MS.read);
-  return state().processes
-    .map(summarizeProcess)
-    .filter((item) => matches(`${item.name} ${item.description}`, query.q))
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-}
-
-export async function getProcess(id) {
-  await wait(LATENCY_MS.read);
-  const process = processById(id);
-  return {
-    id: process.id,
-    name: process.name,
-    description: process.description,
-    owner: process.owner,
-    updatedAt: process.updatedAt,
-    draft: clone(process.draft),
-    versions: clone(process.versions),
-  };
-}
-
-export async function createProcess(input) {
+export async function createFlow({ name, folder }) {
   await wait(LATENCY_MS.write);
-  const name = String(input.name ?? "").trim();
-  if (!name) throw new Error("A process needs a name.");
-  const process = {
-    id: uid("proc"),
+  const flow = {
+    id: nextId("f"),
     name,
-    description: String(input.description ?? "").trim(),
-    owner: workspace.actor,
-    updatedAt: nowIso(),
-    draft: [],
-    versions: [],
+    folder,
+    status: "draft",
+    trigger: { kind: "webhook" },
+    owner: store.workspace.you,
+    updatedAt: Date.now(),
+    graph: linearGraph([{ id: nextId("n"), name: "Webhook", type: "webhook", group: "trigger" }]),
   };
-  state().processes.unshift(process);
-  save(state());
-  return getProcess(process.id);
+  store.flows.unshift(flow);
+  save();
+  return clone(summarize(flow));
 }
 
-export async function addStep(processId) {
+export async function publishFlow(flowId) {
   await wait(LATENCY_MS.write);
-  const process = processById(processId);
-  process.draft.push({
-    id: uid("step"),
-    name: defaults.stepName,
-    kind: defaults.stepKind,
-    summary: defaults.stepSummary,
-  });
-  process.updatedAt = nowIso();
-  save(state());
-  return getProcess(processId);
+  const flow = findFlow(flowId);
+  flow.status = "published";
+  flow.updatedAt = Date.now();
+  save();
+  return clone(summarize(flow));
 }
 
-export async function updateStep(processId, stepId, patch) {
+export async function updateStep(flowId, nodeId, patch) {
   await wait(LATENCY_MS.write);
-  const process = processById(processId);
-  const current = process.draft.find((item) => item.id === stepId);
-  if (!current) throw new Error("Step not found.");
-  const name = String(patch.name ?? "").trim();
-  if (!name) throw new Error("A step needs a name.");
-  current.name = name;
-  current.kind = patch.kind || current.kind;
-  current.summary = String(patch.summary ?? "").trim();
-  process.updatedAt = nowIso();
-  save(state());
-  return getProcess(processId);
+  const flow = findFlow(flowId);
+  const node = flow.graph.nodes.find((item) => item.id === nodeId);
+  if (!node) throw notFound("Step", nodeId);
+  if (patch.name) node.name = patch.name;
+  if (patch.state) node.state = patch.state;
+  const detail = store.stepDetails[nodeId] ?? { fields: [], retry: { enabled: false, tries: 1, delayMs: 0 } };
+  if (patch.fields) {
+    for (const [fieldId, value] of Object.entries(patch.fields)) {
+      const field = detail.fields.find((item) => item.id === fieldId);
+      if (field) field.value = value;
+    }
+  }
+  if (patch.retry) detail.retry = { ...detail.retry, ...patch.retry };
+  store.stepDetails[nodeId] = detail;
+  if (flow.status === "published") flow.status = "changed";
+  flow.updatedAt = Date.now();
+  save();
+  return clone({ node, detail });
 }
 
-export async function removeStep(processId, stepId) {
+/** Move steps on the canvas. Layout changes do not count as unpublished changes. */
+export async function moveSteps(flowId, positions) {
   await wait(LATENCY_MS.write);
-  const process = processById(processId);
-  const next = process.draft.filter((item) => item.id !== stepId);
-  if (next.length === process.draft.length) throw new Error("Step not found.");
-  process.draft = next;
-  process.updatedAt = nowIso();
-  save(state());
-  return getProcess(processId);
+  const flow = findFlow(flowId);
+  for (const position of positions) {
+    const node = flow.graph.nodes.find((item) => item.id === position.id);
+    if (node) {
+      node.x = Math.round(position.x);
+      node.y = Math.round(position.y);
+    }
+  }
+  save();
+  return clone(flow.graph.nodes);
 }
 
-export async function publishProcess(processId, input) {
+export async function addStep(flowId, item) {
   await wait(LATENCY_MS.write);
-  const process = processById(processId);
-  if (!process.draft.length) throw new Error("Add at least one step before publishing.");
-  const note = String(input.note ?? "").trim();
-  if (!note) throw new Error("A published version needs a note.");
-  const previous = latestVersion(process);
-  process.versions.push({
-    id: uid("ver"),
-    number: previous ? previous.number + 1 : 1,
-    publishedAt: nowIso(),
-    note,
-    steps: process.draft.map(copyStep),
-  });
-  process.updatedAt = nowIso();
-  save(state());
-  return getProcess(processId);
+  const flow = findFlow(flowId);
+  const last = walkOrder(flow.graph).at(-1);
+  const node = {
+    id: nextId("n"),
+    name: item.label,
+    type: item.id,
+    group: item.group,
+    x: last ? last.x + 300 : 296,
+    y: last ? last.y : 360,
+    state: "normal",
+    outputs: 1,
+  };
+  flow.graph.nodes.push(node);
+  if (last) flow.graph.edges.push({ from: last.id, to: node.id, style: "active" });
+  if (flow.status === "published") flow.status = "changed";
+  flow.updatedAt = Date.now();
+  save();
+  return clone(node);
 }
+
+/* ------------------------------------------------------------------ */
+/* Runs                                                                */
+/* ------------------------------------------------------------------ */
 
 export async function listRuns(query = {}) {
   await wait(LATENCY_MS.read);
-  return allRuns()
-    .map((item) => item.summary)
-    .filter((item) => (query.processId ? item.processId === query.processId : true))
-    .filter((item) => (query.status ? item.status === query.status : true))
-    .filter((item) => matches(`${item.id} ${item.processName}`, query.q))
-    .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+  settleRuns();
+  const runs = store.runs
+    .map(runSummary)
+    .filter((run) => matches(`${run.flowName} ${run.id}`, query.q))
+    .filter((run) => !query.status || run.status === query.status)
+    .filter((run) => !query.mode || run.mode === query.mode)
+    .filter((run) => !query.days || run.startedAt >= Date.now() - query.days * 24 * 60 * 60 * 1000)
+    .sort((a, b) => b.startedAt - a.startedAt);
+  return clone({ runs, counts: runCounts() });
 }
 
-export async function getRun(id) {
+export async function getRun(runId) {
   await wait(LATENCY_MS.read);
-  const found = allRuns().find((item) => item.detail.id === id);
-  if (!found) throw new Error("Run not found.");
-  return { ...found.detail, processName: found.summary.processName };
+  settleRuns();
+  const run = store.runs.find((item) => item.id === runId);
+  if (!run) throw notFound("Run", runId);
+  return clone(runDetail(run));
 }
 
-export async function startRun(processId) {
+export async function startRun(flowId, mode = "test") {
   await wait(LATENCY_MS.write);
-  const process = processById(processId);
-  const published = latestVersion(process);
-  if (!published) throw new Error("Publish a version before starting a run.");
-  const record = {
-    mode: "live",
-    id: uid("run"),
-    processId,
-    versionNumber: published.number,
-    startedAt: nowIso(),
-    startedBy: workspace.actor,
-    steps: published.steps.map(copyStep),
+  const flow = findFlow(flowId);
+  const steps = walkOrder(flow.graph).filter((node) => node.state !== "disabled").length;
+  const now = Date.now();
+  const run = {
+    id: nextId("r"),
+    flowId,
+    status: "running",
+    mode,
+    startedAt: now,
+    durationMs: null,
+    finishAt: now + steps * STEP_MS,
+    willFail: false,
   };
-  state().runs.unshift(record);
-  save(state());
-  return getRun(record.id);
+  store.runs.unshift(run);
+  save();
+  scheduleSettle(run);
+  return clone(runSummary(run));
 }
 
-export async function askAssistant(request) {
+export async function retryRuns(runIds) {
   await wait(LATENCY_MS.write);
-  const process = processById(request.processId);
-  const instruction = String(request.instruction ?? "").trim();
-  if (!instruction) throw new Error("Ask a question first.");
-  const runs = allRuns()
-    .filter((item) => item.summary.processId === process.id)
-    .map((item) => item.summary);
-  const published = latestVersion(process);
-  const text = replyFor(instruction, process, published, runs);
-  return { text };
+  const created = [];
+  for (const runId of runIds) {
+    const source = store.runs.find((item) => item.id === runId);
+    if (!source) continue;
+    const steps = walkOrder(findFlow(source.flowId).graph).length;
+    const now = Date.now();
+    const run = { id: nextId("r"), flowId: source.flowId, status: "running", mode: "retry", startedAt: now, durationMs: null, finishAt: now + steps * STEP_MS };
+    store.runs.unshift(run);
+    scheduleSettle(run);
+    created.push(runSummary(run));
+  }
+  save();
+  return clone(created);
 }
 
-function replyFor(instruction, process, published, runs) {
-  const lowered = instruction.toLowerCase();
-  const draftNames = process.draft.map((item) => item.name).join(", ");
-  const active = runs.filter((item) => item.status === "running" || item.status === "queued");
-  const failed = runs.filter((item) => item.status === "failed");
-
-  if (lowered.includes("publish")) {
-    if (!process.draft.length) return `${process.name} has an empty draft, so there is nothing to publish.`;
-    if (!published) {
-      return `${process.name} is still a draft with ${process.draft.length} steps (${draftNames}). Publishing will freeze this sequence as version 1. Later draft edits will not change that version.`;
-    }
-    return `${process.name} is already published as version ${published.number}. Publishing again freezes the current draft as version ${published.number + 1}. The note should say what changed since “${published.note}”.`;
-  }
-
-  if (lowered.includes("fail") || lowered.includes("error")) {
-    if (!failed.length) return `${process.name} has no failed runs.`;
-    const latest = failed[0];
-    return `The latest failed run is ${latest.id} on version ${latest.versionNumber}. Open that run for the step that stopped it. The published version itself is unchanged.`;
-  }
-
-  if (lowered.includes("run") || lowered.includes("next")) {
-    if (!published) return `Publish ${process.name} before starting a run. A run always executes a published version, never the live draft.`;
-    if (active.length) return `${active.length} run(s) of ${process.name} are still in progress, on version ${published.number}. The record fills in one step at a time.`;
-    return `The runnable definition is version ${published.number} (${published.steps.length} steps). Starting a run copies those steps into a new record. Editing the draft afterwards will not rewrite it.`;
-  }
-
-  const versionText = published
-    ? `Version ${published.number} is the one a new run will use.`
-    : "No version has been published, so it cannot be run yet.";
-  return `${process.name}: ${process.description} The draft is ${draftNames || "empty"}. ${versionText} ${runs.length} run(s) are on record.`;
+export async function deleteRuns(runIds) {
+  await wait(LATENCY_MS.write);
+  const ids = new Set(runIds);
+  const before = store.runs.length;
+  store.runs = store.runs.filter((run) => !ids.has(run.id));
+  save();
+  return { deleted: before - store.runs.length };
 }
 
-function runCountFor(processId) {
-  return state().runs.filter((item) => runProcessId(item) === processId).length;
+/* ------------------------------------------------------------------ */
+/* Connections                                                         */
+/* ------------------------------------------------------------------ */
+
+export async function listConnections(query = {}) {
+  await wait(LATENCY_MS.read);
+  const connections = store.connections
+    .filter((item) => matches(`${item.name} ${item.audience}`, query.q))
+    .filter((item) => !query.health || item.health === query.health);
+  return clone(connections);
+}
+
+export async function testConnection(connectionId) {
+  await wait(LATENCY_MS.write);
+  const connection = store.connections.find((item) => item.id === connectionId);
+  if (!connection) throw notFound("Connection", connectionId);
+  connection.lastUsedAt = Date.now();
+  save();
+  return { ok: connection.health !== "broken", latencyMs: 80 + (connection.name.length * 7) % 90 };
+}
+
+export async function reconnectConnection(connectionId) {
+  await wait(LATENCY_MS.write);
+  const connection = store.connections.find((item) => item.id === connectionId);
+  if (!connection) throw notFound("Connection", connectionId);
+  connection.health = "healthy";
+  connection.brokenFlow = null;
+  connection.expiresAt = connection.auth === "oauth" ? Date.now() + 90 * 24 * 60 * 60 * 1000 : null;
+  save();
+  return clone(connection);
+}
+
+export async function addConnection({ name, auth, audience }) {
+  await wait(LATENCY_MS.write);
+  const connection = {
+    id: nextId("c"),
+    name,
+    app: "http",
+    auth,
+    owner: store.workspace.you,
+    health: "healthy",
+    scopes: ["read"],
+    audience,
+    usedBy: 0,
+    lastUsedAt: null,
+    expiresAt: null,
+    brokenFlow: null,
+    group: "integration",
+  };
+  store.connections.unshift(connection);
+  save();
+  return clone(connection);
+}
+
+export async function getConnectionNames() {
+  await wait(LATENCY_MS.read);
+  return clone(store.connections.map(({ id, name, health }) => ({ id, name, health })));
+}
+
+/* ------------------------------------------------------------------ */
+/* Assistant                                                           */
+/* ------------------------------------------------------------------ */
+
+function draftFor(prompt) {
+  const text = prompt.toLowerCase();
+  const scored = store.draftRecipes
+    .map((recipe) => ({ recipe, score: recipe.keywords.filter((word) => text.includes(word)).length }))
+    .sort((a, b) => b.score - a.score);
+  const recipe = scored[0].recipe;
+  return { prompt, title: recipe.title, graph: linearGraph(recipe.steps) };
+}
+
+export async function getAssistantHome() {
+  await wait(LATENCY_MS.read);
+  const { suggestions, activeSuggestion, starters, recommended } = store.assistant;
+  const active = suggestions.find((item) => item.id === activeSuggestion) ?? suggestions[0];
+  const preview = draftFor(active.label);
+  return clone({ suggestions, activeSuggestion, starters, recommended, preview: { title: preview.title, graph: preview.graph } });
+}
+
+export async function draftFlow(prompt) {
+  await wait(LATENCY_MS.write + 400);
+  return clone(draftFor(prompt));
+}
+
+export async function saveDraft(draft) {
+  await wait(LATENCY_MS.write);
+  const flow = {
+    id: nextId("f"),
+    name: draft.title,
+    folder: store.workspace.project.name,
+    status: "draft",
+    trigger: { kind: "webhook" },
+    owner: store.workspace.you,
+    updatedAt: Date.now(),
+    graph: clone(draft.graph),
+  };
+  store.flows.unshift(flow);
+  save();
+  return clone(summarize(flow));
 }

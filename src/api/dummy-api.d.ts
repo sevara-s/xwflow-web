@@ -1,26 +1,53 @@
 import type {
-  AssistantReply,
-  AssistantRequest,
-  CreateProcessInput,
-  Overview,
-  ProcessDetail,
-  ProcessQuery,
-  ProcessSummary,
+  AssistantDraft,
+  AssistantHome,
+  CanvasNode,
+  Connection,
+  ConnectionQuery,
+  FlowDetail,
+  FlowList,
+  FlowQuery,
+  FlowSummary,
+  PaletteGroup,
   RunDetail,
+  RunList,
+  RunMode,
   RunQuery,
   RunSummary,
-  StepPatch,
+  StepDetail,
+  Workspace,
 } from "../types/domain";
 
-export function getOverview(): Promise<Overview>;
-export function listProcesses(query?: ProcessQuery): Promise<ProcessSummary[]>;
-export function getProcess(id: string): Promise<ProcessDetail>;
-export function createProcess(input: CreateProcessInput): Promise<ProcessDetail>;
-export function addStep(processId: string): Promise<ProcessDetail>;
-export function updateStep(processId: string, stepId: string, patch: StepPatch): Promise<ProcessDetail>;
-export function removeStep(processId: string, stepId: string): Promise<ProcessDetail>;
-export function publishProcess(processId: string, input: { note: string }): Promise<ProcessDetail>;
-export function listRuns(query?: RunQuery): Promise<RunSummary[]>;
-export function getRun(id: string): Promise<RunDetail>;
-export function startRun(processId: string): Promise<RunDetail>;
-export function askAssistant(request: AssistantRequest): Promise<AssistantReply>;
+export interface StepPatch {
+  name?: string;
+  state?: CanvasNode["state"];
+  fields?: Record<string, string>;
+  retry?: Partial<StepDetail["retry"]>;
+}
+
+export function subscribe(listener: () => void): () => void;
+export function getWorkspace(): Promise<Workspace>;
+
+export function listFlows(query?: FlowQuery): Promise<FlowList>;
+export function getFlow(flowId: string): Promise<FlowDetail>;
+export function createFlow(input: { name: string; folder: string }): Promise<FlowSummary>;
+export function publishFlow(flowId: string): Promise<FlowSummary>;
+export function updateStep(flowId: string, nodeId: string, patch: StepPatch): Promise<{ node: CanvasNode; detail: StepDetail }>;
+export function addStep(flowId: string, item: PaletteGroup["items"][number]): Promise<CanvasNode>;
+export function moveSteps(flowId: string, positions: Array<Pick<CanvasNode, "id" | "x" | "y">>): Promise<CanvasNode[]>;
+
+export function listRuns(query?: RunQuery): Promise<RunList>;
+export function getRun(runId: string): Promise<RunDetail>;
+export function startRun(flowId: string, mode?: RunMode): Promise<RunSummary>;
+export function retryRuns(runIds: string[]): Promise<RunSummary[]>;
+export function deleteRuns(runIds: string[]): Promise<{ deleted: number }>;
+
+export function listConnections(query?: ConnectionQuery): Promise<Connection[]>;
+export function getConnectionNames(): Promise<Array<Pick<Connection, "id" | "name" | "health">>>;
+export function testConnection(connectionId: string): Promise<{ ok: boolean; latencyMs: number }>;
+export function reconnectConnection(connectionId: string): Promise<Connection>;
+export function addConnection(input: { name: string; auth: Connection["auth"]; audience: string }): Promise<Connection>;
+
+export function getAssistantHome(): Promise<AssistantHome>;
+export function draftFlow(prompt: string): Promise<AssistantDraft>;
+export function saveDraft(draft: AssistantDraft): Promise<FlowSummary>;

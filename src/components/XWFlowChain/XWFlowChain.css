@@ -1,0 +1,9 @@
+.xwflow-chain { display: inline-flex; align-items: center; }
+.xwflow-chain__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--xwflow-gc);
+  box-shadow: 0 0 8px var(--xwflow-gc);
+}
+.xwflow-chain__link { width: 10px; height: 2px; background: rgba(255, 255, 255, 0.25); }

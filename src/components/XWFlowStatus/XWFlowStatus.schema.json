@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "XWFlowStatus",
+  "name": "XWFlow Status",
+  "description": "A run or step state shown as a shaped glyph and a label.",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["tone", "label"],
+      "properties": {
+        "tone": { "type": "string", "enum": ["ok", "err", "run", "idle", "warn", "pin", "dis"] },
+        "label": { "type": "string" }
+      }
+    },
+    "conf_comp": {
+      "type": "object",
+      "properties": {
+        "size": { "type": "string", "enum": ["sm", "md"], "default": "md" },
+        "className": { "type": "string" }
+      }
+    }
+  }
+}

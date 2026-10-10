@@ -1,0 +1,51 @@
+.xwflow-kpi {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 18px 20px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015));
+  border: 1px solid var(--xwflow-line);
+  min-width: 0;
+}
+.xwflow-kpi::after {
+  content: "";
+  position: absolute;
+  right: -30px;
+  top: -30px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: var(--xwflow-kc);
+  filter: blur(40px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.xwflow-kpi[data-tone="violet"] { --xwflow-kc: var(--xwflow-violet); }
+.xwflow-kpi[data-tone="cyan"] { --xwflow-kc: var(--xwflow-cyan); }
+.xwflow-kpi[data-tone="red"] { --xwflow-kc: var(--xwflow-red); }
+.xwflow-kpi[data-tone="amber"] { --xwflow-kc: var(--xwflow-amber); }
+.xwflow-kpi[data-tone="lime"] { --xwflow-kc: var(--xwflow-lime); }
+.xwflow-kpi[data-tone="green"] { --xwflow-kc: var(--xwflow-green); }
+
+/* XWUIDisplayStatistic inside the tile: title above, display number below. */
+.xwflow-kpi .xwui-statistic,
+.xwflow-kpi__statistic > * { display: flex; flex-direction: column; gap: 0; }
+.xwflow-kpi [class*="statistic-title"] {
+  order: 0;
+  font-size: 0.75rem;
+  color: var(--xwflow-text-2);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.xwflow-kpi [class*="statistic-value"] {
+  order: 1;
+  font-family: var(--xwflow-font-display);
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--xwflow-text);
+}
+.xwflow-kpi[data-emphasis] [class*="statistic-value"] { color: #ff8e9a; }
+.xwflow-kpi__note { position: relative; font-size: 0.75rem; color: var(--xwflow-text-3); }

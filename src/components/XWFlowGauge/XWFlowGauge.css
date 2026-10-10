@@ -1,0 +1,27 @@
+.xwflow-gauge {
+  --xwflow-gauge-size: 132px;
+  --xwflow-gauge-color: var(--xwflow-green);
+  width: var(--xwflow-gauge-size);
+  height: var(--xwflow-gauge-size);
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: conic-gradient(var(--xwflow-gauge-color) 0 var(--xwflow-gauge-fill), rgba(255, 255, 255, 0.08) var(--xwflow-gauge-fill) 100%);
+  box-shadow: 0 0 50px -10px color-mix(in srgb, var(--xwflow-gauge-color) 60%, transparent);
+}
+.xwflow-gauge[data-tone="red"] { --xwflow-gauge-color: var(--xwflow-red); }
+.xwflow-gauge[data-tone="cyan"] { --xwflow-gauge-color: var(--xwflow-cyan); }
+.xwflow-gauge__face {
+  width: calc(var(--xwflow-gauge-size) - 28px);
+  height: calc(var(--xwflow-gauge-size) - 28px);
+  border-radius: 50%;
+  background: var(--xwflow-bg-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.xwflow-gauge__value { font-family: var(--xwflow-font-display); font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; }
+.xwflow-gauge__caption { font-size: 0.75rem; color: var(--xwflow-text-2); }

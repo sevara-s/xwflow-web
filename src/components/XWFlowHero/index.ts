@@ -1,1 +1,0 @@
-export { XWFlowHero } from "./XWFlowHero";

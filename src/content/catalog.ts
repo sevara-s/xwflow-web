@@ -1,5 +1,6 @@
 import { admin } from "./admin";
 import { site } from "./site";
+import { views } from "./views";
 import { studio } from "./studio";
 
 export const catalog = {
@@ -20,4 +21,5 @@ export const catalog = {
   studio,
   site,
   admin,
+  views,
 } as const;

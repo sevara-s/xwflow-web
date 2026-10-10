@@ -25,9 +25,6 @@
   gap: 12px;
   flex-wrap: nowrap;
 }
-.xwflow-editor__crumbs { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--xwflow-text-2); white-space: nowrap; }
-.xwflow-editor__crumbs a { color: var(--xwflow-text-2); }
-.xwflow-editor__crumbs b { color: #fff; }
 .xwflow-editor__views { align-self: center; }
 .xwflow-editor__views .xwui-tabs-list { flex-wrap: nowrap; }
 .xwflow-editor__header .xwui-button .xwui-kbd { margin-left: 6px; }

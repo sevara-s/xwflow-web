@@ -133,3 +133,6 @@ a:hover { color: #fff; }
 .xwflow-sep { height: 1px; width: 100%; background: var(--xwflow-line); border: 0; margin: 0; }
 .xwflow-hint { font-size: 0.8125rem; color: var(--xwflow-text-2); margin: 0; }
 .xwflow-lime { color: var(--xwflow-lime); }
+.xwflow-editor__crumbs { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--xwflow-text-2); white-space: nowrap; }
+.xwflow-editor__crumbs a { color: var(--xwflow-text-2); }
+.xwflow-editor__crumbs b { color: #fff; }

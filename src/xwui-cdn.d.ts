@@ -78,6 +78,11 @@ declare module "https://xwui.dev/esm/basic.bundle.js" {
   }
 
   export class XWUIAlert extends XWUIComponent {}
+  export class XWUIInputSlider extends XWUIComponent {
+    getValue(): number;
+    setValue(value: number): void;
+    onChange(handler: (value: number) => void): void;
+  }
   export class XWUIUptimeBar extends XWUIComponent {}
   export class XWUISegmentedControl extends XWUIComponent {
     onChange?(handler: (value: string) => void): void;

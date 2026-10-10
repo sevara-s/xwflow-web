@@ -14,6 +14,7 @@ export {
   XWUIEmpty,
   XWUIIcon,
   XWUIInputCheckbox,
+  XWUIInputSlider,
   XWUIInputSwitch,
   XWUIInputText,
   XWUIInputTextarea,

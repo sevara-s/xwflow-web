@@ -1,65 +1,94 @@
+/**
+ * Types for the XWUI basic tier loaded from the CDN. XWUI ships no package on
+ * npm yet, so these declarations cover the surface this app uses. Shapes
+ * follow the published schemas at https://xwui.dev/schemas/v1/.
+ */
 declare module "https://xwui.dev/esm/basic.bundle.js" {
-  export class XWUIComponent {
-    constructor(container: HTMLElement, data?: object, config?: object);
-    get container(): HTMLElement;
-    destroy(): void;
-    setData(data: object): void;
-    updateData(data: object): void;
-    static configure(config: object): void;
+  type Data = object;
+  type Conf = object;
+
+  export class XWUIComponent<D extends Data = Record<string, unknown>, C extends Conf = Record<string, unknown>> {
+    constructor(container: HTMLElement, data?: D, conf?: C);
     static componentName: string;
+    get container(): HTMLElement;
+    get data(): D;
+    get config(): C;
+    setData(data: D): void;
+    updateData(partial: Partial<D>): void;
+    destroy(): void;
   }
 
   export class XWUIButton extends XWUIComponent {
     onClick(handler: (event: MouseEvent) => void): void;
+    updateConfig(config: object): void;
+    setLoading(loading: boolean): void;
+    setDisabled(disabled: boolean): void;
+    setPressed(pressed: boolean): void;
+    setText(text: string): void;
   }
-
   export class XWUIInputText extends XWUIComponent {
     getValue(): string;
+    setValue(value: string): void;
     onChange(handler: (value: string, event: Event) => void): void;
+    focus(): void;
   }
-
   export class XWUIInputTextarea extends XWUIComponent {
     getValue(): string;
+    setValue(value: string): void;
     onChange(handler: (value: string, event: Event) => void): void;
+    focus(): void;
   }
-
   export class XWUISelect extends XWUIComponent {
     getValue(): string | string[] | undefined;
+    setValue(value: string): void;
     onChange(handler: (value: string | string[], event: Event) => void): void;
   }
-
+  export class XWUIInputSwitch extends XWUIComponent {
+    onChange(handler: (checked: boolean, event: Event) => void): void;
+  }
+  export class XWUIInputCheckbox extends XWUIComponent {
+    onChange(handler: (checked: boolean, event: Event) => void): void;
+  }
+  export class XWUINavTabs extends XWUIComponent {
+    onChange(handler: (tabId: string, event: Event) => void): void;
+    setActiveTab(tabId: string): void;
+  }
+  export class XWUITable extends XWUIComponent {
+    /** Receives the indexes of the selected rows. */
+    onSelect(handler: (rows: number[]) => void): void;
+    setSelectedRows(rows: number[]): void;
+    deselectAll(): void;
+    /** Fires for clicks on rows when `rowClickable` is set. */
+    onRowClick<R = Record<string, unknown>>(handler: (record: R, index: number, event: Event) => void): void;
+  }
+  export class XWUIDisplayChip extends XWUIComponent {
+    onClick(handler: (event: Event) => void): void;
+    onClose(handler: (event: Event) => void): void;
+  }
+  export class XWUIMenuDropdown extends XWUIComponent {
+    onItemClick(handler: (item: { id: string }, event: Event) => void): void;
+    open?(): void;
+  }
   export class XWUIDialog extends XWUIComponent {
     open(): void;
     close(): void;
   }
-
   export class XWUIToast extends XWUIComponent {
-    show(options: { message: string; variant?: string }): void;
+    show(options: { message: string; variant?: string; title?: string }): void;
   }
 
-  export class XWUITabs extends XWUIComponent {
-    onChange(handler: (tabId: string, event: Event) => void): void;
-    setActiveTab(tabId: string): void;
-  }
-
-  export class XWUIShell extends XWUIComponent {}
-  export class XWUINavSidebar extends XWUIComponent {}
-  export class XWUIDataTable extends XWUIComponent {}
-  export class XWUITimeline extends XWUIComponent {}
-  export class XWUIPageHeader extends XWUIComponent {}
-  export class XWUIStatGroup extends XWUIComponent {}
-  export class XWUIEmpty extends XWUIComponent {}
-  export class XWUICard extends XWUIComponent {}
-  export class XWUIDisplayChip extends XWUIComponent {
-    onClick(handler: (event: Event) => void): void;
-  }
-  export class XWUIDisplayLockBanner extends XWUIComponent {}
-  export class XWUIIcon extends XWUIComponent {}
-  export class XWUIPipelineStages extends XWUIComponent {}
-  export class XWUISteps extends XWUIComponent {}
-  export class XWUIBreadcrumbs extends XWUIComponent {}
   export class XWUIAlert extends XWUIComponent {}
+  export class XWUIAvatar extends XWUIComponent {}
+  export class XWUIBarSiteFooter extends XWUIComponent {}
+  export class XWUIBarSiteHeader extends XWUIComponent {}
+  export class XWUIBreadcrumbs extends XWUIComponent {}
+  export class XWUICodeBlock extends XWUIComponent {}
+  export class XWUIDisplayStatistic extends XWUIComponent {}
+  export class XWUIEmpty extends XWUIComponent {}
+  export class XWUIIcon extends XWUIComponent {}
+  export class XWUIKbd extends XWUIComponent {}
+  export class XWUIProgressBar extends XWUIComponent {}
   export class XWUIProgressSpinner extends XWUIComponent {}
+  export class XWUITag extends XWUIComponent {}
   export class XWUITypography extends XWUIComponent {}
-  export class XWUIDisplayStatusPill extends XWUIComponent {}
 }

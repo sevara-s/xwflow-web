@@ -1,0 +1,182 @@
+/*
+ * Skins applied through XWUI's own `className` option. Colour, radius and
+ * font come from the token theme (theme.css); these rules only add the
+ * prototype's surface treatments that no token expresses: tinted tags, the
+ * glass and gradient-outline buttons, the glass table and the pill tabs.
+ * `!important` appears only where the XWUI rule it adjusts uses it too.
+ */
+
+/* ---------- tags: <XWUITag className="xwflow-tag xwflow-tag--cyan"> ---------- */
+.xwui-tag.xwflow-tag {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 800;
+  font-size: 0.72rem;
+  line-height: 1.7;
+  white-space: nowrap;
+  background: var(--xwflow-panel-2);
+  color: var(--xwflow-text-2);
+  border: 1px solid var(--xwflow-line);
+}
+.xwui-tag.xwflow-tag--lime { color: var(--xwflow-lime); background: rgba(200, 255, 61, 0.1); border-color: rgba(200, 255, 61, 0.3); }
+.xwui-tag.xwflow-tag--cyan { color: var(--xwflow-cyan); background: rgba(46, 230, 255, 0.1); border-color: rgba(46, 230, 255, 0.3); }
+.xwui-tag.xwflow-tag--violet { color: #c4adff; background: rgba(155, 107, 255, 0.14); border-color: rgba(155, 107, 255, 0.35); }
+.xwui-tag.xwflow-tag--pink { color: #ff8cc5; background: rgba(255, 79, 163, 0.12); border-color: rgba(255, 79, 163, 0.35); }
+.xwui-tag.xwflow-tag--orange { color: #ffb07f; background: rgba(255, 138, 61, 0.12); border-color: rgba(255, 138, 61, 0.35); }
+.xwui-tag.xwflow-tag--red { color: #ff99a3; background: rgba(255, 92, 108, 0.12); border-color: rgba(255, 92, 108, 0.35); }
+.xwui-tag.xwflow-tag--amber { color: #ffd77a; background: rgba(255, 197, 61, 0.12); border-color: rgba(255, 197, 61, 0.35); }
+.xwui-tag.xwflow-tag--plan { background: transparent; border: 1px dashed var(--xwflow-text-3); color: var(--xwflow-text-2); }
+
+/* ---------- buttons ---------- */
+/* Glass: <XWUIButton variant="ghost" className="xwflow-btn-glass">, the prototype's default button. */
+.xwui-button.xwui-button-ghost.xwflow-btn-glass {
+  --xwui-button-ghost-fg: var(--xwflow-text);
+  --xwui-button-ghost-fg-hover: #fff;
+  background: var(--xwflow-panel-2) !important;
+  border: 1px solid var(--xwflow-line-2);
+  backdrop-filter: blur(10px);
+  font-weight: 800;
+}
+.xwui-button.xwui-button-ghost.xwflow-btn-glass:hover:not(:disabled) { background: var(--xwflow-panel-3) !important; }
+
+/* Gradient outline: <XWUIButton variant="ghost" className="xwflow-btn-gradient">. */
+.xwui-button.xwui-button-ghost.xwflow-btn-gradient {
+  --xwui-button-ghost-fg: #fff;
+  --xwui-button-ghost-fg-hover: #fff;
+  border: 1px solid transparent;
+  background: linear-gradient(var(--xwflow-bg-2), var(--xwflow-bg-2)) padding-box, var(--xwflow-grad) border-box !important;
+  font-weight: 800;
+}
+.xwui-button.xwui-button-ghost.xwflow-btn-gradient:hover:not(:disabled) {
+  background: linear-gradient(var(--xwflow-bg-3), var(--xwflow-bg-3)) padding-box, var(--xwflow-grad) border-box !important;
+}
+
+/* Lime primary buttons carry the prototype's glow at rest. */
+.xwui-button.xwui-button-primary {
+  font-weight: 800;
+  box-shadow: 0 0 0 1px rgba(200, 255, 61, 0.4), 0 10px 40px -8px rgba(200, 255, 61, 0.6);
+}
+
+/* ---------- table: XWUITable inside .xwflow-table ---------- */
+.xwflow-table,
+.xwflow-table .xwui-table { --xwui-table-vline: transparent; }
+.xwflow-table .xwui-table-wrapper {
+  border: 1px solid var(--xwflow-line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  overflow: hidden;
+}
+.xwflow-table .xwui-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; background: transparent; }
+.xwflow-table .xwui-table th {
+  text-align: start;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--xwflow-text-2);
+  padding: 12px 18px;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.02);
+  border: 0;
+  border-bottom: 1px solid var(--xwflow-line);
+  box-shadow: none;
+}
+.xwflow-table .xwui-table td {
+  padding: 14px 18px;
+  border: 0;
+  border-bottom: 1px solid var(--xwflow-line);
+  vertical-align: middle;
+  background: transparent;
+  box-shadow: none;
+}
+.xwflow-table .xwui-table tr:last-child td { border-bottom: 0; }
+.xwflow-table .xwui-table tbody tr:hover td { background: rgba(255, 255, 255, 0.03); }
+.xwflow-table .xwui-table tr[aria-selected="true"] td,
+.xwflow-table .xwui-table tr.xwui-table-row-selected td { background: rgba(200, 255, 61, 0.06); }
+.xwflow-table .xwui-table tr[aria-selected="true"] td:first-child,
+.xwflow-table .xwui-table tr.xwui-table-row-selected td:first-child { box-shadow: inset 3px 0 0 var(--xwflow-lime); }
+.xwflow-table[data-density="dense"] .xwui-table td { padding: 10px 18px; }
+.xwflow-table .xwui-table-select-header,
+.xwflow-table .xwui-table-select-cell { width: 44px; padding-inline-end: 0; }
+
+/* ---------- pill tabs: XWUINavTabs variant="button" inside .xwflow-tabs ---------- */
+/* The active pill reads --bg-primary and --accent-primary; scope them to white on ink. */
+.xwflow-tabs {
+  --bg-primary: #fff;
+  --bg-secondary: rgba(255, 255, 255, 0.04);
+  --accent-primary: #0a0a0a;
+  --shadow-sm: none;
+  align-self: flex-start;
+  max-width: 100%;
+}
+.xwflow-tabs .xwui-tabs-list {
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 5px;
+  border-radius: 999px;
+  border: 1px solid var(--xwflow-line);
+}
+.xwflow-tabs .xwui-tab {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.84rem;
+  color: var(--xwflow-text-2);
+  background: transparent;
+}
+.xwflow-tabs .xwui-tab:hover { color: #fff; }
+.xwflow-tabs .xwui-tab.xwui-tab-active { color: #0a0a0a; }
+.xwflow-tabs .xwui-tabs-content,
+.xwflow-tabs .xwui-tabs-panels,
+.xwflow-tabs [role="tabpanel"] { display: none; }
+
+/* ---------- avatars: the gradient disc the prototype uses for every person ---------- */
+.xwflow-avatar .xwui-avatar,
+.xwflow-appbar__avatar .xwui-avatar {
+  background: var(--xwflow-grad);
+  box-shadow: 0 0 0 2px var(--xwflow-bg), 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+.xwflow-avatar .xwui-avatar-fallback,
+.xwflow-appbar__avatar .xwui-avatar-fallback { background: transparent; color: transparent; }
+
+/* ---------- table cells ---------- */
+.xwflow-cell-link { font-weight: 800; color: var(--xwflow-text); }
+.xwflow-cell-link:hover { color: var(--xwflow-lime); }
+
+/* ---------- filter chips: <XWUIDisplayChip className="xwflow-chip xwflow-chip--violet"> ---------- */
+.xwflow-chip.xwflow-chip--violet,
+.xwflow-chip--violet .xwui-chip {
+  color: #c4adff;
+  background: rgba(155, 107, 255, 0.14);
+  border: 1px solid rgba(155, 107, 255, 0.35);
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.72rem;
+}
+
+/* ---------- dialogs: an opaque glass sheet over a dimmed page ---------- */
+.xwui-dialog-overlay { background: rgba(3, 3, 8, 0.72); backdrop-filter: blur(6px); }
+.xwui-dialog {
+  background: linear-gradient(180deg, #14142a, #0b0b16);
+  border: 1px solid var(--xwflow-line-2);
+  border-radius: 24px;
+  box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.xwui-dialog-title { font-family: var(--xwflow-font-display); font-weight: 700; }
+
+/* ---------- suggestion pills: <XWUIButton variant="ghost" toggleable className="xwflow-pill"> ---------- */
+.xwui-button.xwui-button-ghost.xwflow-pill {
+  --xwui-button-ghost-fg: var(--xwflow-text);
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--xwflow-line-2);
+  background: rgba(255, 255, 255, 0.04) !important;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.xwui-button.xwui-button-ghost.xwflow-pill.xwui-button-pressed {
+  border-color: var(--xwflow-lime);
+  color: var(--xwflow-lime) !important;
+  background: rgba(200, 255, 61, 0.08) !important;
+  box-shadow: 0 0 20px -4px rgba(200, 255, 61, 0.5) !important;
+}

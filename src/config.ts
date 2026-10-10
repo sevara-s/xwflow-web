@@ -1,27 +1,11 @@
-/** Runtime settings. Pages read these instead of embedding literals. */
-export const appConfig = {
+/** Runtime settings. Visible words live in src/content, data in src/api. */
+export const config = {
+  /** Dates read "09 Oct 2026, 12:04", the format the prototype uses. */
   locale: "en-GB",
-  timeZone: "UTC",
-  emptyValue: "—",
-  pollIntervalMs: 1000,
-  searchDebounceMs: 300,
-  theme: {
-    theme: "light",
-    accent: "blue",
-    style: "modern",
-    roundness: "rounded",
-    font: "inter",
-  },
-  xwui: {
-    system: {
-      locale: "en-GB",
-      timezone: "UTC",
-      direction: "ltr",
-    },
-    user: {
-      brand: "default",
-      style: "modern",
-      color: "blue",
-    },
-  },
+  /** How often live screens (runs, run receipt) ask the API again. */
+  pollMs: 3000,
+  /** Delay before a typed search filter is applied. */
+  searchDebounceMs: 200,
+  /** Toasts stay this long. */
+  toastMs: 3500,
 } as const;

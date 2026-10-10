@@ -1,0 +1,127 @@
+/*
+ * xwflow "Neon Depth" theme, expressed as XWUI design tokens.
+ *
+ * XWUI reads every colour, radius and font from CSS variables selected by the
+ * attributes on <html>. Instead of overriding component CSS, this file defines
+ * one value for each axis the app uses: data-brand="xwflow" (surfaces and
+ * text), data-accent="lime", data-roundness="pill" and data-font="manrope".
+ * The selectors match the specificity XWUI's own presets use, and this sheet
+ * loads after the preset, so these values win.
+ */
+
+:root[data-theme="dark"][data-brand="xwflow"] {
+  /* Palette shared by custom XWFlow components */
+  --xwflow-bg: #05050a;
+  --xwflow-bg-2: #0a0a14;
+  --xwflow-bg-3: #11111e;
+  --xwflow-panel: rgba(255, 255, 255, 0.035);
+  --xwflow-panel-2: rgba(255, 255, 255, 0.06);
+  --xwflow-panel-3: rgba(255, 255, 255, 0.09);
+  --xwflow-line: rgba(255, 255, 255, 0.08);
+  --xwflow-line-2: rgba(255, 255, 255, 0.16);
+  --xwflow-text: #f5f5fa;
+  --xwflow-text-2: #a9a9c2;
+  --xwflow-text-3: #6f6f8a;
+  --xwflow-lime: #c8ff3d;
+  --xwflow-cyan: #2ee6ff;
+  --xwflow-violet: #9b6bff;
+  --xwflow-pink: #ff4fa3;
+  --xwflow-orange: #ff8a3d;
+  --xwflow-green: #3dffa2;
+  --xwflow-amber: #ffc53d;
+  --xwflow-red: #ff5c6c;
+  --xwflow-blue: #4d8bff;
+  --xwflow-grad: linear-gradient(100deg, #2ee6ff 0%, #9b6bff 34%, #ff4fa3 66%, #ff8a3d 100%);
+  --xwflow-grad-2: linear-gradient(135deg, #c8ff3d 0%, #2ee6ff 100%);
+  --xwflow-radius: 20px;
+  --xwflow-font-display: Unbounded, Manrope, sans-serif;
+
+  /* XWUI surfaces */
+  --bg-app: var(--xwflow-bg);
+  --bg-primary: var(--xwflow-bg-2);
+  --bg-secondary: var(--xwflow-bg-3);
+  --bg-tertiary: #181828;
+  --bg-card: var(--xwflow-panel);
+  --bg-elevated: #11111e;
+  --bg-menu: #11111e;
+  --bg-input: rgba(0, 0, 0, 0.35);
+  --bg-hover: var(--xwflow-panel-2);
+  --bg-active: var(--xwflow-panel-3);
+  --bg-muted: rgba(255, 255, 255, 0.02);
+  --bg-code: #07070f;
+  --bg-console: #07070f;
+  --bg-header: rgba(10, 10, 20, 0.6);
+
+  /* XWUI text and lines */
+  --text-primary: var(--xwflow-text);
+  --text-secondary: var(--xwflow-text-2);
+  --text-tertiary: var(--xwflow-text-3);
+  --text-inverse: #0a0a0a;
+  --border-color: var(--xwflow-line);
+  --border-light: var(--xwflow-line);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-medium: var(--xwflow-line-2);
+  --border-strong: rgba(255, 255, 255, 0.24);
+
+  /* XWUI controls */
+  --control-bg: var(--xwflow-panel-2);
+  --control-bg-hover: var(--xwflow-panel-3);
+  --control-bg-active: var(--xwflow-panel-3);
+  --control-border: var(--xwflow-line-2);
+  --control-text: var(--xwflow-text);
+  --control-text-secondary: var(--xwflow-text-2);
+
+  /* XWUI semantic colours */
+  --accent-success: var(--xwflow-green);
+  --accent-warning: var(--xwflow-amber);
+  --accent-error: var(--xwflow-red);
+  --status-error-text: #ff8e9a;
+  --status-processing-text: var(--xwflow-cyan);
+  --selection-bg: rgba(200, 255, 61, 0.28);
+
+  /* XWUI shadows */
+  --shadow-md: 0 10px 40px -12px rgba(0, 0, 0, 0.8);
+  --shadow-lg: 0 30px 80px -40px rgba(0, 0, 0, 0.8);
+}
+
+:root[data-accent="lime"] {
+  --accent-primary: #c8ff3d;
+  --accent-primary-rgb: 200, 255, 61;
+  --accent-hover: #d6ff6b;
+  --accent-hover-rgb: 214, 255, 107;
+  --accent-light: rgba(200, 255, 61, 0.12);
+  --accent-primary-ink: #0a0a0a;
+  --brand-primary: #c8ff3d;
+  --color-accent: #c8ff3d;
+  --text-on-accent: #0a0a0a;
+  --role-primary-fg: #0a0a0a;
+  --role-info-fg: #0a0a0a;
+  --glow-button-hover: 0 0 0 1px rgba(200, 255, 61, 0.6), 0 14px 50px -6px rgba(200, 255, 61, 0.8);
+  --glow-input-focus: 0 0 0 3px rgba(46, 230, 255, 0.25);
+  --glow-switch-track-checked: 0 0 16px rgba(200, 255, 61, 0.5);
+}
+
+:root[data-roundness="pill"] {
+  --radius-button: 999px;
+  --radius-chip: 999px;
+  --radius-badge: 999px;
+  --radius-tab: 999px;
+  --radius-input: 12px;
+  --radius-menu: 14px;
+  --radius-popover: 16px;
+  --radius-dialog: 24px;
+  --radius-table: 18px;
+  --radius-container: 20px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+}
+
+:root[data-font="manrope"] {
+  --font-family-base: Manrope, "Segoe UI", system-ui, sans-serif;
+  --font-family: Manrope, "Segoe UI", system-ui, sans-serif;
+  --font-family-mono: "JetBrains Mono", Consolas, monospace;
+  --font-weight-semibold: 700;
+  --font-weight-bold: 800;
+}

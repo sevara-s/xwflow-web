@@ -1,3 +1,4 @@
+import { admin } from "./admin";
 import { site } from "./site";
 import { studio } from "./studio";
 
@@ -18,4 +19,5 @@ export const catalog = {
   },
   studio,
   site,
+  admin,
 } as const;

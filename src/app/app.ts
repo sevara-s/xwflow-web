@@ -7,6 +7,7 @@ import { MountScope } from "./mount";
 import { mountToaster } from "./notify";
 import type { PageContext, PageRenderer } from "./page";
 import { href, parseLocation, paths, type Route } from "./router";
+import { mountAdminShell } from "./shells/admin";
 import { mountBareShell } from "./shells/bare";
 import { mountSiteShell } from "./shells/site";
 import { mountStudioShell, type Shell } from "./shells/studio";
@@ -26,13 +27,19 @@ const pages: Record<string, () => Promise<PageModule>> = {
   "site/pricing": () => import("../pages/site/pricing"),
   "site/selfHost": () => import("../pages/site/self-host"),
   "site/notations": () => import("../pages/site/notations"),
+  "admin/overview": () => import("../pages/admin/overview"),
+  "admin/branding": () => import("../pages/admin/branding"),
+  "admin/audit": () => import("../pages/admin/audit"),
+  "system/health": () => import("../pages/admin/health"),
+  "denied/denied": () => import("../pages/admin/denied"),
 };
 
-type ShellKind = "studio" | "site" | "bare";
+type ShellKind = "studio" | "site" | "admin" | "bare";
 
 function shellKind(route: Route): ShellKind {
   if (route.zone === "studio") return "studio";
   if (route.zone === "site") return "site";
+  if (route.zone === "admin" || route.zone === "system" || route.zone === "denied") return "admin";
   return "bare";
 }
 
@@ -58,7 +65,14 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
       pageScope.destroy();
       shell?.destroy();
       shell =
-        nextKind === "studio" ? mountStudioShell(root, workspace, route) : nextKind === "site" ? mountSiteShell(root, route) : mountBareShell(root);
+        nextKind === "studio"
+          ? mountStudioShell(root, workspace, route)
+          : nextKind === "site"
+            ? mountSiteShell(root, route)
+            : nextKind === "admin"
+              ? await mountAdminShell(root, route)
+              : mountBareShell(root);
+      if (current !== generation) return;
       kind = nextKind;
     } else {
       shell.update(route);

@@ -28,4 +28,5 @@ export {
   XWUITag,
   XWUIToast,
   XWUITypography,
+  XWUIUptimeBar,
 } from "https://xwui.dev/esm/basic.bundle.js";

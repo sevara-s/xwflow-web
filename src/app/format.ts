@@ -72,6 +72,11 @@ export function formatWeekly(weekdayIndex: number, hour: number, minute: number)
   return `${weekday.format(anchor)} ${clock.format(anchor)}`;
 }
 
+/** "Engine, API and Identity" in the app's locale. */
+export function formatList(items: string[]): string {
+  return new Intl.ListFormat(config.locale, { type: "conjunction" }).format(items);
+}
+
 export function fill(template: string, values: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ""));
 }

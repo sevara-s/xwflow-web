@@ -44,6 +44,14 @@ function localXwui(root: string): Plugin {
           response.end(readFileSync(file));
           return;
         }
+        // Style assets (brand logos) the checkout ships in its style source.
+        const asset = /^\/styles\/((?:brand)\/[A-Za-z0-9/_.-]+\.svg)$/.exec(url.split("?")[0])?.[1];
+        const assetFile = asset ? resolve(lib, "xwui-lib-style/src", asset) : "";
+        if (assetFile && existsSync(assetFile)) {
+          response.setHeader("Content-Type", "image/svg+xml");
+          response.end(readFileSync(assetFile));
+          return;
+        }
         // Everything else under the asset base (icons, fonts, sheets of
         // components the checkout lacks) is the published asset.
         response.statusCode = 302;

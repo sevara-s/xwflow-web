@@ -1,8 +1,10 @@
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 
 const CDN = "https://xwui.dev/";
 const LOCAL_BASIC = "xwflow-local-xwui/basic";
+const LOCAL_CSS = "/xwflow-local-xwui/styles/components";
 
 /**
  * XWUI_LOCAL=<path to an xwui-lib checkout> runs the app against that
@@ -12,6 +14,8 @@ const LOCAL_BASIC = "xwflow-local-xwui/basic";
  */
 function localXwui(root: string): Plugin {
   const lib = resolve(root);
+  const paths = (): Record<string, string> =>
+    JSON.parse(readFileSync(resolve(lib, "xwui-lib-basic/src/generated/component-paths.generated.json"), "utf8"));
   return {
     name: "xwflow-local-xwui",
     apply: "serve",
@@ -25,15 +29,29 @@ function localXwui(root: string): Plugin {
       },
       server: { fs: { allow: [process.cwd(), lib] } },
     }),
+    // Component sheets come from the checkout's source, so a change to an
+    // existing XWUI component shows before it is published.
+    configureServer: (server) => {
+      server.middlewares.use(LOCAL_CSS, (request, response, next) => {
+        // Components ask by tier path (sometimes a legacy one); the sheet is
+        // found by component name, as the package's component map places it.
+        const name = /\/(XWUI[A-Za-z0-9]+)\.css$/.exec((request.url ?? "").split("?")[0])?.[1];
+        const folder = name ? paths()[name] : undefined;
+        const file = folder ? resolve(lib, "xwui-lib-basic/src", folder, `${name}.css`) : "";
+        if (!file || !existsSync(file)) return next();
+        response.setHeader("Content-Type", "text/css");
+        response.end(readFileSync(file));
+      });
+    },
     // Vite leaves https:// imports alone (aliases included), so the CDN
     // specifier is renamed to one the alias above resolves.
     transform: (code) => (code.includes(`${CDN}esm/basic.bundle.js`) ? code.replaceAll(`${CDN}esm/basic.bundle.js`, LOCAL_BASIC) : undefined),
-    // Presets come from the checkout's build; the sheets of already-published
-    // components still come from the CDN (new ones import their own CSS).
+    // Presets come from the checkout's build; component sheets from its source
+    // (served above under the asset base the components load from).
     transformIndexHtml: (html) =>
       html
         .replaceAll(`${CDN}styles/`, `/@fs${lib}/dist/styles/`)
-        .replace("<head>", `<head>\n    <script>window.__XWUI_TESTERS_ASSET_BASE__ = "${CDN}";</script>`),
+        .replace("<head>", `<head>\n    <script>window.__XWUI_TESTERS_ASSET_BASE__ = "/xwflow-local-xwui/";</script>`),
   };
 }
 

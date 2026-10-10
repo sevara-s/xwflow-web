@@ -98,6 +98,9 @@ export function stack(items: Node[], options: StackOptions = {}): Node {
 
 export const row = (items: Node[], options: Omit<StackOptions, "row"> = {}): Node => stack(items, { gap: 8, ...options, row: true });
 
+/** One node centred on its own line, inside a stretched column. */
+export const centred = (item: Node): Node => row([item], { justify: "center" });
+
 /** Auto-fit columns never narrower than `min` (the prototype's g2 / g3 / g4). */
 export function grid(items: Node[], min: 440 | 300 | 230 | number, gap = 20): Node {
   return { tag: "xwui-grid", config: { minChildWidth: `${min}px`, gap: `${gap}px` }, slots: { children: items } };
@@ -186,7 +189,7 @@ export function tag(value: string, hue?: Hue | "plan", note?: string, dot = fals
 
 /** A centred reading column, for leads under a centred headline. */
 export function measure(child: Node, width = 720): Node {
-  return { tag: "xwui-container", config: { maxWidth: width, center: true }, slots: { children: child } };
+  return { tag: "xwui-container", config: { maxWidth: width, center: true, width: "100%" }, slots: { children: child } };
 }
 
 export type StatusTone = "success" | "error" | "running" | "neutral" | "warning" | "pinned" | "disabled";

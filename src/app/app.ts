@@ -8,6 +8,7 @@ import { mountToaster } from "./notify";
 import type { PageContext, PageRenderer } from "./page";
 import { href, parseLocation, paths, type Route } from "./router";
 import { mountBareShell } from "./shells/bare";
+import { mountSiteShell } from "./shells/site";
 import { mountStudioShell, type Shell } from "./shells/studio";
 
 type PageModule = { render: PageRenderer<never> };
@@ -20,12 +21,19 @@ const pages: Record<string, () => Promise<PageModule>> = {
   "studio/run": () => import("../pages/studio/run"),
   "studio/connections": () => import("../pages/studio/connections"),
   "editor/editor": () => import("../pages/studio/editor"),
+  "site/landing": () => import("../pages/site/landing"),
+  "site/integrations": () => import("../pages/site/integrations"),
+  "site/pricing": () => import("../pages/site/pricing"),
+  "site/selfHost": () => import("../pages/site/self-host"),
+  "site/notations": () => import("../pages/site/notations"),
 };
 
-type ShellKind = "studio" | "bare";
+type ShellKind = "studio" | "site" | "bare";
 
 function shellKind(route: Route): ShellKind {
-  return route.zone === "studio" ? "studio" : "bare";
+  if (route.zone === "studio") return "studio";
+  if (route.zone === "site") return "site";
+  return "bare";
 }
 
 export async function mountApplication(root: HTMLElement): Promise<void> {
@@ -49,7 +57,8 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
     if (!shell || kind !== nextKind) {
       pageScope.destroy();
       shell?.destroy();
-      shell = nextKind === "studio" ? mountStudioShell(root, workspace, route) : mountBareShell(root);
+      shell =
+        nextKind === "studio" ? mountStudioShell(root, workspace, route) : nextKind === "site" ? mountSiteShell(root, route) : mountBareShell(root);
       kind = nextKind;
     } else {
       shell.update(route);

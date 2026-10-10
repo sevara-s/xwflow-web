@@ -1,3 +1,4 @@
+import { site } from "./site";
 import { studio } from "./studio";
 
 export const catalog = {
@@ -16,4 +17,5 @@ export const catalog = {
     action: "Go to the flows",
   },
   studio,
+  site,
 } as const;

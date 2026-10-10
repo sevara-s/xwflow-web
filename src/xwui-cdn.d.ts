@@ -78,6 +78,10 @@ declare module "https://xwui.dev/esm/basic.bundle.js" {
   }
 
   export class XWUIAlert extends XWUIComponent {}
+  export class XWUISegmentedControl extends XWUIComponent {
+    onChange?(handler: (value: string) => void): void;
+  }
+  export class XWUIButtonCopy extends XWUIComponent {}
   export class XWUIAvatar extends XWUIComponent {}
   export class XWUIBarSiteFooter extends XWUIComponent {}
   export class XWUIBarSiteHeader extends XWUIComponent {}

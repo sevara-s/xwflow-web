@@ -70,9 +70,6 @@
   max-height: calc(100% - 126px);
   overflow-y: auto;
 }
-.xwflow-sep { height: 1px; width: 100%; background: var(--xwflow-line); border: 0; margin: 0; }
-.xwflow-hint { font-size: 0.8125rem; color: var(--xwflow-text-2); margin: 0; }
-.xwflow-lime { color: var(--xwflow-lime); }
 .xwflow-mono-input input { font-family: var(--font-family-mono); }
 .xwflow-editor__inspector .xwui-button .xwui-kbd { margin-left: 6px; }
 

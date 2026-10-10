@@ -1,0 +1,12 @@
+.xwflow-receipt__hero { display: flex; flex-wrap: wrap; align-items: center; gap: 32px; border-radius: 28px; padding: 28px; }
+.xwflow-receipt__title { position: relative; flex: 1 1 300px; }
+.xwflow-receipt__title .xwflow-h2 { font-size: 2rem; }
+.xwflow-status--lg { font-size: 1rem; }
+.xwflow-receipt__split { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.xwflow-receipt__ledger { flex: 999 1 540px; min-width: 0; }
+.xwflow-receipt__detail { flex: 1 1 380px; min-width: 0; border-radius: 22px; }
+.xwflow-receipt__ledger .xwui-table { min-width: 640px; }
+.xwflow-table .xwui-table tr.is-selected td { background: rgba(200, 255, 61, 0.06); }
+.xwflow-table .xwui-table tr.is-selected td:first-child { box-shadow: inset 3px 0 0 var(--xwflow-lime); }
+.xwflow-receipt__code pre,
+.xwflow-receipt__code .xwui-code-block { border-radius: 14px; background: #07070f; border: 1px solid var(--xwflow-line); }

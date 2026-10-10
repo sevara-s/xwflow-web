@@ -1,0 +1,3 @@
+.xwflow-vault { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; border-radius: 26px; padding: 26px; }
+.xwflow-vault__orb { position: relative; width: 96px; height: 96px; flex: none; }
+.xwflow-dialog-footer { justify-content: flex-end; }

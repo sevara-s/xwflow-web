@@ -348,10 +348,11 @@ function truth(landing: Landing): Node {
   const language = tile(t.languageTag, "pink", [languageWord, text("small", t.languageBody, { tone: "secondary" })]);
   const host = tile(t.hostTag, "orange", [
     text("h3", t.hostTitle),
-    stack(
-      t.hostRack.map((name) => glass(row([icon("server", 16, "var(--xwui-hue-orange, #ff8a3d)"), text("xs", name, { mono: true, tone: "secondary" })]), { pad: "s" })),
-      { gap: 8 },
-    ),
+    {
+      tag: "xwui-iso-stack",
+      data: { layers: [{ hue: "cyan" }, { hue: "violet" }, { hue: "green" }], label: t.hostRack.join(", ") },
+      config: { size: 150, spacing: 34, height: 220 },
+    },
   ]);
 
   return band("truth", [

@@ -27,8 +27,14 @@ export class XWFlowKpi extends XWUIComponent<XWFlowKpiData, XWFlowKpiConfig> {
     const slots = renderKpi(this.container, this.data, this.config);
     this.statistic = new XWUIDisplayStatistic(
       slots.statistic,
-      { title: this.data.label, value: this.data.value },
-      { title: this.data.label, valueType: "integer", size: "lg" },
+      { title: this.data.label, value: this.data.value ?? undefined },
+      {
+        title: this.data.label,
+        valueType: this.data.value === null ? "text" : "integer",
+        size: "lg",
+        placeholder: this.data.emptyLabel,
+        emptyLabel: this.data.emptyLabel,
+      },
     );
   }
 

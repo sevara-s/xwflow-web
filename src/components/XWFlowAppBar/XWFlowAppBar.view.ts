@@ -4,7 +4,8 @@ import type { XWFlowAppBarConfig, XWFlowAppBarData } from "./XWFlowAppBar.types"
 export interface AppBarSlots {
   actions: HTMLElement;
   sample: HTMLElement | null;
-  avatar: HTMLElement;
+  tags: HTMLElement[];
+  avatar: HTMLElement | null;
 }
 
 export function renderAppBar(container: HTMLElement, data: XWFlowAppBarData, config: XWFlowAppBarConfig): AppBarSlots {
@@ -29,10 +30,12 @@ export function renderAppBar(container: HTMLElement, data: XWFlowAppBarData, con
   const end = el("div", "xwflow-appbar__end");
   const actions = el("div", "xwflow-appbar__actions");
   const sample = data.sampleTag ? el("span", "xwflow-appbar__sample") : null;
-  const avatar = el("span", "xwflow-appbar__avatar");
+  const tags = (data.tags ?? []).map(() => el("span"));
+  const avatar = data.hideAccount ? null : el("span", "xwflow-appbar__avatar");
   end.append(actions);
   if (sample) end.append(sample);
-  end.append(avatar);
+  end.append(...tags);
+  if (avatar) end.append(avatar);
   container.replaceChildren(crumbs, end);
-  return { actions, sample, avatar };
+  return { actions, sample, tags, avatar };
 }

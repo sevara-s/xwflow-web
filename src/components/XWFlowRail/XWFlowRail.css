@@ -9,6 +9,7 @@
   flex-direction: column;
   gap: 3px;
   overflow-y: auto;
+  overflow-x: hidden;
   background: rgba(8, 8, 16, 0.7);
   border-right: 1px solid var(--xwflow-line);
   backdrop-filter: blur(20px);
@@ -69,6 +70,10 @@
 .xwflow-rail__caret svg { width: 14px; height: 14px; }
 .xwflow-rail__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .xwflow-rail__badge { margin-left: auto; flex: none; }
+.xwflow-rail__status { margin-left: auto; flex: none; }
+.xwflow-rail__head-tag { margin-left: auto; }
+.xwflow-rail[data-slim] { width: 232px; }
+.xwflow-rail[data-slim] .xwflow-rail__collapse { margin-left: 4px; }
 .xwflow-rail__swatch {
   width: 18px;
   height: 18px;

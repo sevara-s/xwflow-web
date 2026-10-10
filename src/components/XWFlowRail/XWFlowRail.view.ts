@@ -3,9 +3,11 @@ import type { RailItem, XWFlowRailConfig, XWFlowRailData } from "./XWFlowRail.ty
 
 export interface RailSlots {
   brand: HTMLElement;
+  headTag: HTMLElement | null;
   collapse: HTMLElement;
-  search: HTMLElement;
-  create: HTMLElement;
+  search: HTMLElement | null;
+  create: HTMLElement | null;
+  statuses: Array<{ host: HTMLElement; status: NonNullable<RailItem["status"]> }>;
   icons: Array<{ host: HTMLElement; name: string }>;
   badges: Array<{ host: HTMLElement; badge: NonNullable<RailItem["badge"]> }>;
   usageBar: HTMLElement | null;
@@ -14,16 +16,21 @@ export interface RailSlots {
 export function renderRail(container: HTMLElement, data: XWFlowRailData, config: XWFlowRailConfig): RailSlots {
   container.className = ["xwflow-rail", config.className].filter(Boolean).join(" ");
   container.toggleAttribute("data-collapsed", Boolean(config.collapsed));
+  container.toggleAttribute("data-slim", Boolean(config.slim));
   container.setAttribute("aria-label", data.labels.nav);
   container.setAttribute("role", "navigation");
 
   const head = el("div", "xwflow-rail__head");
   const brand = el("div", "xwflow-rail__brand");
+  const headTag = data.headTag ? el("span", "xwflow-rail__head-tag") : null;
   const collapse = el("div", "xwflow-rail__collapse");
-  head.append(brand, collapse);
+  head.append(brand);
+  if (headTag) head.append(headTag);
+  head.append(collapse);
 
-  const search = el("div", "xwflow-rail__search");
-  const create = el("div", "xwflow-rail__create");
+  const search = data.labels.search ? el("div", "xwflow-rail__search") : null;
+  const create = data.labels.create ? el("div", "xwflow-rail__create") : null;
+  const statuses: RailSlots["statuses"] = [];
 
   const icons: RailSlots["icons"] = [];
   const badges: RailSlots["badges"] = [];
@@ -45,6 +52,11 @@ export function renderRail(container: HTMLElement, data: XWFlowRailData, config:
     if (entry.badge) {
       const host = el("span", "xwflow-rail__badge");
       badges.push({ host, badge: entry.badge });
+      link.append(host);
+    }
+    if (entry.status) {
+      const host = el("span", "xwflow-rail__status");
+      statuses.push({ host, status: entry.status });
       link.append(host);
     }
     if (entry.caret) {
@@ -74,6 +86,6 @@ export function renderRail(container: HTMLElement, data: XWFlowRailData, config:
     footer.append(meter);
   }
 
-  container.replaceChildren(head, search, create, list, footer);
-  return { brand, collapse, search, create, icons, badges, usageBar };
+  container.replaceChildren(head, ...(search ? [search] : []), ...(create ? [create] : []), list, footer);
+  return { brand, headTag, collapse, search, create, statuses, icons, badges, usageBar };
 }

@@ -37,9 +37,14 @@ export class XWFlowAppBar extends XWUIComponent<XWFlowAppBarData, XWFlowAppBarCo
     if (slots.sample && this.data.sampleTag) {
       this.owned.push(new XWUITag(slots.sample, { label: this.data.sampleTag }, { size: "small" }));
     }
-    this.owned.push(
-      new XWUIAvatar(slots.avatar, { name: this.data.accountName, alt: this.data.accountLabel }, { size: "small", ariaLabel: this.data.accountLabel }),
-    );
+    (this.data.tags ?? []).forEach((tag, index) => {
+      this.owned.push(new XWUITag(slots.tags[index], { label: tag.label }, { size: "small", className: `xwflow-tag xwflow-tag--${tag.color}` }));
+    });
+    if (slots.avatar) {
+      this.owned.push(
+        new XWUIAvatar(slots.avatar, { name: this.data.accountName, alt: this.data.accountLabel }, { size: "small", ariaLabel: this.data.accountLabel }),
+      );
+    }
   }
 
   override destroy(): void {

@@ -48,4 +48,5 @@
   color: var(--xwflow-text);
 }
 .xwflow-kpi[data-emphasis] [class*="statistic-value"] { color: #ff8e9a; }
+.xwflow-kpi[data-empty] [class*="statistic-value"] { font-family: var(--font-family-mono); font-size: 1.05rem; color: var(--xwflow-text-3); }
 .xwflow-kpi__note { position: relative; font-size: 0.75rem; color: var(--xwflow-text-3); }

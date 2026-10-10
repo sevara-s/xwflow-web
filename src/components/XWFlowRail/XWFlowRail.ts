@@ -1,4 +1,5 @@
 import { XWUIButton, XWUIComponent, XWUIIcon, XWUIInputText, XWUIKbd, XWUIProgressBar, XWUITag } from "../../xwui";
+import { XWFlowStatus } from "../XWFlowStatus/XWFlowStatus";
 import { XWFlowBrand } from "../XWFlowBrand/XWFlowBrand";
 import { registerStyles } from "../registerStyles";
 import css from "./XWFlowRail.css?inline";
@@ -70,6 +71,14 @@ export class XWFlowRail extends XWUIComponent<XWFlowRailData, XWFlowRailConfig> 
     const slots = renderRail(this.container, data, config);
 
     this.owned.push(new XWFlowBrand(slots.brand, data.brand, { size: "sm" }));
+    if (slots.headTag && data.headTag) {
+      this.owned.push(new XWUITag(slots.headTag, { label: data.headTag.label }, { size: "small", className: `xwflow-tag xwflow-tag--${data.headTag.color}` }));
+    }
+    for (const { host, status } of slots.statuses) {
+      this.owned.push(new XWFlowStatus(host, { tone: status.tone, label: "" }, { size: "sm" }));
+      host.setAttribute("aria-label", status.label);
+      host.setAttribute("role", "img");
+    }
 
     const collapse = new XWUIButton(
       slots.collapse,
@@ -85,19 +94,24 @@ export class XWFlowRail extends XWUIComponent<XWFlowRailData, XWFlowRailConfig> 
     collapse.onClick(() => this.setCollapsed(!this.collapsed));
     this.owned.push(collapse);
 
-    const keys = document.createElement("span");
-    this.owned.push(new XWUIKbd(keys, { keys: data.labels.searchKeys }, { size: "sm" }));
-    this.searchInput = new XWUIInputText(
-      slots.search,
-      { placeholder: data.labels.search },
-      { type: "search", leadingIcon: "search", ariaLabel: data.labels.searchAria, suffix: keys, fullWidth: true },
-    );
-    this.searchInput.onChange((value) => this.handlers.search?.(value));
-    this.owned.push(this.searchInput);
+    if (slots.search) {
+      const keys = document.createElement("span");
+      this.owned.push(new XWUIKbd(keys, { keys: data.labels.searchKeys ?? "" }, { size: "sm" }));
+      this.searchInput = new XWUIInputText(
+        slots.search,
+        { placeholder: data.labels.search },
+        { type: "search", leadingIcon: "search", ariaLabel: data.labels.searchAria, suffix: keys, fullWidth: true },
+      );
+      this.searchInput.onChange((value) => this.handlers.search?.(value));
+      this.owned.push(this.searchInput);
+    }
 
-    const create = new XWUIButton(slots.create, { text: data.labels.create }, { variant: "primary", icon: "plus", fullWidth: true });
-    create.onClick(() => this.handlers.create?.(slots.create));
-    this.owned.push(create);
+    const createSlot = slots.create;
+    if (createSlot) {
+      const create = new XWUIButton(createSlot, { text: data.labels.create }, { variant: "primary", icon: "plus", fullWidth: true });
+      create.onClick(() => this.handlers.create?.(createSlot));
+      this.owned.push(create);
+    }
 
     for (const { host, name } of slots.icons) {
       this.owned.push(new XWUIIcon(host, { name }, { size: "sm", decorative: true }));

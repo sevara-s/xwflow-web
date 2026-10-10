@@ -416,3 +416,40 @@ export interface AccessDenial {
   grantedBy: string;
   yourRole: string;
 }
+
+/* ------------------------------------------------------------------ */
+/* Notation views                                                      */
+/* ------------------------------------------------------------------ */
+
+export type SystemId = "source" | "engine" | "api" | "chat" | "table";
+
+export interface ViewStep {
+  id: string;
+  name: string;
+  type: string;
+  group: StepGroup;
+  state: CanvasNode["state"];
+  outputs: number;
+  system: SystemId;
+}
+
+export interface FlowView {
+  flow: FlowSummary;
+  steps: ViewStep[];
+  edges: CanvasEdge[];
+  graph: FlowGraph;
+  notes: CanvasNote[];
+  systems: Array<{ id: SystemId; name: string }>;
+  runs: RunDetail[];
+  simulation: SimulationModel;
+}
+
+export interface SimulationModel {
+  arrivalsPerHour: number;
+  serviceSeconds: number;
+  workers: number;
+  /** Share of orders over the threshold, which send an alert. */
+  overShare: number;
+  hours: number;
+  seed: number;
+}

@@ -17,6 +17,7 @@ import type {
   StepDetail,
   Workspace,
   Landing,
+  FlowView,
   AccessDenial,
   AdminContext,
   AdminOverview,
@@ -84,3 +85,5 @@ export function pauseSchedules(): Promise<{ paused: number }>;
 export function drainWorker(): Promise<{ worker: string; remaining: number }>;
 export function getAccessDenial(): Promise<AccessDenial>;
 export function requestAccess(role: string): Promise<{ role: string; reference: string }>;
+
+export function getFlowView(flowId: string): Promise<FlowView>;

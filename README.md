@@ -1,58 +1,54 @@
-# XWflow
+# xwflow front end
 
-XWflow is a workflow orchestration front end. An organization defines a process, publishes a version of that process, and runs the published version. Every run keeps a record from start to finish.
-
-The interface is built only with [XWUI](https://xwui.dev) basic components, loaded from the CDN. There is no React, Next.js, or other UI library. Sample data lives in a local dummy API. Pages never embed that data themselves.
+A working front end for the xwflow prototype (22 boards: website, studio, admin and system, notation views). An organization defines a flow, publishes a version, runs it, and reads a receipt of every step attempt.
 
 ## Setup
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://127.0.0.1:4173
+npm test           # Vitest, 63 tests
+npm run build      # typecheck + production build in dist/
 ```
 
-Open http://127.0.0.1:4173
+XWUI loads from the CDN (`https://xwui.dev/esm/basic.bundle.js` and the dark preset). The only npm packages are dev tools: TypeScript, Vite and Vitest.
 
-`npm run typecheck` checks TypeScript. `npm run build` produces `dist/`. `npm run preview` serves that build.
+## Routes
 
-The only packages installed are the TypeScript compiler and Vite, and they are dev tooling. The browser loads XWUI from `https://xwui.dev/esm/basic.bundle.js`.
-
-## What you can do
-
-- Overview shows how many processes are published and how many runs are active or failed.
-- Processes can be searched, created, and opened.
-- A process draft is a sequence of steps. Add, edit, and remove steps, then publish a version with a note.
-- A run always copies the latest published version. Later draft edits do not change that record.
-- Runs can be filtered. Open a run to see each step from start to finish. A live run advances on its own.
-- The assistant answers from the process and its runs. The question stays on this machine.
-
-The workspace is remembered in `sessionStorage` for the browser session. Clear site data to restore the sample workspace.
+| Zone | Routes |
+| --- | --- |
+| Website | `#/`, `#/integrations`, `#/pricing`, `#/self-host`, `#/notations` |
+| Studio | `#/studio` (assistant), `#/studio/flows`, `#/studio/flows/:id` (editor), `#/studio/runs`, `#/studio/runs/:id` (receipt), `#/studio/connections` |
+| Views | `#/studio/flows/:id/{flowchart,swimlane,bpmn,sequence,sim,3d}` |
+| Admin, system | `#/admin`, `#/admin/branding`, `#/admin/audit`, `#/system/health`, `#/denied` |
 
 ## Architecture
 
-The shape follows the separation used in logistics-v2 (thin routes, pages, a single API boundary, shared types, and a content catalog), without that project's React stack.
-
 | Piece | Role |
 | --- | --- |
-| `src/app/router.ts` | Hash routes and query filters. List filters live in the URL. |
-| `src/pages/` | Screens. They render XWUI and call `src/api/client.ts` only. |
-| `src/api/dummy-api.js` | Sample data, validation, and simulated latency. |
-| `src/api/client.ts` | Typed access to that file. |
-| `src/content/catalog.ts` | Navigation and every visible string. |
-| `src/config.ts` | Locale, theme, polling, and search debounce. |
-| `src/components/XWFlowCanvas` | Custom step flow. Extends `XWUIComponent`, split into data, logic, view, and CSS. |
-| `src/components/XWFlowAssistant` | Custom assistant. Same split. Asks through the dummy API. |
+| `src/api/dummy-api.js` | The local dummy API: async operations with simulated latency, a small run engine, session persistence. |
+| `src/api/data/*.js` | Sample data (studio, site, admin). Times are offsets from load time. |
+| `src/api/client.ts` | The only data boundary pages import. |
+| `src/content/*.ts` | Every visible string. Pages hold no copy. |
+| `src/styles/theme.css` | The prototype's "Neon Depth" look as XWUI tokens on custom axes (`data-brand="xwflow"`, `data-accent="lime"`, `data-roundness="pill"`, `data-font="manrope"`). |
+| `src/styles/xwui-skin.css` | Surface treatments no token expresses, applied through XWUI `className` options and scoped tokens. |
+| `src/components/XWFlow*` | Custom components extending `XWUIComponent`, split into types, logic, view and CSS. Their CSS is registered under XWUI's `xwui-css-<name>` id, so the base class does not fetch it. |
+| `src/pages/**` | Screens composed from XWUI and XWFlow components. |
+| `src/app/*` | Router, shells, formatting (Intl), status mapping, contrast, simulation, exporters. |
+
+XWUI components in use include Button, ButtonCopy, InputText, InputTextarea, Select, InputSwitch, InputSlider, SegmentedControl, NavTabs, Table, DisplayStatistic, DisplayChip, Tag, Kbd, Avatar, Icon, ProgressBar, CodeBlock, Dialog, Toast, MenuDropdown, Empty, Alert, UptimeBar, BarSiteHeader and BarSiteFooter.
 
 ## Assumptions
 
-- The prototype at the assessment link returned "Page not found" from this environment, including a signed-in browser. The screens follow the written brief: define a process, publish a version, run it, and keep the record.
-- Publishing freezes a copy of the draft. The next run uses the highest version number.
-- A new run walks its steps on a timer inside the dummy API (about one second per step). Seeded historical runs stay as they were recorded.
-- There is no sign-in. The actor and organization come from the dummy workspace.
-- XWUI basic is the only component set. The process diagram is a custom component because the workflow canvas is not in the basic tier.
+- No sign-in. The current user is "You" with the Builder role, so Quotas shows the denied state.
+- Data that the prototype shows as a placeholder (prices, start commands, dialect depth) stays a visible placeholder.
+- Admin rail items with no board open the closest real screen.
+- The runs engine, simulation and health checks are simulated in the browser.
 
 ## Incomplete
 
-- Pixel match to the private prototype, until that link loads.
-- No real backend, permissions, or credentials.
-- Step graphs are a single sequence. Branches are shown as a decision step, not as separate paths.
+- Agents, Tables, Forms, Variables, MCP servers, Templates and Versions are not part of the prototype and show a notice.
+- Uploads, saving the brand kit and SIEM streaming are gated to the Commercial plan, as the prototype shows.
+- `XWUIUptimeBar` draws at most 14 days, so health shows the last 14 days rather than 30.
+- Dialogs open on an animation frame. They were verified with a scripted click, because the automation tab reported itself hidden.
+- XWUI-style `.md` docs and `.schema.json` files exist only for `XWFlowStatus` so far.

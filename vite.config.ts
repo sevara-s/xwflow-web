@@ -4,7 +4,7 @@ import { defineConfig, type Plugin } from "vite";
 
 const CDN = "https://xwui.dev/";
 const LOCAL_BASIC = "xwflow-local-xwui/basic";
-const LOCAL_CSS = "/xwflow-local-xwui/styles/components";
+const LOCAL_BASE = "/xwflow-local-xwui";
 
 /**
  * XWUI_LOCAL=<path to an xwui-lib checkout> runs the app against that
@@ -32,15 +32,23 @@ function localXwui(root: string): Plugin {
     // Component sheets come from the checkout's source, so a change to an
     // existing XWUI component shows before it is published.
     configureServer: (server) => {
-      server.middlewares.use(LOCAL_CSS, (request, response, next) => {
+      server.middlewares.use(LOCAL_BASE, (request, response) => {
+        const url = request.url ?? "/";
         // Components ask by tier path (sometimes a legacy one); the sheet is
         // found by component name, as the package's component map places it.
-        const name = /\/(XWUI[A-Za-z0-9]+)\.css$/.exec((request.url ?? "").split("?")[0])?.[1];
+        const name = /^\/styles\/components\/.*\/(XWUI[A-Za-z0-9]+)\.css$/.exec(url.split("?")[0])?.[1];
         const folder = name ? paths()[name] : undefined;
         const file = folder ? resolve(lib, "xwui-lib-basic/src", folder, `${name}.css`) : "";
-        if (!file || !existsSync(file)) return next();
-        response.setHeader("Content-Type", "text/css");
-        response.end(readFileSync(file));
+        if (file && existsSync(file)) {
+          response.setHeader("Content-Type", "text/css");
+          response.end(readFileSync(file));
+          return;
+        }
+        // Everything else under the asset base (icons, fonts, sheets of
+        // components the checkout lacks) is the published asset.
+        response.statusCode = 302;
+        response.setHeader("Location", `${CDN}${url.replace(/^\//, "")}`);
+        response.end();
       });
     },
     // Vite leaves https:// imports alone (aliases included), so the CDN
@@ -51,7 +59,7 @@ function localXwui(root: string): Plugin {
     transformIndexHtml: (html) =>
       html
         .replaceAll(`${CDN}styles/`, `/@fs${lib}/dist/styles/`)
-        .replace("<head>", `<head>\n    <script>window.__XWUI_TESTERS_ASSET_BASE__ = "/xwflow-local-xwui/";</script>`),
+        .replace("<head>", `<head>\n    <script>window.__XWUI_TESTERS_ASSET_BASE__ = "${LOCAL_BASE}/";</script>`),
   };
 }
 

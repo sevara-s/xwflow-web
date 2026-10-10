@@ -175,6 +175,7 @@ export async function render(context: PageContext<EditorRoute>): Promise<void> {
             selectedId = node.id;
             drawTags();
             redrawCanvas();
+            canvas.fit();
             drawInspector();
             notify(fill(words.added, { name: node.name }), "success");
           } catch (error) {

@@ -10,7 +10,8 @@ import type { XWUIComposerNode } from "../xwui";
 
 export type Node = XWUIComposerNode;
 export type Hue = "lime" | "cyan" | "violet" | "pink" | "orange" | "green" | "amber" | "red" | "blue";
-export type Gap = 4 | 8 | 12 | 16 | 20 | 24 | 32 | 48;
+/** Gap in pixels; the prototype uses 4, 8, 12, 16, 24, 32 and 48. */
+export type Gap = number;
 
 const DISPLAY = "var(--font-headings-family)";
 const MONO = "var(--font-family-mono)";

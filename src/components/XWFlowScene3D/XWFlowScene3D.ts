@@ -48,7 +48,7 @@ export class XWFlowScene3D extends XWUIComponent<XWFlowScene3DData, XWFlowScene3
   private render(): void {
     const width = this.config.width ?? 1040;
     const height = this.config.height ?? 560;
-    this.slots = renderScene(this.container, this.data.labels.canvas, width, height, this.config.ring ?? true, this.config.className);
+    this.slots = renderScene(this.container, this.data.labels.canvas, width, height, this.config.ring ?? true, this.config.className, this.config.lanes);
     this.canvas?.destroy();
     this.slots.canvas.style.width = `${width}px`;
     this.slots.canvas.style.height = `${height}px`;
@@ -67,7 +67,8 @@ export class XWFlowScene3D extends XWUIComponent<XWFlowScene3DData, XWFlowScene3
   private applyDepth(): void {
     const cards = [...this.container.querySelectorAll<HTMLElement>(".xwflow-canvas__node")];
     cards.forEach((card, index) => {
-      card.style.setProperty("--xwflow-z", `${nodeDepth(index, cards.length)}px`);
+      const depth = card.dataset.id ? this.data.depths?.[card.dataset.id] : undefined;
+      card.style.setProperty("--xwflow-z", `${depth ?? nodeDepth(index, cards.length)}px`);
       card.style.animationDelay = `${-1.5 * index}s`;
     });
   }

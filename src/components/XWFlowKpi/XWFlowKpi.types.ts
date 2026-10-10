@@ -1,4 +1,4 @@
-export type KpiTone = "violet" | "cyan" | "red" | "amber" | "lime" | "green";
+export type KpiTone = "violet" | "cyan" | "red" | "amber" | "lime" | "green" | "pink";
 
 export interface XWFlowKpiData {
   label: string;

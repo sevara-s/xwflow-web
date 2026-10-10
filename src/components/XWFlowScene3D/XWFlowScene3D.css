@@ -73,3 +73,25 @@
   .xwflow-scene .xwflow-canvas__node,
   .xwflow-scene__ring { animation: none; }
 }
+.xwflow-scene__lane {
+  --xwflow-lc: var(--xwflow-cyan);
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid color-mix(in srgb, var(--xwflow-lc) 40%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--xwflow-lc) 14%, transparent), transparent 70%);
+}
+.xwflow-scene__lane[data-color="lime"] { --xwflow-lc: var(--xwflow-lime); }
+.xwflow-scene__lane[data-color="violet"] { --xwflow-lc: var(--xwflow-violet); }
+.xwflow-scene__lane[data-color="pink"] { --xwflow-lc: var(--xwflow-pink); }
+.xwflow-scene__lane[data-color="orange"] { --xwflow-lc: var(--xwflow-orange); }
+.xwflow-scene__lane-label {
+  position: absolute;
+  left: 18px;
+  bottom: 10px;
+  font-family: var(--xwflow-font-display);
+  font-weight: 800;
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--xwflow-lc) 80%, transparent);
+}

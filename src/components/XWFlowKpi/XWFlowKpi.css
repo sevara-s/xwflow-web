@@ -26,6 +26,7 @@
 .xwflow-kpi[data-tone="amber"] { --xwflow-kc: var(--xwflow-amber); }
 .xwflow-kpi[data-tone="lime"] { --xwflow-kc: var(--xwflow-lime); }
 .xwflow-kpi[data-tone="green"] { --xwflow-kc: var(--xwflow-green); }
+.xwflow-kpi[data-tone="pink"] { --xwflow-kc: var(--xwflow-pink); }
 
 /* XWUIDisplayStatistic inside the tile: title above, display number below. */
 .xwflow-kpi .xwui-statistic,

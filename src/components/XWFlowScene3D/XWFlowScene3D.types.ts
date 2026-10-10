@@ -1,6 +1,9 @@
 import type { XWFlowCanvasData } from "../XWFlowCanvas/XWFlowCanvas.types";
 
-export type XWFlowScene3DData = XWFlowCanvasData;
+export type XWFlowScene3DData = XWFlowCanvasData & {
+  /** Height of each step above the floor in pixels; steps without one rise by order. */
+  depths?: Record<string, number>;
+};
 
 export interface XWFlowScene3DConfig {
   /** Plane size in pixels before the tilt. */
@@ -14,5 +17,7 @@ export interface XWFlowScene3DConfig {
   ring?: boolean;
   /** Let people orbit the scene by dragging. */
   orbit?: boolean;
+  /** Floor bands, top to bottom, e.g. one per system. */
+  lanes?: Array<{ label: string; color: "lime" | "cyan" | "violet" | "pink" | "orange" }>;
   className?: string;
 }

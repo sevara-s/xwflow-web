@@ -1,156 +1,187 @@
 import { api } from "../../api/client";
-import { el, slot } from "../../app/dom";
 import { fill } from "../../app/format";
-import type { Tracker } from "../../app/mount";
 import { errorMessage, notify } from "../../app/notify";
-import type { PageContext } from "../../app/page";
-import { revealSection, siteHref } from "../../app/site-links";
-import { XWFlowShape } from "../../components/XWFlowShape/XWFlowShape";
+import { siteHref } from "../../app/site-links";
+import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { Cell, PricingTier } from "../../types/domain";
-import { XWUIButton, XWUIIcon, XWUIInputText, XWUITable, XWUITag } from "../../xwui";
-import { eyebrow, headline, section } from "./common";
-
-type SiteRoute = Extract<PageContext["route"], { zone: "site" }>;
+import {
+  band,
+  button,
+  cell,
+  centred,
+  eyebrow,
+  glass,
+  grid,
+  headline,
+  icon,
+  measure,
+  row,
+  separator,
+  shape,
+  stack,
+  tag,
+  text,
+  ticks,
+  type Node,
+} from "../../ui/kit";
+import type { XWUIButton, XWUIInputText } from "../../xwui";
 
 const words = catalog.site.pricing;
 
-export async function render(context: PageContext<SiteRoute>): Promise<void> {
-  const { scope, body, route } = context;
-  const pricing = await api.getPricing();
+function price(tier: PricingTier): Node {
+  if (tier.price.kind === "free") return text("disp", words.free);
+  if (tier.price.kind === "quote") {
+    const amount = tier.price.amount === null ? tag(words.pricePlaceholder, "lime") : text("disp", String(tier.price.amount), { tone: "gradient" });
+    const unit = row([text("small", words.per, { tone: "secondary" }), tier.price.unit === null ? tag(words.unitPlaceholder, "lime") : text("small", tier.price.unit, { tone: "secondary" })], { gap: 6 });
+    return row([amount, unit], { gap: 8 });
+  }
+  return tag(words.contactPlaceholder, "lime");
+}
 
-  const hero = el("section", "xwflow-hero xwflow-hero--page");
-  body.append(hero);
-  scope.track(new XWFlowShape(slot(hero), { kind: "ring" }, { size: 220, thickness: 8, place: { left: "8%", top: "40px" } }));
-  scope.track(new XWFlowShape(slot(hero), { kind: "orb" }, { size: 80, color: "pink", place: { right: "12%", top: "60px" } }));
-  scope.track(new XWFlowShape(slot(hero), { kind: "orb" }, { size: 46, color: "cyan", place: { right: "24%", top: "220px" } }));
-  const intro = el("div", "xwflow-container xwflow-stack xwflow-gap-24 xwflow-center");
-  hero.append(intro);
-  eyebrow(intro, words.eyebrow);
-  intro.append(headline("h1", "xwflow-h1", words.title, words.titleHighlight), el("p", "xwflow-lead xwflow-measure", words.lead));
-
-  const tiers = el("div", "xwflow-container xwflow-grid xwflow-tiers");
-  tiers.style.setProperty("--xwflow-min", "300px");
-  body.append(tiers);
-  for (const tier of pricing.tiers) tiers.append(renderTier(tier, scope));
-
-  const compare = section(body, "compare");
-  const head = el("div", "xwflow-stack xwflow-gap-12");
-  compare.append(head);
-  eyebrow(head, words.compareEyebrow);
-  head.append(el("h2", "xwflow-h2", words.compareTitle), el("p", "xwflow-sec", words.compareBody));
-  const tableHost = slot(compare, "xwflow-table");
-  type Row = (typeof pricing.comparison)[number];
-  const cell = (value: Cell): HTMLElement => {
-    if (value.kind === "included") {
-      const box = el("span", "xwflow-row xwflow-gap-8 xwflow-included");
-      const icon = el("span");
-      box.append(icon, words.included);
-      scope.track(new XWUIIcon(icon, { name: "check" }, { size: "sm", decorative: true }));
-      return box;
-    }
-    if (value.kind === "text") return el("span", undefined, value.text);
-    const box = el("span");
-    scope.track(new XWUITag(box, { label: fill(words.requires, { tier: value.tier }) }, { size: "small", className: "xwflow-tag" }));
-    return box;
-  };
-  scope.track(
-    new XWUITable(
-      tableHost,
-      {
-        columns: [
-          { key: "capability", title: words.columns.capability, render: (_: unknown, row: Row) => el("span", undefined, row.capability) },
-          { key: "core", title: words.columns.core, render: (_: unknown, row: Row) => cell(row.core) },
-          { key: "commercial", title: words.columns.commercial, render: (_: unknown, row: Row) => cell(row.commercial) },
+function tierCard(tier: PricingTier, context: ViewContext): Node {
+  const target = tier.cta.target === "selfHost" ? siteHref("selfHost") : null;
+  const look = tier.cta.style === "primary" ? "primary" : tier.cta.style === "glass" ? "glass" : "gradient";
+  const cta = button(look, tier.cta.label, {
+    size: "lg",
+    href: target ?? undefined,
+    onClick: target ? undefined : () => context.instance<{ focus(): void }>("contact-email")?.focus(),
+  });
+  cta.config = { ...cta.config, fullWidth: true };
+  return {
+    tag: "xwui-box",
+    config: { surface: "glass", padding: 28, glow: tier.highlighted ? "violet" : undefined, gradientBorder: tier.highlighted, overflow: "clip" },
+    slots: {
+      children: stack(
+        [
+          ...(tier.highlighted ? [shape("halo", "violet", 240, { right: "-80px", top: "-80px" })] : []),
+          stack([row([tag(tier.tag.label, tier.tag.color)]), text("h3", tier.name), text("small", tier.blurb, { tone: "secondary" })], { gap: 8 }),
+          price(tier),
+          cta,
+          separator(),
+          ticks(tier.features, tier.tag.color),
+          ...(tier.planned ? [row([tag(words.planned, "plan")])] : []),
         ],
-        data: pricing.comparison.map((row, index) => ({ ...row, key: String(index) })),
-      },
-      { hoverable: true, bordered: false, ariaLabel: words.compareLabel },
-    ),
-  );
-
-  renderContact(body, scope);
-  revealSection(body, route.section);
+        { gap: 20 },
+      ),
+    },
+  };
 }
 
-function renderTier(tier: PricingTier, scope: Tracker): HTMLElement {
-  const card = el("div", "xwflow-tier");
-  if (tier.highlighted) card.dataset.highlighted = "";
-  card.dataset.color = tier.tag.color;
-  if (tier.highlighted) scope.track(new XWFlowShape(slot(card), { kind: "halo" }, { size: 240, color: "violet", place: { right: "-80px", top: "-80px" } }));
-  const head = el("div", "xwflow-stack xwflow-gap-8 xwflow-relative");
-  card.append(head);
-  scope.track(new XWUITag(slot(head), { label: tier.tag.label }, { size: "small", className: `xwflow-tag xwflow-tag--${tier.tag.color}` }));
-  head.append(el("h2", "xwflow-h3", tier.name), el("p", "xwflow-small xwflow-sec", tier.blurb));
-
-  const price = el("div", "xwflow-row xwflow-gap-8 xwflow-relative");
-  card.append(price);
-  if (tier.price.kind === "free") price.append(el("span", "xwflow-tier__price", words.free));
-  else if (tier.price.kind === "quote") {
-    const amount = el("span", "xwflow-tier__price xwflow-grad-text");
-    amount.append(tier.price.amount === null ? el("span", "xwflow-placeholder", words.pricePlaceholder) : String(tier.price.amount));
-    const unit = el("span", "xwflow-small xwflow-sec");
-    unit.append(`${words.per} `, tier.price.unit === null ? el("span", "xwflow-placeholder", words.unitPlaceholder) : tier.price.unit);
-    price.append(amount, unit);
-  } else {
-    const amount = el("span", "xwflow-tier__price");
-    amount.append(el("span", "xwflow-placeholder", words.contactPlaceholder));
-    price.append(amount);
-  }
-
-  const cta = slot(card, "xwflow-relative");
-  const href = tier.cta.target === "selfHost" ? siteHref("selfHost") : siteHref("pricing", "contact");
-  const config =
-    tier.cta.style === "primary"
-      ? { variant: "primary" }
-      : { variant: "ghost", className: tier.cta.style === "glass" ? "xwflow-btn-glass" : "xwflow-btn-gradient" };
-  const button = scope.track(new XWUIButton(cta, { text: tier.cta.label }, { ...config, size: "lg", fullWidth: true }));
-  if (tier.cta.target === "contact") {
-    button.onClick(() => document.querySelector('[data-section="contact"]')?.scrollIntoView({ behavior: "smooth", block: "center" }));
-  } else {
-    button.onClick(() => (window.location.hash = href));
-  }
-
-  card.append(el("hr", "xwflow-sep"));
-  const list = el("ul", "xwflow-ticks");
-  for (const feature of tier.features) list.append(el("li", undefined, feature));
-  card.append(list);
-  if (tier.planned) scope.track(new XWUITag(slot(card), { label: words.planned }, { size: "small", className: "xwflow-tag xwflow-tag--plan" }));
-  return card;
+function cellNode(value: Cell): Node {
+  if (value.kind === "included") return row([icon("check", 16, "var(--accent-primary)"), text("small", words.included)], { gap: 8 });
+  if (value.kind === "text") return text("small", value.text);
+  return tag(fill(words.requires, { tier: value.tier }));
 }
 
-function renderContact(body: HTMLElement, scope: Tracker): void {
-  const wrap = section(body, "contact");
-  const panel = el("div", "xwflow-glass xwflow-clip xwflow-contact");
-  panel.dataset.border = "gradient";
-  wrap.append(panel);
-  scope.track(new XWFlowShape(slot(panel), { kind: "cube" }, { size: 60, color: "violet", place: { right: "8%", top: "30px" } }));
-  const text = el("div", "xwflow-stack xwflow-gap-16 xwflow-relative");
-  panel.append(text);
-  text.append(headline("h2", "xwflow-h2", words.contactTitle, words.contactHighlight), el("p", "xwflow-sec", words.contactBody));
-
-  const form = el("form", "xwflow-stack xwflow-gap-16 xwflow-relative");
-  form.setAttribute("aria-label", words.contactLabel);
-  form.noValidate = true;
-  panel.append(form);
-  const email = scope.track(new XWUIInputText(slot(form), { label: words.email, placeholder: words.emailPlaceholder }, { type: "email", fullWidth: true, required: true }));
-  const need = scope.track(new XWUIInputText(slot(form), { label: words.need, placeholder: words.needPlaceholder }, { fullWidth: true, required: true }));
-  const submit = scope.track(new XWUIButton(slot(form), { text: words.submit }, { variant: "primary", size: "lg", type: "submit" }));
-  const send = async (): Promise<void> => {
-    submit.setLoading(true);
+function contact(): Node {
+  let sending = false;
+  const send = async (context: { email?: XWUIInputText; need?: XWUIInputText; submit?: XWUIButton }): Promise<void> => {
+    if (sending || !context.email || !context.need) return;
+    sending = true;
+    context.submit?.setLoading(true);
     try {
-      const result = await api.requestQuote({ email: email.getValue().trim(), need: need.getValue().trim() });
+      const result = await api.requestQuote({ email: context.email.getValue().trim(), need: context.need.getValue().trim() });
       notify(fill(words.sent, { reference: result.reference }), "success");
-      email.setValue("");
-      need.setValue("");
+      context.email.setValue("");
+      context.need.setValue("");
     } catch (error) {
       notify(errorMessage(error), "warning");
     } finally {
-      submit.setLoading(false);
+      sending = false;
+      context.submit?.setLoading(false);
     }
   };
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    void send();
-  });
+  const fields: { email?: XWUIInputText; need?: XWUIInputText; submit?: XWUIButton } = {};
+  const form = stack(
+    [
+      {
+        tag: "xwui-input-text",
+        key: "contact-email",
+        data: { label: words.email, placeholder: words.emailPlaceholder },
+        config: { type: "email", fullWidth: true, required: true },
+        ref: (instance) => (fields.email = instance as XWUIInputText),
+      },
+      {
+        tag: "xwui-input-text",
+        data: { label: words.need, placeholder: words.needPlaceholder },
+        config: { fullWidth: true, required: true },
+        ref: (instance) => (fields.need = instance as XWUIInputText),
+      },
+      row([
+        {
+          ...button("primary", words.submit, { size: "lg", onClick: () => void send(fields) }),
+          ref: (instance) => (fields.submit = instance as XWUIButton),
+        },
+      ]),
+    ],
+    { gap: 16 },
+  );
+  return {
+    tag: "xwui-box",
+    key: "band-contact",
+    config: { surface: "glass", gradientBorder: true, padding: 40, overflow: "clip", ariaLabel: words.contactLabel, role: "form" },
+    slots: {
+      children: stack(
+        [
+          shape("cube", "violet", 60, { right: "8%", top: "30px" }),
+          grid([stack([headline("h2", words.contactTitle, words.contactHighlight), text("body", words.contactBody, { tone: "secondary" })], { gap: 16 }), form], 380, 40),
+        ],
+        { gap: 0 },
+      ),
+    },
+  };
+}
+
+export async function view(context: ViewContext): Promise<Node[]> {
+  const pricing = await api.getPricing();
+  type Row = (typeof pricing.comparison)[number];
+
+  const hero: Node = {
+    tag: "xwui-box",
+    key: "band-hero",
+    config: { as: "section", position: "relative", padding: "80px 0 40px" },
+    slots: {
+      children: stack(
+        [
+          shape("ring", "violet", 220, { left: "8%", top: "40px" }, 8),
+          shape("orb", "pink", 80, { right: "12%", top: "60px" }),
+          shape("orb", "cyan", 46, { right: "24%", top: "220px" }),
+          {
+            tag: "xwui-container",
+            config: { maxWidth: 1280, center: true, padding: "0 24px" },
+            slots: {
+              children: stack(
+                [centred(eyebrow(words.eyebrow)), headline("h1", words.title, words.titleHighlight, "center"), measure(text("lead", words.lead, { align: "center" }))],
+                { gap: 24, align: "stretch" },
+              ),
+            },
+          },
+        ],
+        { gap: 0 },
+      ),
+    },
+  };
+
+  const table: Node = {
+    tag: "xwui-table",
+    data: {
+      columns: [
+        { key: "capability", title: words.columns.capability, render: (_: unknown, item: Row) => cell(text("small", item.capability, { bold: true })) },
+        { key: "core", title: words.columns.core, render: (_: unknown, item: Row) => cell(cellNode(item.core)) },
+        { key: "commercial", title: words.columns.commercial, render: (_: unknown, item: Row) => cell(cellNode(item.commercial)) },
+      ],
+      data: pricing.comparison.map((item, index) => ({ ...item, key: String(index) })),
+    },
+    config: { hoverable: true, bordered: false, ariaLabel: words.compareLabel },
+  };
+
+  return [
+    hero,
+    band("tiers", [grid(pricing.tiers.map((tier) => tierCard(tier, context)), 300)], { tight: true }),
+    band("compare", [stack([eyebrow(words.compareEyebrow), text("h2", words.compareTitle), text("body", words.compareBody, { tone: "secondary" })], { gap: 12 }), glass(table, { pad: "none" })], {
+      gap: 24,
+    }),
+    band("contact", [contact()]),
+  ];
 }

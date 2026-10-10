@@ -6,7 +6,7 @@
  * glass and glows come from the xwflow XWUI theme, and the type scale below
  * is the prototype's own (xw.css).
  */
-import type { XWUIComposerNode } from "../xwui";
+import { XWUIComposer, type XWUIComposerNode } from "../xwui";
 
 export type Node = XWUIComposerNode;
 export type Hue = "lime" | "cyan" | "violet" | "pink" | "orange" | "green" | "amber" | "red" | "blue";
@@ -213,4 +213,21 @@ export function shape(kind: "orb" | "ring" | "cube" | "halo", hue: Hue, size: nu
 
 export function keys(value: string[]): Node {
   return { tag: "xwui-kbd", data: { keys: value } };
+}
+
+/** An XWUI element for a slot that takes an element, such as an XWUITable cell. */
+export function cell(node: Node): HTMLElement | string {
+  return XWUIComposer.element(node) ?? "";
+}
+
+export function separator(): Node {
+  return { tag: "xwui-separator" };
+}
+
+/** A list of lines, each led by a ring in the given hue (the prototype's ticks). */
+export function ticks(items: string[], hue: Hue = "lime"): Node {
+  return stack(
+    items.map((item) => row([icon("circle-dot", 16, `var(--xwui-hue-${hue})`), text("small", item, { tone: "secondary" })], { gap: 10, align: "flex-start" })),
+    { gap: 10 },
+  );
 }

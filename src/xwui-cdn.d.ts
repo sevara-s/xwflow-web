@@ -113,6 +113,7 @@ declare module "https://xwui.dev/esm/basic.bundle.js" {
     key?: string;
   }
   export class XWUIComposer extends XWUIComponent {
+    static element(node: XWUIComposerNode): HTMLElement | null;
     setTree(tree: XWUIComposerNode | XWUIComposerNode[]): void;
     getElementByKey(key: string): HTMLElement | undefined;
     getInstanceByKey<T = unknown>(key: string): T | undefined;

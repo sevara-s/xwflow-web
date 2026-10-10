@@ -17,7 +17,7 @@
 .xwflow-appbar__link:hover { color: #fff; }
 .xwflow-appbar__here { color: #fff; }
 .xwflow-appbar__meta { font-family: var(--font-family-mono); font-size: 0.75rem; color: var(--xwflow-text-3); }
-.xwflow-appbar__end { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.xwflow-appbar__end { margin-left: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 12px; min-width: 0; }
 .xwflow-appbar__actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .xwflow-appbar__actions:empty { display: none; }
 .xwflow-appbar__sample .xwui-tag {

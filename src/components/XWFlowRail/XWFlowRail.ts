@@ -3,7 +3,7 @@ import { XWFlowStatus } from "../XWFlowStatus/XWFlowStatus";
 import { XWFlowBrand } from "../XWFlowBrand/XWFlowBrand";
 import { registerStyles } from "../registerStyles";
 import css from "./XWFlowRail.css?inline";
-import { isSearchShortcut, usagePercent } from "./XWFlowRail.logic";
+import { isSearchShortcut, startsCollapsed, usagePercent } from "./XWFlowRail.logic";
 import type { XWFlowRailConfig, XWFlowRailData, XWFlowRailEvents } from "./XWFlowRail.types";
 import { renderRail } from "./XWFlowRail.view";
 
@@ -32,7 +32,7 @@ export class XWFlowRail extends XWUIComponent<XWFlowRailData, XWFlowRailConfig> 
 
   constructor(container: HTMLElement, data: XWFlowRailData, config: XWFlowRailConfig = {}) {
     super(container, data, config);
-    this.collapsed = Boolean(config.collapsed);
+    this.collapsed = startsCollapsed(config.collapsed);
     this.render();
     document.addEventListener("keydown", this.onKey);
   }

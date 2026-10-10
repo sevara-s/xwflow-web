@@ -115,6 +115,13 @@
 .xwflow-rail[data-collapsed] .xwflow-rail__create .xwui-button-text { display: none; }
 
 @media (max-width: 860px) {
-  .xwflow-rail { position: static; height: auto; width: 100%; border-right: 0; border-bottom: 1px solid var(--xwflow-line); }
+  .xwflow-rail,
+  .xwflow-rail[data-collapsed],
+  .xwflow-rail[data-slim] { position: static; height: auto; width: 100%; border-right: 0; border-bottom: 1px solid var(--xwflow-line); }
   .xwflow-rail__footer { margin-top: 0; padding-top: 8px; }
+  /* On phones "collapsed" means closed: only the brand bar and its toggle show. */
+  .xwflow-rail[data-collapsed] > :not(.xwflow-rail__head) { display: none; }
+  .xwflow-rail[data-collapsed] .xwflow-rail__head { flex-direction: row; padding: 0; }
+  .xwflow-rail[data-collapsed] .xwflow-brand__word { display: inline; }
+  .xwflow-rail[data-collapsed] .xwflow-rail__collapse { margin-left: auto; }
 }

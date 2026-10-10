@@ -64,8 +64,12 @@
   border: 1px solid var(--xwflow-line);
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
-  overflow: hidden;
+  overflow-x: auto;
+  /* Contain absolutely positioned screen-reader labels inside the scroll area. */
+  position: relative;
 }
+/* XWUI's sticky scrollbar mirror is as wide as the table; keep it inside the column. */
+.xwflow-table .xwui-table-hscroll { max-width: 100%; overflow-x: auto; }
 .xwflow-table .xwui-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; background: transparent; }
 .xwflow-table .xwui-table th {
   text-align: start;

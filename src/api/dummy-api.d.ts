@@ -17,6 +17,13 @@ import type {
   StepDetail,
   Workspace,
   Landing,
+  AccessDenial,
+  AdminContext,
+  AdminOverview,
+  AuditList,
+  AuditQuery,
+  BrandKit,
+  Health,
   NodeType,
   NotationFamily,
   NotationGallery,
@@ -65,3 +72,15 @@ export function getPricing(): Promise<Pricing>;
 export function getSelfHost(): Promise<SelfHost>;
 export function getNotations(query?: { family?: NotationFamily | "" }): Promise<NotationGallery>;
 export function requestQuote(input: { email: string; need: string }): Promise<{ reference: string }>;
+
+export function getAdminContext(): Promise<AdminContext>;
+export function getAdminOverview(): Promise<AdminOverview>;
+export function getBranding(): Promise<BrandKit>;
+export function saveBranding(kit: Partial<Omit<BrandKit, "plan" | "swatches" | "typefaces">>): Promise<BrandKit>;
+export function listAudit(query?: AuditQuery): Promise<AuditList>;
+export function getHealth(): Promise<Health>;
+export function recheckHealth(): Promise<Health>;
+export function pauseSchedules(): Promise<{ paused: number }>;
+export function drainWorker(): Promise<{ worker: string; remaining: number }>;
+export function getAccessDenial(): Promise<AccessDenial>;
+export function requestAccess(role: string): Promise<{ role: string; reference: string }>;

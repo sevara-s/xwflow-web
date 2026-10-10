@@ -323,3 +323,96 @@ export interface NotationGallery {
   /** The flow every thumbnail draws. */
   sample: { flowId: string; runId: string | null; steps: Array<{ id: string; name: string; type: string; group: StepGroup }> };
 }
+
+/* ------------------------------------------------------------------ */
+/* Admin and system                                                    */
+/* ------------------------------------------------------------------ */
+
+export type HealthState = "ok" | "warn" | "err";
+
+export interface AdminContext {
+  tenant: { id: string; name: string; plan: "core" | "commercial" };
+  health: HealthState;
+}
+
+export interface Service {
+  id: string;
+  label: string;
+  state: HealthState;
+  reach: boolean;
+  downSince?: number;
+  lastGood?: number;
+  heartbeatAgeS?: number;
+}
+
+export interface AdminOverview {
+  kpis: Array<{ id: "runs24h" | "failed24h" | "overdue" | "queued"; value: number | null; asOf: number | null; note: "noAdmission" | null }>;
+  runsByHour: Array<{ succeeded: number; failed: number }>;
+  failing: Array<{ flowId: string; flow: string; tenant: string; failed: number; cause: string }>;
+  reachability: Service[];
+}
+
+export interface BrandKit {
+  productName: string;
+  assistantName: string;
+  primary: string;
+  swatches: string[];
+  typefaces: string[];
+  typeface: string;
+  removeMarks: boolean;
+  domain: string;
+  background: string;
+  plan: "core" | "commercial";
+}
+
+export type ActorClass = "person" | "assistant" | "agent" | "system";
+
+export interface AuditEvent {
+  id: string;
+  kind: string;
+  group: StepGroup;
+  title: string;
+  object: { name: string; type: string; note?: string };
+  actor: { name: string; class: ActorClass };
+  onBehalfOf: string | null;
+  at: number;
+}
+
+export interface AuditQuery {
+  actor?: string;
+  actorClass?: ActorClass | "";
+  action?: string;
+  objectType?: string;
+  days?: number;
+}
+
+export interface AuditList {
+  events: AuditEvent[];
+  retentionDays: number;
+  actors: string[];
+  actions: string[];
+  objectTypes: string[];
+}
+
+export interface HealthCheck {
+  id: string;
+  label: string;
+  state: HealthState;
+  checkedAt: number;
+  summary: "unreachable" | "lateHeartbeat" | "answering" | "heartbeating" | "draining" | "connected";
+  detail: Record<string, number | string>;
+}
+
+export interface Health {
+  checks: HealthCheck[];
+  uptime: Array<{ service: string; days: HealthState[] }>;
+  log: Array<{ at: number; source: string; tone: HealthState; message: string }>;
+  services: Service[];
+}
+
+export interface AccessDenial {
+  page: string;
+  missingRole: string;
+  grantedBy: string;
+  yourRole: string;
+}

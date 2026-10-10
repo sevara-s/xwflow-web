@@ -1,9 +1,0 @@
-.xwflow-thumb {
-  border-radius: 16px;
-  background: #07070f;
-  border: 1px solid var(--xwflow-line);
-  padding: 6px;
-  overflow: hidden;
-  height: 232px;
-}
-.xwflow-thumb svg { display: block; width: 100%; height: 220px; }

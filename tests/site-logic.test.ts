@@ -1,29 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flowAsCode, shortName, thumbStyle } from "../src/components/XWFlowNotationThumb/XWFlowNotationThumb.logic";
 import { clampTilt, clampZoom, nodeDepth } from "../src/components/XWFlowScene3D/XWFlowScene3D.logic";
-
-describe("notation thumbnails", () => {
-  it("maps notations to a drawing style, falling back to the node graph", () => {
-    expect(thumbStyle("bpmn")).toBe("bpmn");
-    expect(thumbStyle("bpmn1")).toBe("bpmn");
-    expect(thumbStyle("uml-sequence")).toBe("sequence");
-    expect(thumbStyle("petri")).toBe("petri");
-    expect(thumbStyle("something-new")).toBe("graph");
-  });
-
-  it("shortens long step names with an ellipsis", () => {
-    expect(shortName("Over 500?")).toBe("Over 500?");
-    expect(shortName("Look up customer", 10)).toBe("Look up c…");
-  });
-
-  it("writes the flow as Mermaid edges, one per line", () => {
-    expect(flowAsCode(["New order", "Look up customer", "Over 500?"])).toEqual([
-      "flowchart LR",
-      "  A[New order] --> B[Look up customer]",
-      "  B[Look up customer] --> C[Over 500?]",
-    ]);
-  });
-});
 
 describe("3D scene", () => {
   it("raises later steps higher so depth reads as order", () => {

@@ -262,6 +262,9 @@ export const site = {
     lead: "Node graphs, BPMN, swimlanes, UML, simulation, data flow, value streams. Draw a flow in the notation your team already speaks, then flip it to another one. It is the same flow, and the same receipt, every time.",
     modeLabel: "Render mode",
     layersLabel: "The same flow drawn as a node graph, as BPMN 2.0 and as a classic flowchart, stacked in 3D",
+    /** Words the gallery thumbnails print: swimlane names and sequence participants. */
+    thumbLanes: ["Shop", "CRM", "Sales"],
+    thumbActors: ["Shop", "xwflow", "CRM", "Chat"],
     layers: ["Node graph", "BPMN 2.0", "Classic flowchart"],
     modesEyebrow: "Render modes",
     modesTitle: "Five ways to look at",

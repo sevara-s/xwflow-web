@@ -45,10 +45,7 @@ export class XWFlowRail extends XWUIComponent<XWFlowRailData, XWFlowRailConfig> 
   select(id: string): void {
     this.data.selected = id;
     for (const link of this.container.querySelectorAll<HTMLAnchorElement>(".xwflow-rail__item")) {
-      const item = [...this.data.sections.flatMap((section) => section.items), ...this.data.footer].find(
-        (entry) => entry.href === link.getAttribute("href"),
-      );
-      if (item?.id === id) link.setAttribute("aria-current", "page");
+      if (link.dataset.id === id) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     }
   }

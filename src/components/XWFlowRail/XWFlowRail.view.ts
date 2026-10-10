@@ -40,6 +40,7 @@ export function renderRail(container: HTMLElement, data: XWFlowRailData, config:
     const link = el("a", "xwflow-rail__item");
     link.href = entry.href;
     link.title = entry.label;
+    link.dataset.id = entry.id;
     if (entry.id === data.selected) link.setAttribute("aria-current", "page");
     if (entry.swatch) {
       link.append(el("span", "xwflow-rail__swatch"));

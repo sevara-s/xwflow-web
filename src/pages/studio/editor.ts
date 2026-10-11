@@ -295,15 +295,12 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
         data: { tabs: words.views.map((item) => ({ ...item })), activeTab: "editor" },
         config: { variant: "button", size: "sm", ariaLabel: words.viewsLabel, hideContent: "true" },
         ref: (instance) => {
-          const tabs = instance as { onChange(handler: (id: string) => void): void; setActiveTab(id: string): void };
+          const tabs = instance as { onChange(handler: (id: string) => void): void };
           tabs.onChange((id) => {
             if (id === "bpmn" || id === "3d") navigate(paths.flowView(detail.flow.id, id));
             else if (id === "all") navigate(paths.notations);
             else if (id === "runs") navigate(paths.runs, { q: detail.flow.name, range: "all" });
-            else if (id !== "editor") {
-              notify(words.versionsSoon, "info");
-              tabs.setActiveTab("editor");
-            }
+            else if (id === "versions") navigate(paths.versions(detail.flow.id));
           });
         },
       },

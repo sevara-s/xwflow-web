@@ -35,6 +35,7 @@ const pages: Record<string, () => Promise<PageModule>> = {
   "studio/templates": () => import("../pages/studio/templates"),
   "studio/insights": () => import("../pages/studio/insights"),
   "studio/settings": () => import("../pages/studio/settings"),
+  "studio/versions": () => import("../pages/studio/versions"),
   "editor/editor": () => import("../pages/studio/editor"),
   "editor/view": () => import("../pages/views/view"),
   "site/landing": () => import("../pages/site/landing"),

@@ -550,3 +550,97 @@ export interface McpServer {
   lastError: string | null;
   hue: AreaHue;
 }
+
+/* ------------------------------------------------------------------ */
+/* Workspace pages: overview, templates, insights, settings, versions  */
+/* ------------------------------------------------------------------ */
+
+export interface AttentionItem {
+  kind: "run" | "connection" | "mcp" | "chat" | "agent";
+  id: string;
+  title: string;
+  tone: "error" | "warning";
+  at: number;
+}
+
+export interface Overview {
+  you: Person;
+  today: { runs: number; failed: number; running: number };
+  counts: { published: number; drafts: number; liveAgents: number; connections: number };
+  week: Array<{ value: number; alert: boolean }>;
+  attention: AttentionItem[];
+  recent: RunSummary[];
+}
+
+export interface FlowTemplate {
+  id: string;
+  name: string;
+  summary: string;
+  category: string;
+  steps: Array<{ name: string; type: string; group: StepGroup }>;
+  uses: number;
+  minutesSaved: number;
+  popular: boolean;
+  hue: AreaHue;
+}
+
+export interface TemplateList {
+  templates: FlowTemplate[];
+  categories: string[];
+}
+
+export interface Insights {
+  days: Array<{ day: number; succeeded: number; failed: number }>;
+  totals: { runs: number; failed: number; successRate: number; avgMs: number | null; minutesSaved: number };
+  topFlows: Array<{ flowId: string; name: string; runs: number; failed: number; minutesSaved: number }>;
+  causes: Array<{ cause: string; count: number; flow: string }>;
+  slowSteps: Array<{ step: string; flow: string; p95Ms: number }>;
+}
+
+export type MemberRole = "owner" | "editor" | "viewer";
+
+export interface Member {
+  id: string;
+  name: string;
+  email: string;
+  role: MemberRole;
+  lastActiveAt: number | null;
+  isYou: boolean;
+  invited?: boolean;
+}
+
+export interface ApiKey {
+  id: string;
+  name: string;
+  prefix: string;
+  createdAt: number;
+  lastUsedAt: number | null;
+  scopes: string[];
+}
+
+export interface NotificationPrefs {
+  failedRuns: boolean;
+  dailyDigest: boolean;
+  connectionExpiry: boolean;
+  assistantDone: boolean;
+  weeklyReport: boolean;
+}
+
+export interface Settings {
+  general: { name: string; timezone: string; language: string; weekStart: "monday" | "sunday"; retentionDays: number };
+  members: Member[];
+  apiKeys: ApiKey[];
+  notifications: NotificationPrefs;
+}
+
+export interface FlowVersion {
+  id: string;
+  number: number;
+  /** "Live", "Draft" or empty. */
+  label: string;
+  note: string;
+  author: Person;
+  at: number;
+  published: boolean;
+  changes: { added: number; changed: number; removed: number };
+}

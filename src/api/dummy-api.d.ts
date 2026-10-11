@@ -41,6 +41,15 @@ import type {
   ProjectForm,
   ProjectVariable,
   VariableScope,
+  ApiKey,
+  FlowVersion,
+  Insights,
+  Member,
+  MemberRole,
+  NotificationPrefs,
+  Overview,
+  Settings,
+  TemplateList,
 } from "../types/domain";
 
 export interface StepPatch {
@@ -111,3 +120,17 @@ export function deleteVariable(variableId: string): Promise<{ deleted: string }>
 export function listMcpServers(): Promise<McpServer[]>;
 export function setMcpServerEnabled(serverId: string, enabled: boolean): Promise<McpServer>;
 export function addMcpServer(input: { name: string; url: string }): Promise<McpServer>;
+export function getOverview(): Promise<Overview>;
+export function listTemplates(query?: { q?: string; category?: string }): Promise<TemplateList>;
+export function useTemplate(templateId: string): Promise<FlowSummary>;
+export function getInsights(query?: { days?: 7 | 14 }): Promise<Insights>;
+export function getSettings(): Promise<Settings>;
+export function saveGeneral(patch: Partial<Settings["general"]>): Promise<Settings["general"]>;
+export function inviteMember(input: { email: string; role?: Exclude<MemberRole, "owner"> }): Promise<Member>;
+export function setMemberRole(memberId: string, role: Exclude<MemberRole, "owner">): Promise<Member>;
+export function removeMember(memberId: string): Promise<{ removed: string }>;
+export function createApiKey(input: { name: string; scopes?: string[] }): Promise<{ key: ApiKey; token: string }>;
+export function revokeApiKey(keyId: string): Promise<{ revoked: string }>;
+export function setNotification(name: keyof NotificationPrefs, enabled: boolean): Promise<NotificationPrefs>;
+export function listVersions(flowId: string): Promise<{ flow: FlowSummary; versions: FlowVersion[] }>;
+export function restoreVersion(flowId: string, versionId: string): Promise<FlowVersion>;

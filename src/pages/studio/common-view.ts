@@ -1,7 +1,7 @@
 import { notify } from "../../app/notify";
 import { navigate, paths } from "../../app/router";
 import { catalog } from "../../content/catalog";
-import { centred, type Node } from "../../ui/kit";
+import type { Node } from "../../ui/kit";
 
 const words = catalog.studio;
 
@@ -26,5 +26,6 @@ export function projectTabs(active: string, only?: ReadonlyArray<ProjectTab["id"
       });
     },
   };
-  return { ...centred(node), config: { ...centred(node).config, justify: "flex-start" } };
+  // On a narrow screen the tabs scroll sideways inside their own box.
+  return { tag: "xwui-box", config: { overflow: "auto", width: "100%" }, slots: { children: node } };
 }

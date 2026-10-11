@@ -154,7 +154,7 @@ function table(flows: FlowSummary[]): Node {
       },
       config: { selectable: true, hoverable: true, bordered: false, ariaLabel: words.tableLabel },
     },
-    { pad: "none" },
+    { pad: "none", scroll: true },
   );
 }
 

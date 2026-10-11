@@ -98,11 +98,12 @@ function appBar(workspace: Workspace, bar: PageBar | undefined): Node {
 /** The studio frame: XWUIAppRail on the start side, XWUIAppBar and the page on the other. */
 export function studioShell(workspace: Workspace, route: Route, page: Node[], bar?: PageBar): Node[] {
   const main = stack([appBar(workspace, bar), { tag: "xwui-box", config: { padding: "28px" }, slots: { children: stack(page, { gap: 22 }) } }], { gap: 0 });
+  // Rail beside the page from tablet width up; stacked on a phone.
   return [
     {
-      tag: "xwui-box",
-      config: { display: "flex", width: "100%" },
-      slots: { children: stack([rail(workspace, route), { tag: "xwui-box", config: { width: "100%" }, slots: { children: main } }], { row: true, gap: 0, align: "flex-start" }) },
+      tag: "xwui-grid",
+      config: { columns: "minmax(0, 1fr)", gap: "0", alignItems: "start", responsive: { md: { columns: "auto minmax(0, 1fr)" } } },
+      slots: { children: [rail(workspace, route), main] },
     },
   ];
 }

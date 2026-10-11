@@ -109,6 +109,8 @@ export function grid(items: Node[], min: 440 | 300 | 230 | number, gap = 20): No
 
 export interface PanelOptions {
   pad?: "none" | "s" | "m" | "l";
+  /** Scroll wide content (a table) sideways inside the panel. */
+  scroll?: boolean;
   glow?: "lime" | "violet";
   gradientBorder?: boolean;
   key?: string;
@@ -121,7 +123,7 @@ export function glass(child: Node, options: PanelOptions = {}): Node {
   return {
     tag: "xwui-box",
     key: options.key,
-    config: { surface: "glass", padding: PAD[options.pad ?? "m"], glow: options.glow, gradientBorder: options.gradientBorder },
+    config: { surface: "glass", padding: PAD[options.pad ?? "m"], glow: options.glow, gradientBorder: options.gradientBorder, overflow: options.scroll ? "auto" : undefined },
     slots: { children: child },
   };
 }

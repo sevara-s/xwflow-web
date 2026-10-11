@@ -3,9 +3,8 @@ import { fill, formatNumber } from "../../app/format";
 import { notify } from "../../app/notify";
 import { averageWaitMinutes, createSimulation, finished, step, workerUse, type SimulationState } from "../../app/simulation";
 import { catalog } from "../../content/catalog";
-import type { FlowView, SimulationModel, StepGroup } from "../../types/domain";
-import { hueOf } from "../../ui/flow";
-import { button, glass, grid, icon, iconTile, row, stack, tag, text, type Node } from "../../ui/kit";
+import type { FlowView, SimulationModel } from "../../types/domain";
+import { button, glass, grid, row, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer } from "../../xwui";
 import type { ViewPart, ViewPartContext } from "./view";
 
@@ -13,15 +12,6 @@ const words = catalog.views.sim;
 const TICK_MS = 100;
 /** Redraw at most this often; the model can advance faster. */
 const DRAW_MS = 250;
-
-const stations: Array<{ key: keyof typeof words.stations; group: StepGroup; icon: string }> = [
-  { key: "arrive", group: "trigger", icon: "zap" },
-  { key: "queue", group: "control", icon: "list" },
-  { key: "lookup", group: "integration", icon: "globe" },
-  { key: "decide", group: "control", icon: "git-branch" },
-  { key: "alert", group: "ai", icon: "message-square" },
-  { key: "log", group: "data", icon: "database" },
-];
 
 function clock(minutes: number): string {
   const hours = Math.floor(minutes / 60);
@@ -39,35 +29,54 @@ function counts(state: SimulationState): Record<keyof typeof words.stations, num
   };
 }
 
-/** The line of stations with their live counts, and the clock. */
+/** The model as an Arena style simulation diagram with live figures, under the badges and the clock. */
 function line(state: SimulationState, model: SimulationModel): Node {
   const now = counts(state);
+  const blocks = words.blocks;
+  const share = Math.round(model.overShare * 100);
   return stack(
     [
       row(
-        [tag(words.badge, "amber", undefined, true), tag(words.sample, "plan"), text("small", fill(words.clock, { now: clock(state.minute), end: clock(model.hours * 60) }), { mono: true, tone: "secondary" })],
-        { gap: 10, wrap: true },
+        [
+          row([tag(words.badge, "amber", undefined, true), tag(words.sample, "plan")], { gap: 10, wrap: true }),
+          text("small", fill(words.clock, { now: clock(state.minute), end: clock(model.hours * 60) }), { mono: true, tone: "secondary" }),
+        ],
+        { justify: "space-between", wrap: true },
       ),
       {
-        tag: "xwui-box",
-        config: { overflow: "auto", role: "img", ariaLabel: words.stageLabel },
-        slots: {
-          children: row(
-            stations.flatMap((station, index) => [
-              ...(index ? [icon("arrow-right", 18, "var(--text-tertiary)")] : []),
-              glass(
-                stack([iconTile(station.icon, hueOf[station.group], "sm"), text("xs", words.stations[station.key], { bold: true, tone: "secondary" }), text("disp", formatNumber(now[station.key]))], {
-                  gap: 6,
-                }),
-                { pad: "s", glow: station.key === "queue" && state.queue > model.workers * 2 ? "violet" : undefined },
-              ),
-            ]),
-            { gap: 10 },
-          ),
+        tag: "xwui-notation-diagram",
+        config: { mode: "simulation" },
+        data: {
+          title: fill(words.modelLabel, { share }),
+          labels: { queue: words.queueWord },
+          steps: [
+            { id: "arrive", name: blocks.arrive.name, subtitle: blocks.arrive.kind, shape: "create", hue: "lime", stat: formatNumber(now.arrive) },
+            {
+              id: "lookup",
+              name: blocks.lookup.name,
+              subtitle: fill(blocks.lookup.kind, { n: model.workers }),
+              shape: "process",
+              hue: "cyan",
+              stat: fill(words.lookupStat, { out: formatNumber(state.served), waiting: formatNumber(state.queue) }),
+              queue: state.queue,
+            },
+            { id: "decide", name: blocks.decide.name, shape: "decision", hue: "orange" },
+            { id: "alert", name: blocks.alert.name, subtitle: blocks.alert.kind, shape: "process", hue: "pink", stat: formatNumber(now.alert), col: 3, row: 0 },
+            { id: "log", name: blocks.log.name, subtitle: blocks.log.kind, shape: "process", hue: "violet", stat: formatNumber(state.done), col: 3, row: 2 },
+            { id: "done", name: blocks.done.name, subtitle: blocks.done.kind, shape: "dispose", hue: "violet", stat: formatNumber(state.done), col: 4, row: 2 },
+          ],
+          edges: [
+            { from: "arrive", to: "lookup" },
+            { from: "lookup", to: "decide" },
+            { from: "decide", to: "alert", label: fill(words.branchTrue, { n: share }), tone: "yes" },
+            { from: "decide", to: "log", label: fill(words.branchFalse, { n: 100 - share }), tone: "no" },
+            { from: "alert", to: "log" },
+            { from: "log", to: "done" },
+          ],
         },
       },
     ],
-    { gap: 16 },
+    { gap: 12 },
   );
 }
 

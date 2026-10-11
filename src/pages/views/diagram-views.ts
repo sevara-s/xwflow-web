@@ -5,7 +5,7 @@ import { navigate, paths } from "../../app/router";
 import { catalog } from "../../content/catalog";
 import type { Attempt, FlowView, RunDetail, SystemId, ViewStep } from "../../types/domain";
 import { hueOf, stepType } from "../../ui/flow";
-import { button, row, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { button, row, stack, tag, text, xwflow, xwflowInstance, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUISelect } from "../../xwui";
 import type { ViewPart, ViewPartContext } from "./view";
 
@@ -123,8 +123,7 @@ function diagram(view: FlowView, mode: DiagramMode, laneBy: "system" | "group", 
     data.messages = messages(view, run?.attempts ?? []);
     data.labels = { alt: labels.alt };
   }
-  return {
-    tag: "xwui-notation-diagram",
+  return xwflow("notation-diagram", {
     key: "notation-diagram",
     data,
     config: { mode },
@@ -132,7 +131,7 @@ function diagram(view: FlowView, mode: DiagramMode, laneBy: "system" | "group", 
       if (mode !== "sequence" || !run) return;
       (instance as { on(event: "select", handler: (detail: { id: string }) => void): void }).on("select", ({ id }) => navigate(paths.run(run.id), { attempt: id }));
     },
-  };
+  });
 }
 
 function legend(items: readonly string[]): Node[] {
@@ -220,7 +219,7 @@ export function diagramPart(view: FlowView, mode: DiagramMode, { instance }: Vie
     stage: { tag: "xwui-composer", key: "notation-stage", data: { tree: diagram(view, mode, laneBy, run) } },
     footer,
     export: () => {
-      const svg = instance<{ toSvg(): string }>("notation-diagram")?.toSvg() ?? "";
+      const svg = xwflowInstance<{ toSvg(): string }>("notation-diagram")?.toSvg() ?? "";
       exportText(`${fileBase}-${mode}.svg`, svg, "image/svg+xml");
     },
   };

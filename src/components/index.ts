@@ -8,12 +8,14 @@
  * components. Pages place them with the kit's `xwflow()` helper.
  */
 import { XWFlowLayerStack } from "./layer-stack/XWFlowLayerStack";
+import { XWFlowNotationDiagram } from "./notation-diagram/XWFlowNotationDiagram";
 
-export { XWFlowLayerStack };
+export { XWFlowLayerStack, XWFlowNotationDiagram };
 
 /** Every XWFlow component by the name pages use. */
 export const xwflowComponents = {
   "layer-stack": XWFlowLayerStack,
+  "notation-diagram": XWFlowNotationDiagram,
 } as const;
 
 export type XWFlowComponentName = keyof typeof xwflowComponents;

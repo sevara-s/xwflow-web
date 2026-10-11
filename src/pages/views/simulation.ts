@@ -4,7 +4,7 @@ import { notify } from "../../app/notify";
 import { averageWaitMinutes, createSimulation, finished, step, workerUse, type SimulationState } from "../../app/simulation";
 import { catalog } from "../../content/catalog";
 import type { FlowView, SimulationModel } from "../../types/domain";
-import { button, glass, grid, row, space, stack, tag, text, type Node } from "../../ui/kit";
+import { button, glass, grid, row, space, stack, tag, text, xwflow, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer } from "../../xwui";
 import type { ViewPart, ViewPartContext } from "./view";
 
@@ -43,8 +43,7 @@ function line(state: SimulationState, model: SimulationModel): Node {
         ],
         { justify: "space-between", wrap: true },
       ),
-      {
-        tag: "xwui-notation-diagram",
+      xwflow("notation-diagram", {
         config: { mode: "simulation" },
         data: {
           title: fill(words.modelLabel, { share }),
@@ -74,7 +73,7 @@ function line(state: SimulationState, model: SimulationModel): Node {
             { from: "log", to: "done" },
           ],
         },
-      },
+      }),
     ],
     { gap: "m" },
   );

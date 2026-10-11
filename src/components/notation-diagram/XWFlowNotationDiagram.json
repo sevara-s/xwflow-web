@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "XWFlowNotationDiagram",
+  "name": "XWUI Notation Diagram",
+  "description": "One process drawn in a standard notation, as SVG: an ISO 5807 flowchart (terminal, process, decision, call, input/output and store shapes, and loops back into a step such as a retry), swim lanes, a BPMN 2.0 collaboration (an external pool, a pool with two lanes, start and end events, exclusive gateways, boundary errors and data stores) a UML sequence, or a discrete-event simulation model (Arena style: filled create, process, decide and dispose blocks with branch shares, queues of waiting entities and live figures) whose numbered rows can be chosen with the mouse or the keyboard (select event). Colours come from the hue tokens; toSvg() serialises the drawing for export.",
+  "path": "basic/XWFlowNotationDiagram",
+  "tags": [
+    "basic",
+    "desktop",
+    "tablet",
+    "mobile"
+  ],
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "conf_comp": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "flowchart",
+            "swimlane",
+            "bpmn",
+            "sequence",
+            "simulation"
+          ],
+          "default": "flowchart",
+          "description": "Which notation to draw."
+        },
+        "className": {
+          "type": "string",
+          "description": "Additional CSS class name for the component"
+        }
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Spoken name of the drawing; also the BPMN pool name."
+        },
+        "steps": {
+          "type": "array",
+          "description": "Steps: { id, name, shape, hue, lane, disabled, error, store }."
+        },
+        "edges": {
+          "type": "array",
+          "description": "Connectors: { from, to, label, tone, dashed }."
+        },
+        "lanes": {
+          "type": "array",
+          "description": "Lanes or sequence lifelines: { id, name, hue }."
+        },
+        "external": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "BPMN external participant: { name, note }."
+        },
+        "messages": {
+          "type": "array",
+          "description": "Sequence rows: { id, kind, label, lane, reply, failed, retry, hue }."
+        },
+        "actor": {
+          "type": "string",
+          "description": "Sequence: the lane of the active actor."
+        },
+        "selectedMessage": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Sequence: the chosen row."
+        },
+        "labels": {
+          "type": "object",
+          "description": "Words drawn by the component: alt."
+        },
+        "uid": {
+          "type": "string",
+          "description": "Auto-assigned unique instance id (injected by the base component, not user content)."
+        }
+      }
+    }
+  }
+}

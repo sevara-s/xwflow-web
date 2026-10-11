@@ -79,7 +79,7 @@ export function eyebrow(value: string): Node {
   return {
     tag: "xwui-typography",
     data: { text: value },
-    config: { variant: "overline", rule: true, fontSize: "0.75rem", weight: 800, letterSpacing: "0.14em", textTransform: "uppercase", textColor: "var(--accent-primary)" },
+    config: { variant: "overline", rule: true, fontSize: "var(--type-xs-size)", weight: 800, letterSpacing: "var(--type-eyebrow-tracking)", textTransform: "uppercase", textColor: "var(--accent-primary)" },
   };
 }
 

@@ -22,6 +22,9 @@ const forbidden: Array<[string, RegExp]> = [
   ["constructing XWUI classes by hand", /new XWUI[A-Z]/],
   ["the removed app components", /components\/XWFlow/],
   ["app CSS imports", /import\s+["'][^"']+\.css["']/],
+  // Colours and type come from the xwflow brand's tokens, never literals in app code.
+  ["colour literals (hex or rgba)", /["'`][^"'`]*(#[0-9a-fA-F]{3,8}\b|rgba?\()[^"'`]*["'`]/],
+  ["type size literals (clamp, rem, em)", /["'`]\s*(clamp\(|-?[0-9.]+r?em\s*["'`])/],
 ];
 
 describe("XWUI composition only", () => {

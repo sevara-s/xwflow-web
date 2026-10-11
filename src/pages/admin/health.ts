@@ -6,7 +6,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Health, HealthCheck, HealthState } from "../../types/domain";
-import { button, glass, grid, row, shape, space, stack, status, text, type Hue, type Node, type StatusTone } from "../../ui/kit";
+import { button, decoration, glass, grid, row, space, stack, status, text, type Hue, type Node, type StatusTone } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer } from "../../xwui";
 
 const words = catalog.admin.health;
@@ -59,8 +59,8 @@ function summary(health: Health): Node {
             slots: {
               children: stack(
                 [
-                  shape("halo", hue, 200, { left: "-55px", top: "-55px" }),
-                  shape("orb", hue, 90, { left: "0", top: "0" }),
+                  decoration("health.halo", hue),
+                  decoration("health.orb", hue),
                 ],
                 { gap: "none" },
               ),

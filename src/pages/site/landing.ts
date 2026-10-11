@@ -8,7 +8,7 @@ import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { AssistantDraft, Attempt, Landing, StepGroup } from "../../types/domain";
 import { canvasData, hueOf, stepType, toneOf } from "../../ui/flow";
-import { band, button, eyebrow, glass, grid, headline, icon, iconTile, inset, keys, measure, row, shape, sides, space, stack, status, tag, text, type Hue, type Node, type StatusTone } from "../../ui/kit";
+import { band, button, decoration, eyebrow, glass, grid, headline, icon, iconTile, inset, keys, measure, row, sides, space, stack, status, tag, text, type Hue, type Node, type StatusTone } from "../../ui/kit";
 import type { XWUIComposer, XWUIFlowScene } from "../../xwui";
 
 const words = catalog.site.landing;
@@ -160,8 +160,8 @@ function hero(context: ViewContext, landing: Landing): Node {
     slots: {
       children: stack(
         [
-          shape("halo", "violet", 520, { left: "-120px", top: "-60px" }),
-          shape("halo", "cyan", 460, { right: "-80px", top: "60px" }),
+          decoration("landing.halo"),
+          decoration("landing.halo2"),
           { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: sides("xl") }, slots: { children: intro } },
           {
             tag: "xwui-box",
@@ -170,9 +170,9 @@ function hero(context: ViewContext, landing: Landing): Node {
             slots: {
               children: stack(
                 [
-                  shape("cube", "cyan", 70, { left: "9%", top: "60px" }),
-                  shape("orb", "lime", 90, { right: "11%", top: "40px" }),
-                  shape("orb", "pink", 54, { left: "18%", bottom: "120px" }),
+                  decoration("landing.cube"),
+                  decoration("landing.orb"),
+                  decoration("landing.orb2"),
                   scene,
                 ],
                 { gap: "none" },
@@ -286,7 +286,7 @@ function prompt(context: ViewContext): Node {
     tag: "xwui-box",
     config: { position: "relative" },
     slots: {
-      children: stack([shape("halo", "violet", 360, { left: "10%", top: "10%" }), glass({ tag: "xwui-composer", key: "prompt-draft", data: { tree: draftPanel(t.draft, [], 0) } }, { glow: "violet" })], { gap: "none" }),
+      children: stack([decoration("landing.halo3"), glass({ tag: "xwui-composer", key: "prompt-draft", data: { tree: draftPanel(t.draft, [], 0) } }, { glow: "violet" })], { gap: "none" }),
     },
   };
   return band("prompt", [grid([left, right], 440, "xxxl")]);
@@ -405,7 +405,7 @@ function notations(landing: Landing): Node {
     {
       tag: "xwui-box",
       config: { surface: "glass", padding: space("xxl"), overflow: "clip" },
-      slots: { children: stack([shape("halo", "pink", 420, { right: "-80px", bottom: "-160px" }), grid([left, row(tags, { wrap: true })], 440, "xxxl")], { gap: "none" }) },
+      slots: { children: stack([decoration("landing.halo4"), grid([left, row(tags, { wrap: true })], 440, "xxxl")], { gap: "none" }) },
     },
   ]);
 }
@@ -458,7 +458,7 @@ function start(context: ViewContext): Node {
     {
       tag: "xwui-box",
       config: { surface: "glass", gradientBorder: true, padding: space("xxxl"), overflow: "clip" },
-      slots: { children: stack([shape("ring", "violet", 260, { right: "6%", top: "-40px" }, 10), shape("orb", "lime", 70, { right: "18%", bottom: "40px" }), content], { gap: "none" }) },
+      slots: { children: stack([decoration("landing.ring"), decoration("landing.orb3"), content], { gap: "none" }) },
     },
   ]);
 }

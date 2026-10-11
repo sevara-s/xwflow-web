@@ -6,7 +6,7 @@ import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { Notation, NotationFamily, NotationGallery, NotationViewId, StepGroup } from "../../types/domain";
 import { hueOf } from "../../ui/flow";
-import { band, centred, eyebrow, glass, grid, headline, iconTile, inset, measure, row, shape, sides, stack, tag, text, xwflow, type Hue, type Node } from "../../ui/kit";
+import { band, centred, decoration, eyebrow, glass, grid, headline, iconTile, inset, measure, row, sides, stack, tag, text, xwflow, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer } from "../../xwui";
 
 const words = catalog.site.notations;
@@ -86,8 +86,8 @@ export async function view(context: ViewContext): Promise<Node[]> {
     slots: {
       children: stack(
         [
-          shape("halo", "violet", 520, { left: "-60px", top: "-80px" }),
-          shape("halo", "pink", 460, { right: "-60px", top: "120px" }),
+          decoration("notations.halo"),
+          decoration("notations.halo2"),
           {
             tag: "xwui-container",
             config: { maxWidth: 1280, center: true, padding: sides("xl") },

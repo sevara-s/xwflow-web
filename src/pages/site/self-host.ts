@@ -5,7 +5,7 @@ import { siteHref } from "../../app/site-links";
 import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { CodeToken, SelfHost } from "../../types/domain";
-import { band, button, eyebrow, glass, grid, headline, iconTile, inset, keys, row, separator, shape, sides, space, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { band, button, decoration, eyebrow, glass, grid, headline, iconTile, inset, keys, row, separator, sides, space, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 
 const words = catalog.site.selfHost;
 const stepHues: Hue[] = ["lime", "cyan", "violet", "pink", "orange"];
@@ -109,7 +109,7 @@ export async function view(_context: ViewContext): Promise<Node[]> {
       children: stack(
         [
           { tag: "xwui-iso-stack", data: { layers: [{ hue: "violet" }, { hue: "cyan" }, { hue: "pink" }, { hue: "lime" }] }, config: { size: 260, spacing: 46, height: 360 } },
-          shape("orb", "lime", 46, { right: "16%", top: "20px" }),
+          decoration("self-host.orb"),
         ],
         { gap: "none" },
       ),
@@ -122,7 +122,7 @@ export async function view(_context: ViewContext): Promise<Node[]> {
     slots: {
       children: stack(
         [
-          shape("halo", "violet", 520, { left: "-80px", top: "-60px" }),
+          decoration("self-host.halo"),
           { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: sides("xl") }, slots: { children: grid([intro, art], 440, "xxxl") } },
         ],
         { gap: "none" },

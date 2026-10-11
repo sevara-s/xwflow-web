@@ -7,7 +7,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { NodeType, StepGroup } from "../../types/domain";
 import { hueOf, stepType } from "../../ui/flow";
-import { band, button, centred, eyebrow, glass, grid, headline, iconTile, inset, measure, row, shape, sides, space, stack, tag, text, type Node } from "../../ui/kit";
+import { band, button, centred, decoration, eyebrow, glass, grid, headline, iconTile, inset, measure, row, sides, space, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUIInputText, XWUINavTabs } from "../../xwui";
 
 const words = catalog.site.integrations;
@@ -128,10 +128,10 @@ export async function view(context: ViewContext): Promise<Node[]> {
     slots: {
       children: stack(
         [
-          shape("halo", "violet", 520, { left: "32%", top: "-120px" }),
-          shape("cube", "lime", 64, { left: "12%", top: "80px" }),
-          shape("cube", "pink", 44, { right: "14%", top: "200px" }),
-          shape("orb", "cyan", 70, { right: "9%", top: "40px" }),
+          decoration("integrations.halo"),
+          decoration("integrations.cube"),
+          decoration("integrations.cube2"),
+          decoration("integrations.orb"),
           {
             tag: "xwui-container",
             config: { maxWidth: 1280, center: true, padding: sides("xl") },

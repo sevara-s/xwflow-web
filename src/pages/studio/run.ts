@@ -8,7 +8,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Attempt, RunDetail } from "../../types/domain";
 import { hueOf, toneOf } from "../../ui/flow";
-import { button, cell, glass, row, shape, space, stack, status, tag, text, type Hue, type Node } from "../../ui/kit";
+import { button, cell, decoration, glass, row, space, stack, status, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer } from "../../xwui";
 
 type RunRoute = Extract<Route, { page: "run" }>;
@@ -32,7 +32,7 @@ function hero(run: RunDetail): Node {
     slots: {
       children: stack(
         [
-          shape("halo", run.status === "failed" ? "pink" : "lime", 260, { left: "-40px", top: "-60px" }),
+          decoration("run.halo", run.status === "failed" ? "pink" : "lime"),
           row(
             [
               stack(

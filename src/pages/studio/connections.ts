@@ -8,7 +8,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Connection, ConnectionHealth, ConnectionQuery, StatusTone } from "../../types/domain";
 import { hueOf, toneOf } from "../../ui/flow";
-import { button, grid, iconTile, row, shape, space, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, decoration, grid, iconTile, row, space, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 import { projectTabs } from "./common-view";
 
@@ -185,7 +185,7 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
             [
               row(
                 [
-                  { tag: "xwui-box", config: { position: "relative", width: 96, height: 96 }, slots: { children: shape("orb", "lime", 96, { left: "0", top: "0" }) } },
+                  { tag: "xwui-box", config: { position: "relative", width: 96, height: 96 }, slots: { children: decoration("connections.orb") } },
                   stack([text("h3", words.vaultTitle), text("body", words.vaultBody, { tone: "secondary" })], { gap: "xs" }),
                 ],
                 { gap: "xl" },

@@ -9,7 +9,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { FlowList, FlowQuery, FlowSummary, Workspace } from "../../types/domain";
 import { hueOf, toneOf } from "../../ui/flow";
-import { button, cell, glass, grid, row, shape, space, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, cell, decoration, glass, grid, row, space, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer } from "../../xwui";
 import { projectTabs } from "./common-view";
 
@@ -66,9 +66,9 @@ function hero(workspace: Workspace, list: FlowList): Node {
     slots: {
       children: stack(
         [
-          shape("halo", "violet", 260, { right: "-40px", top: "-120px" }),
+          decoration("flows.halo"),
           // On a phone the title fills the card, so the cube would sit on the folder tile.
-          ...(window.matchMedia("(max-width: 640px)").matches ? [] : [shape("cube", "lime", 56, { right: "250px", top: "26px" })]),
+          ...(window.matchMedia("(max-width: 640px)").matches ? [] : [decoration("flows.cube")]),
           row(
             [
               row(

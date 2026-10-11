@@ -5,7 +5,7 @@ import { siteHref } from "../../app/site-links";
 import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { Cell, PricingTier } from "../../types/domain";
-import { band, behind, button, cell, centred, eyebrow, glass, grid, headline, icon, inset, measure, row, separator, shape, sides, space, stack, tag, text, ticks, type Node } from "../../ui/kit";
+import { band, behind, button, cell, centred, decoration, eyebrow, glass, grid, headline, icon, inset, measure, row, separator, sides, space, stack, tag, text, ticks, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIInputText } from "../../xwui";
 
 const words = catalog.site.pricing;
@@ -34,7 +34,7 @@ function tierCard(tier: PricingTier, context: ViewContext): Node {
     config: { surface: "glass", padding: space("xxl"), glow: tier.highlighted ? "violet" : undefined, gradientBorder: tier.highlighted, overflow: "clip" },
     slots: {
       children: behind(
-        tier.highlighted ? [shape("halo", "violet", 240, { right: "-80px", top: "-80px" })] : [],
+        tier.highlighted ? [decoration("pricing.halo")] : [],
         stack(
           [
             stack([row([tag(tier.tag.label, tier.tag.color)]), text("h3", tier.name), text("small", tier.blurb, { tone: "secondary" })], { gap: "s" }),
@@ -107,7 +107,7 @@ function contact(): Node {
     slots: {
       children: stack(
         [
-          shape("cube", "violet", 60, { right: "8%", top: "30px" }),
+          decoration("pricing.cube"),
           grid([stack([headline("h2", words.contactTitle, words.contactHighlight), text("body", words.contactBody, { tone: "secondary" })], { gap: "l" }), form], 380, "xxxl"),
         ],
         { gap: "none" },
@@ -127,9 +127,9 @@ export async function view(context: ViewContext): Promise<Node[]> {
     slots: {
       children: stack(
         [
-          shape("ring", "violet", 220, { left: "8%", top: "40px" }, 8),
-          shape("orb", "pink", 80, { right: "12%", top: "60px" }),
-          shape("orb", "cyan", 46, { right: "24%", top: "220px" }),
+          decoration("pricing.ring"),
+          decoration("pricing.orb"),
+          decoration("pricing.orb2"),
           {
             tag: "xwui-container",
             config: { maxWidth: 1280, center: true, padding: sides("xl") },

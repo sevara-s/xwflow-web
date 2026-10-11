@@ -6,7 +6,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { AssistantDraft, AssistantHome } from "../../types/domain";
 import { canvasData, hueOf } from "../../ui/flow";
-import { behind, button, centred, glass, grid, iconTile, row, shape, stack, tag, text, type Node } from "../../ui/kit";
+import { behind, button, centred, decoration, glass, grid, iconTile, row, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer, XWUIInputText } from "../../xwui";
 
 const words = catalog.studio.assistant;
@@ -185,9 +185,9 @@ export async function view(context: ViewContext): Promise<PageResult> {
     slots: {
       children: stack(
         [
-          shape("ring", "violet", 200, { left: "0", top: "0" }, 4),
-          shape("ring", "violet", 170, { left: "15px", top: "15px" }, 3),
-          shape("orb", "violet", 120, { left: "40px", top: "40px" }),
+          decoration("assistant.ring"),
+          decoration("assistant.ring2"),
+          decoration("assistant.orb"),
         ],
         { gap: "none" },
       ),
@@ -293,7 +293,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
         config: { position: "relative" },
         slots: {
           children: behind(
-            [shape("halo", "violet", 460, { left: "30%", top: "60px" }), shape("halo", "cyan", 300, { right: "6%", top: "-40px" })],
+            [decoration("assistant.halo"), decoration("assistant.halo2")],
             stack(
               [
                 centred(core),

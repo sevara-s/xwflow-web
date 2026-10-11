@@ -30,6 +30,8 @@ const forbidden: Array<[string, RegExp]> = [
   ["type size literals (clamp, rem, em)", /["'`]\s*(clamp\(|-?[0-9.]+r?em\s*["'`])/],
   // Gaps and paddings are steps of the brand's spacing scale (space(), inset(), "m", "xl"...).
   // (A numeric gap is refused by the kit's types; the marquee and the canvas insets take pixel numbers.)
+  // Decorations are named presets from ui/decor.ts; their geometry lives only there.
+  ["decoration geometry (shape() or px/% offsets)", /\bshape\(|\b(top|left|right|bottom)\s*:\s*["'`]-?[\d.]+(px|%)/],
   ["spacing literals (px gaps, paddings, margins)", /\b(gap|padding|margin|rowGap|columnGap)\s*:\s*["'`][^"'`]*\d|\b(padding|margin)\s*:\s*\d/],
 ];
 
@@ -45,7 +47,11 @@ describe("XWUI composition only", () => {
       // The one allowed construction: app.ts mounts the root XWUIComposer that holds every page.
       .filter((line) => !(path.endsWith("/app/app.ts") && /new XWUIComposer\(root, /.test(line)))
       .join("\n");
-    for (const [what, pattern] of forbidden) expect(code, `${path} uses ${what}`).not.toMatch(pattern);
+    for (const [what, pattern] of forbidden) {
+      // The kit draws a decoration from the table in ui/decor.ts, the one place its geometry may be.
+      if (/\/ui\/(kit|decor)\.ts$/.test(path) && what.startsWith("decoration")) continue;
+      expect(code, `${path} uses ${what}`).not.toMatch(pattern);
+    }
   });
 
   it("every routed page exports a view()", () => {

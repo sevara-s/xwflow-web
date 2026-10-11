@@ -10,7 +10,7 @@ import {
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { FlowView } from "../../types/domain";
-import { button, glass, row, shape, space, stack, tag, text, type Node } from "../../ui/kit";
+import { button, decoration, glass, row, space, stack, tag, text, type Node } from "../../ui/kit";
 import { config } from "../../config";
 
 type ViewRoute = Extract<Route, { page: "view" }>;
@@ -183,7 +183,7 @@ export async function view(
         slots: {
           children: stack(
             [
-              shape("halo", "violet", 420, { left: "30%", top: "30%" }),
+              decoration("view.halo"),
               current.stage,
             ],
             { gap: "none" },

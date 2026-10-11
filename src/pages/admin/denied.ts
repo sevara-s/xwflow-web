@@ -5,7 +5,7 @@ import { href, paths } from "../../app/router";
 import { adminBar } from "../../app/shells/admin-view";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
-import { behind, button, centred, glass, grid, measure, row, shape, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { behind, button, centred, decoration, glass, grid, measure, row, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIButton } from "../../xwui";
 
 const words = catalog.admin.denied;
@@ -31,7 +31,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
   const lock: Node = {
     tag: "xwui-box",
     config: { position: "relative", width: 180, height: 180 },
-    slots: { children: stack([shape("ring", "pink", 180, { left: "0", top: "0" }, 5), shape("orb", "pink", 110, { left: "35px", top: "35px" })], { gap: "none" }) },
+    slots: { children: stack([decoration("denied.ring"), decoration("denied.orb")], { gap: "none" }) },
   };
 
   const panel = glass(
@@ -73,7 +73,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
         config: { position: "relative", overflow: "clip" },
         slots: {
           children: behind(
-            [shape("halo", "violet", 420, { left: "10%", top: "-40px" }), shape("halo", "pink", 360, { right: "8%", top: "120px" })],
+            [decoration("denied.halo"), decoration("denied.halo2")],
             stack([centred(lock), measure(panel, 760)], { gap: "xxl" }),
           ),
         },

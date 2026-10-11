@@ -7,6 +7,7 @@
  * is the prototype's own (xw.css).
  */
 import { xwflowComponents, type XWFlowComponentName } from "../components";
+import { decorations, type Decoration, type DecorationName } from "./decor";
 import { XWUIComposer, type XWUIComposerNode } from "../xwui";
 
 export type Node = XWUIComposerNode;
@@ -238,6 +239,12 @@ export function icon(name: string, size = 18, color?: string): Node {
 
 export function shape(kind: "orb" | "ring" | "cube" | "halo", hue: Hue, size: number, place: Partial<Record<"top" | "right" | "bottom" | "left", string>>, thickness?: number): Node {
   return { tag: "xwui-glow-shape", data: { kind }, config: { hue, size, thickness, ...place } };
+}
+
+/** A named decoration from ui/decor.ts; `hue` overrides its colour where the page picks one (a run's outcome). */
+export function decoration(name: DecorationName, hue?: Hue): Node {
+  const item: Decoration = decorations[name];
+  return shape(item.kind, hue ?? item.hue, item.size, item.place, item.thickness);
 }
 
 /**

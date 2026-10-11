@@ -7,7 +7,7 @@ import { siteHref } from "../../app/site-links";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { BrandKit } from "../../types/domain";
-import { button, cell, glass, grid, quietLabel, row, shape, space, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, cell, decoration, glass, grid, quietLabel, row, space, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 
 const words = catalog.admin.branding;
@@ -224,7 +224,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
                   slots: {
                     children: stack(
                       [
-                        shape("halo", "pink", 320, { left: "25%", top: "60px" }),
+                        decoration("branding.halo"),
                         row([text("body", words.preview, { bold: true }), tag(words.notSaved, "plan")], { justify: "space-between" }),
                         { tag: "xwui-composer", key: "brand-preview", data: { tree: preview(draft) } },
                       ],

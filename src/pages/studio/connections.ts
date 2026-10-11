@@ -1,166 +1,41 @@
 import { api } from "../../api/client";
-import { el, slot } from "../../app/dom";
 import { fill, formatAgo, formatDayMonth, formatIn, formatMs } from "../../app/format";
-import type { Tracker } from "../../app/mount";
 import { errorMessage, notify } from "../../app/notify";
-import type { PageContext } from "../../app/page";
-import { paths, replaceQuery, type Route } from "../../app/router";
+import { href, paths, replaceQuery, type Route } from "../../app/router";
 import { debounce } from "../../app/timing";
-import { XWFlowConnectionCard } from "../../components/XWFlowConnectionCard/XWFlowConnectionCard";
-import type { XWFlowConnectionCardData } from "../../components/XWFlowConnectionCard/XWFlowConnectionCard.types";
-import { XWFlowShape } from "../../components/XWFlowShape/XWFlowShape";
+import type { PageResult, ViewContext } from "../../app/view";
 import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Connection, ConnectionHealth, ConnectionQuery, StatusTone } from "../../types/domain";
-import { XWUIButton, XWUIDialog, XWUIEmpty, XWUIInputText, XWUISelect } from "../../xwui";
-import { glass, heading, mountAppBar, mountProjectTabs, projectCrumb } from "./common";
-import "./connections.css";
+import { hueOf, toneOf } from "../../ui/flow";
+import { button, grid, iconTile, row, shape, stack, status, tag, text, type Node } from "../../ui/kit";
+import type { XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
+import { projectTabs } from "./common-view";
 
 type ConnectionsRoute = Extract<Route, { page: "connections" }>;
-type Owned = { destroy(): void };
 
 const words = catalog.studio.connections;
 const healthTones: Record<ConnectionHealth, StatusTone> = { healthy: "ok", expiring: "warn", broken: "err" };
 
-export async function render(context: PageContext<ConnectionsRoute>): Promise<void> {
-  const { route, scope, body } = context;
-  const query: ConnectionQuery = { q: route.q, health: route.health };
-  let view: "connection" | "app" = "connection";
-  let connections = await api.listConnections(query);
-
-  mountAppBar(context, [projectCrumb(context), { label: words.title }], { sample: "data" });
-
-  const titleRow = el("div", "xwflow-row xwflow-gap-16 xwflow-wrap");
-  body.append(titleRow);
-  heading(titleRow, 1, "h2", words.title);
-  mountProjectTabs(slot(titleRow, "xwflow-push"), scope, "connections", ["flows", "agents", "tables", "connections", "runs", "mcp"]);
-
-  const vault = glass(body, { className: "xwflow-vault xwflow-clip" });
-  const orbBox = el("div", "xwflow-vault__orb");
-  vault.append(orbBox);
-  scope.track(new XWFlowShape(slot(orbBox), { kind: "orb" }, { size: 96, color: "lime", place: { left: "0", top: "0" } }));
-  const vaultText = el("div", "xwflow-stack xwflow-gap-4 xwflow-grow");
-  vault.append(vaultText);
-  heading(vaultText, 2, "h3", words.vaultTitle);
-  vaultText.append(el("p", "xwflow-sec", words.vaultBody));
-  const add = scope.track(new XWUIButton(slot(vault), { text: words.add }, { variant: "primary", icon: "plus" }));
-  add.onClick(() => openAddDialog(scope, async () => reload()));
-
-  const toolbar = el("div", "xwflow-toolbar");
-  body.append(toolbar);
-  const search = scope.track(
-    new XWUIInputText(slot(toolbar, "xwflow-toolbar__search"), { value: query.q ?? "", placeholder: words.search }, {
-      type: "search",
-      leadingIcon: "search",
-      ariaLabel: words.search,
-      fullWidth: true,
-      clearable: true,
-    }),
-  );
-  search.onChange(debounce((value: string) => apply({ q: value.trim() }), config.searchDebounceMs));
-  const healths: ConnectionHealth[] = ["healthy", "expiring", "broken"];
-  const health = scope.track(
-    new XWUISelect(
-      slot(toolbar, "xwflow-toolbar__select"),
-      {
-        value: query.health ?? "",
-        placeholder: words.anyStatus,
-        options: [{ value: "", label: words.anyStatus }, ...healths.map((value) => ({ value, label: words.healthFilter[value] }))],
-      },
-      { ariaLabel: words.statusLabel },
-    ),
-  );
-  health.onChange((value) => apply({ health: String(value) as ConnectionHealth | "" }));
-  const grouping = scope.track(
-    new XWUISelect(slot(toolbar, "xwflow-toolbar__select"), { value: view, options: words.views.map((item) => ({ ...item })) }, { ariaLabel: words.viewLabel }),
-  );
-  grouping.onChange((value) => {
-    view = String(value) === "app" ? "app" : "connection";
-    show();
-  });
-
-  const list = el("div", "xwflow-stack xwflow-gap-24");
-  body.append(list);
-  let owned: Owned[] = [];
-  scope.track({ destroy: () => owned.splice(0).forEach((item) => item.destroy()) });
-  const tracker: Tracker = { track: (item) => (owned.push(item), item) };
-
-  function show(): void {
-    owned.splice(0).forEach((item) => item.destroy());
-    list.replaceChildren();
-    if (!connections.length) {
-      tracker.track(new XWUIEmpty(slot(list), { icon: "search", title: words.empty.title, description: words.empty.description }));
-      return;
-    }
-    const groups =
-      view === "app"
-        ? Object.entries(words.apps)
-            .map(([app, meta]) => ({ title: meta.label, items: connections.filter((item) => item.app === app) }))
-            .filter((group) => group.items.length)
-        : [{ title: "", items: connections }];
-    for (const group of groups) {
-      const section = el("section", "xwflow-stack xwflow-gap-12");
-      if (group.title) {
-        section.setAttribute("aria-label", group.title);
-        heading(section, 2, "h3", group.title);
-      }
-      const grid = el("div", "xwflow-grid");
-      grid.style.setProperty("--xwflow-min", "360px");
-      section.append(grid);
-      list.append(section);
-      for (const connection of group.items) mountCard(slot(grid), tracker, connection, reload);
-    }
+function note(connection: Connection): { text: string; muted: boolean } {
+  if (connection.health === "broken" && connection.brokenFlow) {
+    const date = connection.expiresAt ? formatDayMonth(connection.expiresAt) : "";
+    return { text: fill(words.brokenBody, { date, flow: connection.brokenFlow }), muted: false };
   }
-
-  async function reload(): Promise<void> {
-    connections = await api.listConnections(query);
-    show();
-  }
-
-  function apply(patch: Partial<ConnectionQuery>): void {
-    Object.assign(query, patch);
-    replaceQuery(paths.connections, { q: query.q, health: query.health });
-    void reload().catch((error) => notify(errorMessage(error, catalog.errors.load), "danger"));
-  }
-
-  show();
+  if (!connection.usedBy || connection.lastUsedAt === null) return { text: words.unused, muted: true };
+  const template = connection.usedBy === 1 ? words.usedByOne : words.usedBy;
+  return { text: fill(template, { n: connection.usedBy, when: formatAgo(connection.lastUsedAt).toLocaleLowerCase() }), muted: true };
 }
 
-function cardData(connection: Connection): XWFlowConnectionCardData {
-  const owner = connection.owner.name;
-  const status =
+function card(connection: Connection, reload: () => Promise<void>): Node {
+  const label =
     connection.health === "expiring" && connection.expiresAt
       ? fill(words.health.expiring, { when: formatIn(connection.expiresAt) })
       : words.health[connection.health === "expiring" ? "healthy" : connection.health];
-  let note: XWFlowConnectionCardData["note"];
-  if (connection.health === "broken" && connection.brokenFlow) {
-    const date = connection.expiresAt ? formatDayMonth(connection.expiresAt) : "";
-    note = { text: fill(words.brokenBody, { date, flow: connection.brokenFlow }), emphasis: connection.brokenFlow, muted: false };
-  } else if (!connection.usedBy || connection.lastUsedAt === null) {
-    note = { text: words.unused, muted: true };
-  } else {
-    const template = connection.usedBy === 1 ? words.usedByOne : words.usedBy;
-    note = { text: fill(template, { n: connection.usedBy, when: formatAgo(connection.lastUsedAt).toLocaleLowerCase() }), muted: true };
-  }
-  return {
-    name: connection.name,
-    subtitle: fill(words.ownedBy, { auth: words.auth[connection.auth], owner }),
-    icon: words.apps[connection.app as keyof typeof words.apps]?.icon ?? "plug",
-    group: connection.group,
-    status: { tone: healthTones[connection.health], label: status },
-    mask: words.masked,
-    maskLabel: words.maskedLabel,
-    note,
-    tags: [connection.scopes.join(", "), connection.audience],
-    action: connection.health === "healthy" ? { label: words.test, primary: false } : { label: words.reconnect, primary: connection.health === "broken" },
-  };
-}
-
-function mountCard(host: HTMLElement, scope: Tracker, connection: Connection, reload: () => Promise<void>): void {
-  const card = scope.track(new XWFlowConnectionCard(host, cardData(connection)));
-  card.on("action", async () => {
+  const healthy = connection.health === "healthy";
+  const action = async (): Promise<void> => {
     try {
-      if (connection.health === "healthy") {
+      if (healthy) {
         const result = await api.testConnection(connection.id);
         if (result.ok) notify(fill(words.tested, { name: connection.name, ms: formatMs(result.latencyMs) }), "success");
         else notify(fill(words.testFailed, { name: connection.name }), "warning");
@@ -172,58 +47,181 @@ function mountCard(host: HTMLElement, scope: Tracker, connection: Connection, re
     } catch (error) {
       notify(errorMessage(error), "danger");
     }
-  });
+  };
+  const body = note(connection);
+  return {
+    tag: "xwui-box",
+    config: { surface: "glass", padding: 20, role: "group", ariaLabel: connection.name },
+    slots: {
+      children: stack(
+        [
+          row(
+            [
+              row(
+                [
+                  iconTile(words.apps[connection.app as keyof typeof words.apps]?.icon ?? "plug", hueOf[connection.group]),
+                  stack([text("body", connection.name, { bold: true }), text("xs", fill(words.ownedBy, { auth: words.auth[connection.auth], owner: connection.owner.name }), { tone: "secondary" })], {
+                    gap: 2,
+                  }),
+                ],
+                { gap: 12 },
+              ),
+              status(toneOf[healthTones[connection.health]], label),
+            ],
+            { justify: "space-between", wrap: true },
+          ),
+          { ...text("small", words.masked, { mono: true, tone: "tertiary" }), config: { ...text("small", words.masked, { mono: true, tone: "tertiary" }).config, ariaLabel: words.maskedLabel } },
+          text("small", body.text, { tone: body.muted ? "secondary" : undefined }),
+          row(
+            [
+              row([tag(connection.scopes.join(", ")), tag(connection.audience)], { wrap: true }),
+              button(connection.health === "broken" ? "primary" : "glass", healthy ? words.test : words.reconnect, { size: "sm", onClick: () => void action() }),
+            ],
+            { justify: "space-between", wrap: true },
+          ),
+        ],
+        { gap: 14 },
+      ),
+    },
+  };
 }
 
-function openAddDialog(scope: Tracker, done: () => Promise<void>): void {
-  const text = words.dialog;
-  const form = el("form", "xwflow-stack xwflow-gap-16 xwflow-dialog-form");
-  const footer = el("div", "xwflow-row xwflow-gap-8 xwflow-dialog-footer");
-  const owned: Owned[] = [];
-  const name = new XWUIInputText(slot(form), { label: text.name, placeholder: text.namePlaceholder }, { fullWidth: true, required: true });
-  const auth = new XWUISelect(
-    slot(form),
-    { label: text.auth, value: "apiKey", options: (Object.keys(words.auth) as Connection["auth"][]).map((value) => ({ value, label: words.auth[value] })) },
-    { fullWidth: true },
-  );
-  const audience = new XWUIInputText(slot(form), { label: text.audience, placeholder: text.audiencePlaceholder }, { fullWidth: true });
-  owned.push(name, auth, audience);
+export async function view(context: ViewContext<ConnectionsRoute>): Promise<PageResult> {
+  const { route, workspace } = context;
+  const query: ConnectionQuery = { q: route.q, health: route.health };
+  let grouping: "connection" | "app" = "connection";
+  let connections = await api.listConnections(query);
 
-  const dialog = new XWUIDialog(slot(document.body), { title: text.title, content: form, footer }, { size: "medium", closable: true });
-  const cancel = new XWUIButton(slot(footer), { text: text.cancel }, { variant: "ghost", className: "xwflow-btn-glass" });
-  const save = new XWUIButton(slot(footer), { text: text.save }, { variant: "primary", type: "submit" });
-  owned.push(cancel, save, dialog);
-  const close = (): void => {
-    dialog.close();
-    setTimeout(() => owned.splice(0).forEach((item) => item.destroy()), 300);
+  const list = (): Node => {
+    if (!connections.length) return { tag: "xwui-empty", data: { icon: "search", title: words.empty.title, description: words.empty.description } };
+    const groups =
+      grouping === "app"
+        ? Object.entries(words.apps)
+            .map(([app, meta]) => ({ title: meta.label, items: connections.filter((item) => item.app === app) }))
+            .filter((group) => group.items.length)
+        : [{ title: "", items: connections }];
+    return stack(
+      groups.map((group) => stack([...(group.title ? [text("h3", group.title)] : []), grid(group.items.map((item) => card(item, reload)), 360)], { gap: 12 })),
+      { gap: 24 },
+    );
   };
-  cancel.onClick(close);
+  async function reload(): Promise<void> {
+    connections = await api.listConnections(query);
+    context.instance<XWUIComposer>("connection-list")?.setTree(list());
+  }
+  const apply = (patch: Partial<ConnectionQuery>): void => {
+    Object.assign(query, patch);
+    replaceQuery(paths.connections, { q: query.q, health: query.health });
+    void reload().catch((error) => notify(errorMessage(error, catalog.errors.load), "danger"));
+  };
+
+  /* The add-connection dialog: XWUI fields inside an XWUIDialog. */
+  const text_ = words.dialog;
+  const fields: { name?: XWUIInputText; auth?: XWUISelect; audience?: XWUIInputText; dialog?: { open(): void; close(): void } } = {};
   const submit = async (): Promise<void> => {
-    const value = name.getValue().trim();
+    const value = fields.name?.getValue().trim() ?? "";
     if (!value) {
-      notify(text.required, "warning");
-      name.focus();
+      notify(text_.required, "warning");
+      fields.name?.focus();
       return;
     }
     try {
       const created = await api.addConnection({
         name: value,
-        auth: String(auth.getValue() ?? "apiKey") as Connection["auth"],
-        audience: audience.getValue().trim() || text.audiencePlaceholder,
+        auth: String(fields.auth?.getValue() ?? "apiKey") as Connection["auth"],
+        audience: fields.audience?.getValue().trim() || text_.audiencePlaceholder,
       });
-      notify(fill(text.added, { name: created.name }), "success");
-      close();
-      await done();
+      notify(fill(text_.added, { name: created.name }), "success");
+      fields.dialog?.close();
+      fields.name?.setValue("");
+      fields.audience?.setValue("");
+      await reload();
     } catch (error) {
       notify(errorMessage(error), "danger");
     }
   };
-  save.onClick(() => void submit());
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    void submit();
+  const dialog: Node = {
+    tag: "xwui-dialog",
+    data: { title: text_.title },
+    config: { size: "medium", closable: true },
+    slots: {
+      content: stack(
+        [
+          { tag: "xwui-input-text", data: { label: text_.name, placeholder: text_.namePlaceholder }, config: { fullWidth: true, required: true }, ref: (i) => (fields.name = i as XWUIInputText) },
+          {
+            tag: "xwui-select",
+            data: { label: text_.auth, value: "apiKey", options: (Object.keys(words.auth) as Connection["auth"][]).map((value) => ({ value, label: words.auth[value] })) },
+            config: { fullWidth: true },
+            ref: (i) => (fields.auth = i as XWUISelect),
+          },
+          { tag: "xwui-input-text", data: { label: text_.audience, placeholder: text_.audiencePlaceholder }, config: { fullWidth: true }, ref: (i) => (fields.audience = i as XWUIInputText) },
+        ],
+        { gap: 16 },
+      ),
+      footer: row([button("glass", text_.cancel, { onClick: () => fields.dialog?.close() }), button("primary", text_.save, { onClick: () => void submit() })], { justify: "flex-end" }),
+    },
+    ref: (instance) => (fields.dialog = instance as { open(): void; close(): void }),
+  };
+
+  const select = (value: string, options: Array<{ value: string; label: string }>, label: string, onPick: (value: string) => void): Node => ({
+    tag: "xwui-select",
+    data: { value, options },
+    config: { ariaLabel: label },
+    ref: (instance) => (instance as XWUISelect).onChange((picked) => onPick(String(picked))),
   });
-  scope.track({ destroy: () => owned.splice(0).forEach((item) => item.destroy()) });
-  // Open on the next frame so the click that asked for it cannot reach the new backdrop.
-  setTimeout(() => dialog.open(), 0);
+  const healths: ConnectionHealth[] = ["healthy", "expiring", "broken"];
+
+  return {
+    bar: { crumbs: [{ label: workspace.project.name, href: href(paths.flows) }, { label: words.title }], sample: "data" },
+    body: [
+      text("h2", words.title),
+      projectTabs("connections", ["flows", "agents", "tables", "connections", "runs", "mcp"]),
+      {
+        tag: "xwui-box",
+        config: { surface: "glass", padding: 24, overflow: "clip" },
+        slots: {
+          children: row(
+            [
+              row(
+                [
+                  { tag: "xwui-box", config: { position: "relative", width: 96, height: 96 }, slots: { children: shape("orb", "lime", 96, { left: "0", top: "0" }) } },
+                  stack([text("h3", words.vaultTitle), text("body", words.vaultBody, { tone: "secondary" })], { gap: 4 }),
+                ],
+                { gap: 20 },
+              ),
+              { ...button("primary", words.add, { icon: "plus", onClick: () => setTimeout(() => fields.dialog?.open(), 0) }) },
+            ],
+            { gap: 20, wrap: true, justify: "space-between" },
+          ),
+        },
+      },
+      row(
+        [
+          {
+            tag: "xwui-box",
+            config: { width: "100%" },
+            slots: {
+              children: {
+                tag: "xwui-input-text",
+                data: { value: query.q ?? "", placeholder: words.search },
+                config: { type: "search", leadingIcon: "search", ariaLabel: words.search, fullWidth: true, clearable: true },
+                ref: (instance) => (instance as XWUIInputText).onChange(debounce((value: string) => apply({ q: value.trim() }), config.searchDebounceMs)),
+              },
+            },
+          },
+          select(query.health ?? "", [{ value: "", label: words.anyStatus }, ...healths.map((value) => ({ value, label: words.healthFilter[value] }))], words.statusLabel, (value) =>
+            apply({ health: value as ConnectionHealth | "" }),
+          ),
+          select(grouping, words.views.map((item) => ({ ...item })), words.viewLabel, (value) => {
+            grouping = value === "app" ? "app" : "connection";
+            context.instance<XWUIComposer>("connection-list")?.setTree(list());
+          }),
+        ],
+        { gap: 12, wrap: true },
+      ),
+      { tag: "xwui-composer", key: "connection-list", data: { tree: list() } },
+      dialog,
+    ],
+  };
 }
+

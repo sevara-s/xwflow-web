@@ -23,10 +23,17 @@ export type Route =
   | { zone: "studio"; page: "versions"; flowId: string }
   | { zone: "editor"; page: "editor"; flowId: string; node: string | null }
   | { zone: "editor"; page: "view"; flowId: string; view: NotationView }
-  | { zone: "admin"; page: "overview" | "branding" | "audit" }
-  | { zone: "system"; page: "health" }
+  | { zone: "admin"; page: AdminPage }
+  | { zone: "system"; page: SystemPage }
   | { zone: "denied"; page: "denied" }
   | { zone: "notFound"; page: "notFound"; path: string };
+
+/** The admin rail's own screens, one page each. */
+export const adminPages = ["overview", "tenants", "audit", "credentials", "registry", "adapters", "branding", "usage", "ai"] as const;
+export type AdminPage = (typeof adminPages)[number];
+/** The system rail's own screens, one page each. */
+export const systemPages = ["health"] as const;
+export type SystemPage = (typeof systemPages)[number];
 
 export const paths = {
   home: "/",
@@ -51,6 +58,8 @@ export const paths = {
   branding: "/admin/branding",
   audit: "/admin/audit",
   health: "/system/health",
+  adminPage: (page: AdminPage) => (page === "overview" ? "/admin" : `/admin/${page}`),
+  systemPage: (page: SystemPage) => `/system/${page}`,
   denied: "/denied",
   flow: (flowId: string) => `/studio/flows/${encodeURIComponent(flowId)}`,
   flowView: (flowId: string, view: NotationView) => `/studio/flows/${encodeURIComponent(flowId)}/${view}`,
@@ -154,9 +163,13 @@ export function parseLocation(hash = window.location.hash): Route {
   }
   if (first === "admin" && parts.length <= 2) {
     if (!second) return { zone: "admin", page: "overview" };
-    if (second === "branding" || second === "audit") return { zone: "admin", page: second };
+    const page = oneOf(second, adminPages);
+    if (page && page !== "overview") return { zone: "admin", page };
   }
-  if (first === "system" && second === "health") return { zone: "system", page: "health" };
+  if (first === "system" && parts.length === 2) {
+    const page = oneOf(second, systemPages);
+    if (page) return { zone: "system", page };
+  }
   if (first === "denied") return { zone: "denied", page: "denied" };
   return { zone: "notFound", page: "notFound", path };
 }

@@ -49,7 +49,7 @@ describe("XWUI composition only", () => {
   });
 
   it("every routed page exports a view()", () => {
-    const pages = Object.entries(sources).filter(([path]) => /\/pages\/(site|studio|admin)\/[a-z-]+\.ts$|\/pages\/views\/view\.ts$/.test(path) && !/\/(common|common-view|editor-inspector|landing-sections)\.ts$/.test(path));
+    const pages = Object.entries(sources).filter(([path]) => /\/pages\/(site|studio|admin)\/[a-z-]+\.ts$|\/pages\/views\/view\.ts$/.test(path) && !/\/(common|common-view|console-view|editor-inspector|landing-sections)\.ts$/.test(path));
     expect(pages.length).toBeGreaterThan(25);
     for (const [path, code] of pages) expect(code, path).toMatch(/export (async )?function view\(/);
   });

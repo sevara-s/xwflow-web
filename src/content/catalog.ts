@@ -1,4 +1,5 @@
 import { admin } from "./admin";
+import { consoleWords } from "./console";
 import { project } from "./project";
 import { workspace } from "./workspace";
 import { site } from "./site";
@@ -25,5 +26,6 @@ export const catalog = {
   workspace,
   site,
   admin,
+  console: consoleWords,
   views,
 } as const;

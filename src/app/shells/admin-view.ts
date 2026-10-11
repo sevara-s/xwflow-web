@@ -2,42 +2,33 @@ import { catalog } from "../../content/catalog";
 import type { AdminContext, Workspace } from "../../types/domain";
 import type { Node } from "../../ui/kit";
 import { fill } from "../format";
-import { href, paths, type Route } from "../router";
-import { siteHref } from "../site-links";
+import { href, paths, type AdminPage, type Route, type SystemPage } from "../router";
 import type { PageBar } from "../view";
 import { appFrame } from "./studio-view";
 import { config } from "../../config";
 
 const words = catalog.admin.rail;
 
-type Target = (typeof words.admin)[number]["target"] | (typeof words.system)[number]["target"];
+type RailItem = { id: string; label: string; icon: string };
 
-/** Rail items outside the prototype's screens open the closest real screen. */
-const targets: Record<Target, string> = {
-  admin: href(paths.admin),
-  branding: href(paths.branding),
-  audit: href(paths.audit),
-  health: href(paths.health),
-  denied: href(paths.denied),
-  connections: href(paths.connections),
-  runs: href(paths.runs),
-  integrations: siteHref("integrations"),
-  migrate: siteHref("landing", "migrate"),
-};
+/** Where a rail item goes: its own admin or system page; Quotas opens the denied screen. */
+function railHref(section: "admin" | "system", id: string): string {
+  if (id === "quotas") return href(paths.denied);
+  return href(section === "admin" ? paths.adminPage(id as AdminPage) : paths.systemPage(id as SystemPage));
+}
 
 export function adminSelection(route: Route): string {
-  if (route.zone === "admin") return route.page;
-  if (route.zone === "system") return "health";
+  if (route.zone === "admin" || route.zone === "system") return route.page;
   if (route.zone === "denied") return "quotas";
   return "";
 }
 
 function rail(admin: AdminContext, route: Route): Node {
-  const item = (entry: { id: string; label: string; icon: string; target: Target }) => ({
+  const item = (section: "admin" | "system") => (entry: RailItem) => ({
     id: entry.id,
     label: entry.label,
     icon: entry.icon,
-    href: targets[entry.target],
+    href: railHref(section, entry.id),
     status:
       entry.id === "health" && admin.health !== "ok"
         ? { tone: admin.health === "err" ? "error" : "warning", label: admin.health === "err" ? words.healthFailing : words.healthWarning }
@@ -53,8 +44,8 @@ function rail(admin: AdminContext, route: Route): Node {
       headTag: { label: words.tag, hue: "violet" },
       labels: { nav: words.label, collapse: catalog.studio.rail.collapse, expand: catalog.studio.rail.expand },
       sections: [
-        { id: "admin", title: words.groups.admin, items: words.admin.map(item) },
-        { id: "system", title: words.groups.system, items: words.system.map(item) },
+        { id: "admin", title: words.groups.admin, items: words.admin.map(item("admin")) },
+        { id: "system", title: words.groups.system, items: words.system.map(item("system")) },
       ],
       footer: [{ id: "back", label: words.back, href: href(paths.studio), icon: "arrow-left" }],
       usage: null,

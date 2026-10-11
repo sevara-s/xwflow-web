@@ -54,6 +54,18 @@ describe("router", () => {
     expect(parseLocation("#/denied")).toEqual({ zone: "denied", page: "denied" });
   });
 
+  it("gives every admin and system rail item its own route", () => {
+    for (const page of ["tenants", "credentials", "registry", "adapters", "usage", "ai", "branding", "audit"] as const) {
+      expect(parseLocation(`#${paths.adminPage(page)}`)).toEqual({ zone: "admin", page });
+    }
+    for (const page of ["health"] as const) {
+      expect(parseLocation(`#${paths.systemPage(page)}`)).toEqual({ zone: "system", page });
+    }
+    expect(paths.adminPage("overview")).toBe("/admin");
+    expect(parseLocation("#/admin/nope").zone).toBe("notFound");
+    expect(parseLocation("#/system/nope").zone).toBe("notFound");
+  });
+
   it("builds links with only the filters that are set", () => {
     expect(href(paths.runs, { q: "order", status: "", mode: undefined })).toBe("#/studio/runs?q=order");
     expect(href(paths.flow("f a"))).toBe("#/studio/flows/f%20a");

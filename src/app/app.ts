@@ -40,6 +40,12 @@ const pages: Record<string, () => Promise<PageModule>> = {
   "admin/overview": () => import("../pages/admin/overview"),
   "admin/branding": () => import("../pages/admin/branding"),
   "admin/audit": () => import("../pages/admin/audit"),
+  "admin/tenants": () => import("../pages/admin/tenants"),
+  "admin/credentials": () => import("../pages/admin/credentials"),
+  "admin/registry": () => import("../pages/admin/registry"),
+  "admin/adapters": () => import("../pages/admin/adapters"),
+  "admin/usage": () => import("../pages/admin/usage"),
+  "admin/ai": () => import("../pages/admin/ai"),
   "system/health": () => import("../pages/admin/health"),
   "denied/denied": () => import("../pages/admin/denied"),
 };

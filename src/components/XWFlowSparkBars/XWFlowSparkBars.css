@@ -1,7 +1,0 @@
-.xwflow-spark { display: flex; align-items: flex-end; gap: 4px; height: 70px; }
-.xwflow-spark__bar {
-  flex: 1;
-  border-radius: 4px 4px 1px 1px;
-  background: linear-gradient(180deg, var(--xwflow-cyan), rgba(155, 107, 255, 0.35));
-}
-.xwflow-spark__bar[data-alert] { background: linear-gradient(180deg, var(--xwflow-red), rgba(255, 92, 108, 0.25)); }

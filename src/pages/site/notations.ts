@@ -91,7 +91,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
               children: stack(
                 [
                   centred(row(words.tags.map((item) => tag(fill(item.label, { n: gallery.total }), item.color as Hue)))),
-                  headline("mega", words.title, words.titleHighlight, "center"),
+                  headline("hero", words.title, words.titleHighlight, "center"),
                   measure(text("lead", words.lead, { align: "center" })),
                   centred(modes),
                   layers,

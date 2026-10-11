@@ -20,6 +20,8 @@ const GRADIENT = "linear-gradient(100deg, #2ee6ff 0%, #9b6bff 34%, #ff4fa3 66%, 
 /** The prototype's type scale (.h-mega, .h1 to .h4, .lead, .small, .xs, .disp). */
 const TYPE = {
   mega: { variant: "h1", fontFamily: DISPLAY, weight: 800, fontSize: "clamp(2.6rem, 7.2vw, 6.4rem)", lineHeight: 0.98, letterSpacing: "-0.035em" },
+  /** The notations hero: the mega face one step smaller (the prototype's own override). */
+  hero: { variant: "h1", fontFamily: DISPLAY, weight: 800, fontSize: "clamp(2.4rem, 6vw, 5.4rem)", lineHeight: 0.98, letterSpacing: "-0.035em" },
   h1: { variant: "h1", fontFamily: DISPLAY, weight: 800, fontSize: "clamp(2.2rem, 4.8vw, 4rem)", lineHeight: 1.03, letterSpacing: "-0.03em" },
   h2: { variant: "h2", fontFamily: DISPLAY, weight: 700, fontSize: "clamp(1.8rem, 3.4vw, 3rem)", lineHeight: 1.08, letterSpacing: "-0.025em" },
   h3: { variant: "h3", fontFamily: DISPLAY, weight: 700, fontSize: "1.25rem", lineHeight: 1.25, letterSpacing: "-0.01em" },
@@ -57,10 +59,10 @@ export function text(style: TextStyle, value: string, options: TextOptions = {})
 }
 
 /** A headline whose second line is the brand gradient ("Own the workflow." / "Watch every action."). */
-export function headline(style: "mega" | "h1" | "h2", title: string, highlight: string, align?: "center"): Node {
+export function headline(style: "mega" | "hero" | "h1" | "h2", title: string, highlight: string, align?: "center"): Node {
   const second = text(style, highlight, { tone: "gradient", align });
-  // Inline, so the gradient flows across the highlight's wrapped lines as one run.
-  second.config = { ...second.config, component: "span", inline: true };
+  // Plain inline text, so the gradient spans the words across their lines (not a column-wide box).
+  second.config = { ...second.config, component: "span", inline: "text" };
   return stack([text(style, title, { align }), { tag: "xwui-box", config: { padding: 0 }, slots: { children: second } }], { gap: 0, align: align ? "center" : undefined });
 }
 

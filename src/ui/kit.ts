@@ -248,6 +248,13 @@ export function behind(shapes: Node[], content: Node): Node[] {
   return [...shapes, content];
 }
 
+/**
+ * The class that keeps an XWUI switch's label for screen readers but hides it
+ * on screen (public/theme/xwflow/components.css). The published XWUISwitch
+ * names itself only from its label and ignores ariaLabel (README, known issues).
+ */
+export const quietLabel = "xwflow-quiet-label";
+
 /** The XWFlow components built on a page, by key, so a page can reach one (an export, a listener). */
 const mountedXWFlow = new Map<string, { destroy(): void }>();
 

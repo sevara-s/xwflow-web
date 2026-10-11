@@ -7,7 +7,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { ProjectVariable, VariableScope } from "../../types/domain";
-import { button, cell, glass, row, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { button, cell, glass, quietLabel, row, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 import { projectHead } from "./common-view";
 
@@ -160,8 +160,8 @@ export async function view(context: ViewContext<VariablesRoute>): Promise<PageRe
                 [
                   {
                     tag: "xwui-switch",
-                    data: { checked: false, label: "" },
-                    config: { size: "sm", ariaLabel: dialogWords.secret },
+                    data: { checked: false, label: dialogWords.secret },
+                    config: { size: "sm", ariaLabel: dialogWords.secret, className: quietLabel },
                     ref: (i) => (i as { onChange(handler: (checked: boolean) => void): void }).onChange((checked) => (secret = checked)),
                   },
                   stack([text("small", dialogWords.secret, { bold: true }), text("xs", dialogWords.secretDetail, { tone: "secondary" })], { gap: "xs" }),

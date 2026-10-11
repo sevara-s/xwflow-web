@@ -6,7 +6,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { CanvasNode, Connection, FlowDetail, StepDetail } from "../../types/domain";
 import { hueOf, stepType } from "../../ui/flow";
-import { button, iconTile, keys, row, separator, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, iconTile, keys, quietLabel, row, separator, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIInputText } from "../../xwui";
 
 const words = catalog.studio.editor;
@@ -34,7 +34,7 @@ type Changeable = { onChange(handler: (value: never) => void): void };
 function switchRow(checked: boolean, title: string, detail: string, onChange: (checked: boolean) => void): Node {
   return row(
     [
-      { tag: "xwui-switch", data: { checked, label: "" }, config: { size: "sm", ariaLabel: title }, ref: (instance) => (instance as Changeable).onChange(onChange as never) },
+      { tag: "xwui-switch", data: { checked, label: title }, config: { size: "sm", ariaLabel: title, className: quietLabel }, ref: (instance) => (instance as Changeable).onChange(onChange as never) },
       stack([text("small", title, { bold: true }), text("xs", detail, { tone: "secondary" })], { gap: "xs" }),
     ],
     { gap: "m" },

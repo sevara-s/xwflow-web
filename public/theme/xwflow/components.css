@@ -10,3 +10,18 @@
     white-space: normal;
     overflow-wrap: anywhere;
 }
+
+/*
+ * XWUISwitch names itself only from its visible label and ignores ariaLabel,
+ * so every unlabelled switch was read as "Switch". Switches carry their name as
+ * the label with this class: screen readers read it, the screen does not show
+ * it (the row beside the switch already says it).
+ */
+.xwflow-quiet-label .xwui-switch-text {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}

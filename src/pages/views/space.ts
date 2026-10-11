@@ -4,7 +4,7 @@ import { notify } from "../../app/notify";
 import { catalog } from "../../content/catalog";
 import type { Attempt, FlowGraph, FlowView, SystemId } from "../../types/domain";
 import { canvasData, hueOf, nodeStatuses } from "../../ui/flow";
-import { button, glass, row, stack, text, type Hue, type Node } from "../../ui/kit";
+import { button, glass, quietLabel, row, stack, text, type Hue, type Node } from "../../ui/kit";
 import type { ViewPart, ViewPartContext } from "./view";
 
 const words = catalog.views.space;
@@ -75,8 +75,8 @@ export function spacePart(view: FlowView, { instance, onLeave }: ViewPartContext
       [
         {
           tag: "xwui-switch",
-          data: { checked: options[key], label: "" },
-          config: { size: "sm", ariaLabel: label },
+          data: { checked: options[key], label },
+          config: { size: "sm", ariaLabel: label, className: quietLabel },
           ref: (control) =>
             (control as Changeable<boolean>).onChange((checked) => {
               options[key] = checked;

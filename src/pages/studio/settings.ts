@@ -5,7 +5,7 @@ import { paths, replaceQuery, type Route } from "../../app/router";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { ApiKey, Member, MemberRole, NotificationPrefs, Settings } from "../../types/domain";
-import { button, cell, glass, row, space, stack, tag, text, type Node } from "../../ui/kit";
+import { button, cell, glass, quietLabel, row, space, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 
 type SettingsRoute = Extract<Route, { page: "settings" }>;
@@ -222,8 +222,8 @@ function notifications(settings: Settings): Node {
             stack([text("body", item.title, { bold: true }), text("small", item.detail, { tone: "secondary" })], { gap: "xs" }),
             {
               tag: "xwui-switch",
-              data: { checked: settings.notifications[item.id as keyof NotificationPrefs], label: "" },
-              config: { ariaLabel: item.title },
+              data: { checked: settings.notifications[item.id as keyof NotificationPrefs], label: item.title },
+              config: { ariaLabel: item.title, className: quietLabel },
               ref: (instance) =>
                 (instance as Changeable<boolean>).onChange(async (checked) => {
                   try {

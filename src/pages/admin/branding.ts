@@ -7,7 +7,7 @@ import { siteHref } from "../../app/site-links";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { BrandKit } from "../../types/domain";
-import { button, cell, glass, grid, row, shape, space, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, cell, glass, grid, quietLabel, row, shape, space, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 
 const words = catalog.admin.branding;
@@ -168,8 +168,8 @@ export async function view(context: ViewContext): Promise<PageResult> {
           [
             {
               tag: "xwui-switch",
-              data: { checked: draft.removeMarks, label: "" },
-              config: { size: "sm", ariaLabel: words.removeMarks },
+              data: { checked: draft.removeMarks, label: words.removeMarks },
+              config: { size: "sm", ariaLabel: words.removeMarks, className: quietLabel },
               ref: (instance) => (instance as Changeable<boolean>).onChange((checked) => (draft.removeMarks = checked)),
             },
             stack([text("small", words.removeMarks, { bold: true }), text("xs", words.removeMarksBody, { tone: "secondary" })], { gap: "xs" }),

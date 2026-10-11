@@ -15,22 +15,30 @@ export type Gap = number;
 
 const DISPLAY = "var(--font-headings-family)";
 const MONO = "var(--font-family-mono)";
-const GRADIENT = "linear-gradient(100deg, #2ee6ff 0%, #9b6bff 34%, #ff4fa3 66%, #ff8a3d 100%)";
+/** The brand's headline gradient (a token of the xwflow brand in xwui-lib). */
+const GRADIENT = "var(--brand-text-gradient)";
+
+/** A step of the xwflow type scale: size, leading and tracking come from the brand's --type-* tokens. */
+const scale = (step: string, leading = true, tracking = true): Record<string, string> => ({
+  fontSize: `var(--type-${step}-size)`,
+  ...(leading ? { lineHeight: `var(--type-${step}-leading)` } : {}),
+  ...(tracking ? { letterSpacing: `var(--type-${step}-tracking)` } : {}),
+});
 
 /** The prototype's type scale (.h-mega, .h1 to .h4, .lead, .small, .xs, .disp). */
 const TYPE = {
-  mega: { variant: "h1", fontFamily: DISPLAY, weight: 800, fontSize: "clamp(2.6rem, 7.2vw, 6.4rem)", lineHeight: 0.98, letterSpacing: "-0.035em" },
+  mega: { variant: "h1", fontFamily: DISPLAY, weight: 800, ...scale("mega") },
   /** The notations hero: the mega face one step smaller (the prototype's own override). */
-  hero: { variant: "h1", fontFamily: DISPLAY, weight: 800, fontSize: "clamp(2.4rem, 6vw, 5.4rem)", lineHeight: 0.98, letterSpacing: "-0.035em" },
-  h1: { variant: "h1", fontFamily: DISPLAY, weight: 800, fontSize: "clamp(2.2rem, 4.8vw, 4rem)", lineHeight: 1.03, letterSpacing: "-0.03em" },
-  h2: { variant: "h2", fontFamily: DISPLAY, weight: 700, fontSize: "clamp(1.8rem, 3.4vw, 3rem)", lineHeight: 1.08, letterSpacing: "-0.025em" },
-  h3: { variant: "h3", fontFamily: DISPLAY, weight: 700, fontSize: "1.25rem", lineHeight: 1.25, letterSpacing: "-0.01em" },
-  h4: { variant: "h4", weight: 800, fontSize: "1rem" },
-  disp: { variant: "body", component: "div", fontFamily: DISPLAY, weight: 700, fontSize: "1.9rem", lineHeight: 1.15, letterSpacing: "-0.02em" },
-  lead: { variant: "body", component: "p", color: "secondary", fontSize: "1.2rem", lineHeight: 1.6 },
-  body: { variant: "body", component: "p", fontSize: "1rem", lineHeight: 1.55 },
-  small: { variant: "body", component: "div", fontSize: "0.875rem" },
-  xs: { variant: "body", component: "span", fontSize: "0.75rem" },
+  hero: { variant: "h1", fontFamily: DISPLAY, weight: 800, ...scale("hero") },
+  h1: { variant: "h1", fontFamily: DISPLAY, weight: 800, ...scale("h1") },
+  h2: { variant: "h2", fontFamily: DISPLAY, weight: 700, ...scale("h2") },
+  h3: { variant: "h3", fontFamily: DISPLAY, weight: 700, ...scale("h3") },
+  h4: { variant: "h4", weight: 800, ...scale("h4", false, false) },
+  disp: { variant: "body", component: "div", fontFamily: DISPLAY, weight: 700, ...scale("disp") },
+  lead: { variant: "body", component: "p", color: "secondary", ...scale("lead", true, false) },
+  body: { variant: "body", component: "p", ...scale("body", true, false) },
+  small: { variant: "body", component: "div", ...scale("small", false, false) },
+  xs: { variant: "body", component: "span", ...scale("xs", false, false) },
 } as const;
 
 export type TextStyle = keyof typeof TYPE;
@@ -53,7 +61,7 @@ export function text(style: TextStyle, value: string, options: TextOptions = {})
   if (options.bold) config.weight = 800;
   if (options.mono) config.fontFamily = MONO;
   if (options.align) config.align = options.align;
-  if (options.caps) Object.assign(config, { textTransform: "uppercase", letterSpacing: "0.1em" });
+  if (options.caps) Object.assign(config, { textTransform: "uppercase", letterSpacing: "var(--type-caps-tracking)" });
   if (options.inline) config.inline = true;
   return { tag: "xwui-typography", key: options.key, data: { text: value }, config };
 }

@@ -89,12 +89,12 @@ export function siteShell(route: Route, page: Node[]): Node[] {
     ...wordmark.config,
     component: "div",
     ariaRole: "presentation",
-    fontSize: "clamp(4rem, 17vw, 15rem)",
-    lineHeight: 0.85,
-    letterSpacing: "-0.06em",
+    fontSize: "var(--type-wordmark-size)",
+    lineHeight: "var(--type-wordmark-leading)",
+    letterSpacing: "var(--type-wordmark-tracking)",
     color: "gradient",
     gradient:
-      "linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0))",
+      "var(--brand-wordmark-fade)",
   };
 
   const legal = row(

@@ -1,5 +1,5 @@
 import { api } from "../../api/client";
-import { bestInk, contrastRatio, parseHex, passesAA } from "../../app/contrast";
+import { bestInk, contrastRatio, INK, parseHex, passesAA } from "../../app/contrast";
 import { fill } from "../../app/format";
 import { errorMessage, notify } from "../../app/notify";
 import { adminBar } from "../../app/shells/admin-view";
@@ -36,9 +36,9 @@ function preview(kit: BrandKit): Node {
 function contrast(kit: BrandKit): Node {
   type Row = { key: string; pair: string; ratio: number | null };
   const rows: Row[] = [
-    { key: "a", pair: words.pairs.darkOnPrimary, ratio: contrastRatio("#0a0a0a", kit.primary) },
+    { key: "a", pair: words.pairs.darkOnPrimary, ratio: contrastRatio(INK.dark, kit.primary) },
     { key: "b", pair: words.pairs.primaryOnBackground, ratio: contrastRatio(kit.primary, kit.background) },
-    { key: "c", pair: words.pairs.whiteOnPrimary, ratio: contrastRatio("#ffffff", kit.primary) },
+    { key: "c", pair: words.pairs.whiteOnPrimary, ratio: contrastRatio(INK.light, kit.primary) },
   ];
   return stack(
     [
@@ -61,7 +61,7 @@ function contrast(kit: BrandKit): Node {
         },
         config: { bordered: false, size: "small", ariaLabel: words.contrastLabel },
       },
-      text("xs", fill(words.contrastNote, { ink: bestInk(kit.primary) === "#ffffff" ? words.inkLight : words.inkDark }), { tone: "secondary" }),
+      text("xs", fill(words.contrastNote, { ink: bestInk(kit.primary) === INK.light ? words.inkLight : words.inkDark }), { tone: "secondary" }),
     ],
     { gap: 12 },
   );

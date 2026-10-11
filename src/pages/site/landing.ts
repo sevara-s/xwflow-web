@@ -344,7 +344,7 @@ function truth(landing: Landing): Node {
   ]);
   const keyboard = tile(t.keysTag, "lime", [text("h3", t.keysTitle), row(t.keys.map((key) => keys([key])), { wrap: true }), text("small", t.keysBody, { tone: "secondary" })]);
   const languageWord = text("disp", t.languageWord, { tone: "gradient" });
-  languageWord.config = { ...languageWord.config, fontSize: "3.4rem", attrs: { lang: "ar", dir: "rtl" } };
+  languageWord.config = { ...languageWord.config, fontSize: "var(--type-showcase-size)", attrs: { lang: "ar", dir: "rtl" } };
   const language = tile(t.languageTag, "pink", [languageWord, text("small", t.languageBody, { tone: "secondary" })]);
   const host = tile(t.hostTag, "orange", [
     text("h3", t.hostTitle),

@@ -30,7 +30,10 @@ export function passesAA(ratio: number): boolean {
   return ratio >= 4.5;
 }
 
+/** The two text colours a brand colour is checked against: near-black and white. */
+export const INK = { dark: "#0a0a0a", light: "#ffffff" } as const;
+
 /** Dark or white text, whichever reads better on the colour. */
-export function bestInk(background: string, dark = "#0a0a0a", light = "#ffffff"): string {
+export function bestInk(background: string, dark: string = INK.dark, light: string = INK.light): string {
   return (contrastRatio(background, dark) ?? 0) >= (contrastRatio(background, light) ?? 0) ? dark : light;
 }

@@ -67,13 +67,18 @@ export async function view(context: ViewContext): Promise<Node[]> {
         else if (mode) notify(fill(words.conceptNote, { name: mode.label }), "info");
       }),
   };
+  // One flow, three notations, stacked in 3D as the prototype: the flowchart lowest, the node graph on top.
   const layerHues: Hue[] = ["lime", "orange", "cyan"];
-  const layers = row(
-    ["node-graph", "bpmn", "flowchart"].map((kind, index) =>
-      stack([tag(words.layers[index], layerHues[index]), glass(thumb(kind, sample, words.layers[index]), { pad: "none" })], { gap: 8 }),
-    ),
-    { gap: 20, wrap: true, justify: "center" },
-  );
+  const kinds = ["node-graph", "bpmn", "flowchart"];
+  const order = [2, 1, 0];
+  const layers: Node = {
+    tag: "xwui-layer-stack",
+    data: {
+      label: words.layersLabel,
+      layers: order.map((index) => ({ label: words.layers[index], hue: layerHues[index] })),
+    },
+    slots: { panels: order.map((index) => thumb(kinds[index], sample, words.layers[index])) },
+  };
 
   const hero: Node = {
     tag: "xwui-box",
@@ -94,7 +99,8 @@ export async function view(context: ViewContext): Promise<Node[]> {
                   headline("hero", words.title, words.titleHighlight, "center"),
                   measure(text("lead", words.lead, { align: "center" })),
                   centred(modes),
-                  layers,
+                  // Start the stack low enough that its top layer clears the mode switcher.
+                  { tag: "xwui-box", config: { padding: "56px 0 0" }, slots: { children: layers } },
                 ],
                 { gap: 24, align: "stretch" },
               ),

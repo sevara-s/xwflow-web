@@ -1,214 +1,175 @@
 import { api } from "../../api/client";
-import { el, slot } from "../../app/dom";
 import { fill, formatMs } from "../../app/format";
-import type { Tracker } from "../../app/mount";
 import { errorMessage, notify } from "../../app/notify";
-import type { PageContext } from "../../app/page";
 import { href, navigate, paths, replaceQuery, type Route } from "../../app/router";
 import { flowStatusView, resultView } from "../../app/status";
-import { XWFlowBrand } from "../../components/XWFlowBrand/XWFlowBrand";
-import { XWFlowCanvas } from "../../components/XWFlowCanvas/XWFlowCanvas";
-import { XWFlowStatus } from "../../components/XWFlowStatus/XWFlowStatus";
-import { XWFlowStepIcon } from "../../components/XWFlowStepIcon/XWFlowStepIcon";
+import type { PageResult, ViewContext } from "../../app/view";
 import { config } from "../../config";
 import { catalog } from "../../content/catalog";
-import type { Attempt, RunDetail } from "../../types/domain";
-import { XWUIButton, XWUICodeBlock, XWUIInputText, XWUIKbd, XWUINavTabs, XWUITable } from "../../xwui";
-import { canvasData } from "./canvas";
-import { mountTag } from "./common";
-import { renderInspector } from "./editor-inspector";
-import "./editor.css";
+import type { Attempt, FlowDetail, RunDetail } from "../../types/domain";
+import { canvasData, hueOf, toneOf } from "../../ui/flow";
+import { button, cell, keys, row, stack, status, tag, text, type Node } from "../../ui/kit";
+import type { XWUIButton, XWUIComposer, XWUIFlowCanvas, XWUIInputText } from "../../xwui";
+import { inspector, pinToggle, type InspectorContext } from "./editor-inspector";
 
 type EditorRoute = Extract<Route, { page: "editor" }>;
-type Owned = { destroy(): void };
 
 const words = catalog.studio.editor;
 
-export async function render(context: PageContext<EditorRoute>): Promise<void> {
-  const { route, scope, body } = context;
+/** Panel sizes; the canvas fit keeps clear of them. */
+const PANEL = { gap: 16, header: 62, start: 250, end: 340, bottom: 250 } as const;
+
+function latestFailure(run: RunDetail | null): Attempt | undefined {
+  return run?.attempts.find((item) => item.result.kind === "failed");
+}
+
+function statusTags(detail: FlowDetail): Node {
+  const state = detail.flow.status;
+  return row(
+    [
+      ...(state !== "draft" ? [tag(catalog.studio.flowStatus.published, "lime")] : []),
+      ...(state !== "published" ? [tag(flowStatusView(state).label, state === "draft" ? undefined : "amber")] : []),
+    ],
+    { gap: 8 },
+  );
+}
+
+function palette(detail: FlowDetail, query: string, add: (item: FlowDetail["palette"][number]["items"][number]) => void): Node {
+  const q = query.trim().toLowerCase();
+  const groups = detail.palette
+    .map((group) => ({ group: group.group, items: group.items.filter((item) => !q || item.label.toLowerCase().includes(q)) }))
+    .filter((group) => group.items.length);
+  if (!groups.length) return text("small", words.noSteps, { tone: "secondary" });
+  return stack(
+    groups.map((group) =>
+      stack(
+        [
+          text("xs", catalog.studio.groupLabels[group.group], { bold: true, caps: true, tone: "tertiary" }),
+          ...group.items.map((item): Node => {
+            const type = catalog.studio.stepTypes[item.id as keyof typeof catalog.studio.stepTypes];
+            return {
+              tag: "xwui-button",
+              data: { text: item.label },
+              config: {
+                variant: "ghost",
+                size: "sm",
+                fullWidth: true,
+                align: "start",
+                icon: type?.icon ?? catalog.studio.groupIcons[item.group],
+                iconColor: `var(--xwui-hue-${hueOf[item.group]})`,
+              },
+              on: { click: () => add(item) },
+            };
+          }),
+        ],
+        { gap: 2 },
+      ),
+    ),
+    { gap: 10 },
+  );
+}
+
+function miniLedger(attempts: Attempt[], focus: Attempt | undefined): Node {
+  const columns = words.columns;
+  const receipt = catalog.studio.receipt;
+  return {
+    tag: "xwui-table",
+    data: {
+      columns: [
+        { key: "step", title: columns.step, render: (_: unknown, item: Attempt) => cell(text("small", item.step, { bold: true, tone: item.id === focus?.id ? "lime" : undefined })) },
+        {
+          key: "try",
+          title: columns.try,
+          render: (_: unknown, item: Attempt) =>
+            cell(
+              text(
+                "small",
+                item.tryIndex === null ? receipt.tryNone : item.tryCount && item.tryCount > 1 ? fill(receipt.tryOf, { n: item.tryIndex, total: item.tryCount }) : String(item.tryIndex),
+              ),
+            ),
+        },
+        {
+          key: "result",
+          title: columns.result,
+          render: (_: unknown, item: Attempt) => {
+            const view = resultView(item.result, true);
+            return cell(status(toneOf[view.tone], view.label));
+          },
+        },
+        { key: "inCount", title: columns.in, align: "end" },
+        { key: "outCount", title: columns.out, align: "end" },
+        {
+          key: "durationMs",
+          title: columns.time,
+          align: "end",
+          render: (_: unknown, item: Attempt) =>
+            cell(
+              item.durationMs === null
+                ? text("small", catalog.studio.flows.notRecorded, { mono: true, tone: "tertiary" })
+                : text("small", formatMs(item.durationMs), { mono: true }),
+            ),
+        },
+      ],
+      data: attempts.map((item) => ({ ...item, key: item.id })),
+    },
+    config: { hoverable: true, bordered: false, size: "small", ariaLabel: receipt.ledgerLabel },
+  };
+}
+
+function runBody(latest: RunDetail | null, tab: string, selectedId: string | null): Node {
+  if (!latest) return text("small", words.noRun, { tone: "secondary" });
+  const attempts = latest.attempts;
+  const focus = attempts.filter((item) => item.nodeId === selectedId).at(-1);
+  if (tab === "ledger") return miniLedger(attempts.filter((item) => item.result.kind !== "notRun"), focus);
+  if (tab === "problems") {
+    const problems = attempts.filter((item) => item.result.kind === "failed");
+    if (!problems.length) return text("small", words.noProblems, { tone: "secondary" });
+    return stack(
+      problems.map((item) => {
+        const view = resultView(item.result, true);
+        return status(toneOf[view.tone], view.label);
+      }),
+      { gap: 8 },
+    );
+  }
+  const payload = focus ? (tab === "input" ? focus.io.input : focus.io.output) : {};
+  return { tag: "xwui-code-block", data: { code: JSON.stringify(payload, null, 2) }, config: { language: "json", copyable: true } };
+}
+
+export async function view(context: ViewContext<EditorRoute>): Promise<PageResult> {
+  const { route, workspace } = context;
   let detail = await api.getFlow(route.flowId);
   const [run, connections] = await Promise.all([detail.latestRunId ? api.getRun(detail.latestRunId) : Promise.resolve(null), api.getConnectionNames()]);
   let latest: RunDetail | null = run;
-  let selectedId = route.node && detail.graph.nodes.some((node) => node.id === route.node) ? route.node : (latestFailure(latest)?.nodeId ?? detail.graph.nodes[1]?.id ?? detail.graph.nodes[0]?.id ?? null);
+  let selectedId =
+    route.node && detail.graph.nodes.some((node) => node.id === route.node) ? route.node : (latestFailure(latest)?.nodeId ?? detail.graph.nodes[1]?.id ?? detail.graph.nodes[0]?.id ?? null);
   let section = "params";
   let runTab = "ledger";
+  let paletteQuery = "";
+  let nameField: XWUIInputText | null = null;
 
   document.title = `${detail.flow.name} · ${catalog.brand}`;
-  scope.track({ destroy: () => (document.title = catalog.brand) });
+  context.onLeave(() => (document.title = catalog.brand));
 
-  const root = el("div", "xwflow-editor");
-  body.append(root);
-  const canvasHost = slot(root, "xwflow-editor__canvas");
-  const header = el("header", "xwflow-editor__float xwflow-editor__header");
-  const palette = el("aside", "xwflow-editor__float xwflow-editor__palette");
-  palette.setAttribute("aria-label", words.paletteLabel);
-  const inspector = el("aside", "xwflow-editor__float xwflow-editor__inspector");
-  inspector.setAttribute("aria-label", words.inspectorLabel);
-  const runPanel = el("section", "xwflow-editor__float xwflow-editor__runs");
-  runPanel.setAttribute("aria-label", words.runPanelLabel);
-  root.append(header, palette, inspector, runPanel);
-
-  /* ------------------------------------------------ header */
-  const tagsHost = el("div", "xwflow-row xwflow-gap-8");
-  const back = scope.track(new XWUIButton(slot(header), { text: "" }, { variant: "ghost", size: "sm", icon: "arrow-left", ariaLabel: words.back, title: words.back }));
-  back.onClick(() => navigate(paths.flows));
-  scope.track(new XWFlowBrand(slot(header), { label: catalog.brand, href: href(paths.home) }, { markOnly: true }));
-  const crumbs = el("nav", "xwflow-editor__crumbs");
-  crumbs.setAttribute("aria-label", "Breadcrumb");
-  const projectLink = el("a", undefined, context.workspace.project.name);
-  projectLink.href = href(paths.flows);
-  crumbs.append(projectLink, el("span", undefined, "/"), el("b", undefined, detail.flow.name));
-  header.append(crumbs, tagsHost);
-  let tagOwned: Owned[] = [];
-  scope.track({ destroy: () => tagOwned.splice(0).forEach((item) => item.destroy()) });
-  const drawTags = (): void => {
-    tagOwned.splice(0).forEach((item) => item.destroy());
-    tagsHost.replaceChildren();
-    const status = detail.flow.status;
-    const tracker: Tracker = { track: (item) => (tagOwned.push(item), item) };
-    if (status !== "draft") mountTag(slot(tagsHost), tracker, { label: catalog.studio.flowStatus.published, color: "lime" });
-    if (status !== "published") mountTag(slot(tagsHost), tracker, { label: flowStatusView(status).label, color: status === "draft" ? "plain" : "amber" });
+  const part = <T,>(key: string): T | undefined => context.instance<T>(key);
+  const canvas = (): XWUIFlowCanvas | undefined => part<XWUIFlowCanvas>("editor-canvas");
+  const redrawCanvas = (): void => canvas()?.setData(canvasData(detail.graph, { selectedId, attempts: latest?.attempts }));
+  const redrawTags = (): void => {
+    part<XWUIComposer>("editor-tags")?.setTree(statusTags(detail));
+    part<XWUIComposer>("editor-crumb")?.setTree(text("small", detail.flow.name, { bold: true }));
   };
-  drawTags();
 
-  const viewTabs = slot(header, "xwflow-tabs xwflow-editor__views");
-  const tabs = scope.track(
-    new XWUINavTabs(viewTabs, { tabs: words.views.map((item) => ({ ...item })), activeTab: "editor" }, { variant: "button", size: "sm", ariaLabel: words.viewsLabel, hideContent: "true" }),
-  );
-  tabs.onChange((id) => {
-    if (id === "bpmn" || id === "3d") navigate(paths.flowView(detail.flow.id, id));
-    else if (id === "all") navigate(paths.notations);
-    else if (id === "runs") navigate(paths.runs, { q: detail.flow.name, range: "all" });
-    else {
-      notify(words.versionsSoon, "info");
-      tabs.setActiveTab("editor");
-    }
-  });
-
-  const headerActions = el("div", "xwflow-row xwflow-gap-8 xwflow-push");
-  header.append(headerActions);
-  const ask = scope.track(new XWUIButton(slot(headerActions), { text: words.askAi }, { variant: "ghost", size: "sm", icon: "sparkles", className: "xwflow-btn-glass" }));
-  ask.onClick(() => navigate(paths.studio));
-  const runHost = slot(headerActions);
-  const runButton = scope.track(new XWUIButton(runHost, { text: words.run }, { variant: "ghost", size: "sm", icon: "play", className: "xwflow-btn-gradient" }));
-  const runKeys = document.createElement("span");
-  scope.track(new XWUIKbd(runKeys, { keys: words.runKeys }, { size: "sm" }));
-  runHost.querySelector(".xwui-button")?.append(runKeys);
-  const publish = scope.track(new XWUIButton(slot(headerActions), { text: words.publish }, { variant: "primary", size: "sm" }));
-  publish.onClick(async () => {
-    if (detail.flow.status === "published") {
-      notify(words.nothingToPublish, "info");
-      return;
-    }
-    try {
-      detail.flow = await api.publishFlow(detail.flow.id);
-      drawTags();
-      notify(fill(words.published, { name: detail.flow.name }), "success");
-    } catch (error) {
-      notify(errorMessage(error), "danger");
-    }
-  });
-
-  /* ------------------------------------------------ canvas */
-  const canvas = scope.track(
-    new XWFlowCanvas(canvasHost, canvasData(detail.graph, selectedId, latest?.attempts), {
-      nodeWidth: 150,
-      tools: true,
-      minimap: true,
-      insets: { top: 94, left: 282, right: 372, bottom: 282 },
-      maxFitScale: 1.15,
-      className: "xwflow-editor__board",
-    }),
-  );
-  const redrawCanvas = (): void => canvas.setData(canvasData(detail.graph, selectedId, latest?.attempts));
-  canvas.on("select", (nodeId) => {
-    selectedId = nodeId;
-    canvas.select(nodeId);
-    replaceQuery(paths.flow(detail.flow.id), { node: nodeId });
-    drawInspector();
-    drawRunPanel();
-  });
-  canvas.on("move", (nodeId, x, y) => void api.moveSteps(detail.flow.id, [{ id: nodeId, x, y }]).catch((error) => notify(errorMessage(error), "danger")));
-  canvas.on("tidy", async (positions) => {
-    try {
-      const nodes = await api.moveSteps(detail.flow.id, positions);
-      detail.graph = { ...detail.graph, nodes };
-      redrawCanvas();
-      canvas.fit();
-    } catch (error) {
-      notify(errorMessage(error), "danger");
-    }
-  });
-
-  /* ------------------------------------------------ palette */
-  const searchRow = slot(palette, "xwflow-editor__search");
-  const keys = document.createElement("span");
-  scope.track(new XWUIKbd(keys, { keys: words.searchKeys }, { size: "sm" }));
-  const search = scope.track(
-    new XWUIInputText(searchRow, { placeholder: words.searchSteps }, { type: "search", leadingIcon: "search", ariaLabel: words.searchSteps, suffix: keys, fullWidth: true }),
-  );
-  const paletteList = el("div", "xwflow-editor__palette-list");
-  palette.append(paletteList);
-  let paletteOwned: Owned[] = [];
-  scope.track({ destroy: () => paletteOwned.splice(0).forEach((item) => item.destroy()) });
-  const drawPalette = (query: string): void => {
-    paletteOwned.splice(0).forEach((item) => item.destroy());
-    paletteList.replaceChildren();
-    const q = query.trim().toLowerCase();
-    let shown = 0;
-    for (const group of detail.palette) {
-      const items = group.items.filter((item) => !q || item.label.toLowerCase().includes(q));
-      if (!items.length) continue;
-      paletteList.append(el("div", "xwflow-editor__palette-group", catalog.studio.groupLabels[group.group]));
-      for (const item of items) {
-        shown += 1;
-        const button = el("button", "xwflow-editor__palette-item");
-        button.type = "button";
-        const icon = el("span");
-        button.append(icon, el("span", undefined, item.label));
-        const type = catalog.studio.stepTypes[item.id as keyof typeof catalog.studio.stepTypes];
-        paletteOwned.push(new XWFlowStepIcon(icon, { icon: type?.icon ?? catalog.studio.groupIcons[item.group], group: item.group }, { size: "sm" }));
-        button.addEventListener("click", async () => {
-          try {
-            const node = await api.addStep(detail.flow.id, item);
-            detail = await api.getFlow(detail.flow.id);
-            selectedId = node.id;
-            drawTags();
-            redrawCanvas();
-            canvas.fit();
-            drawInspector();
-            notify(fill(words.added, { name: node.name }), "success");
-          } catch (error) {
-            notify(errorMessage(error), "danger");
-          }
-        });
-        paletteList.append(button);
-      }
-    }
-    if (!shown) paletteList.append(el("p", "xwflow-small xwflow-sec", words.noSteps));
-  };
-  search.onChange((value) => drawPalette(value));
-  drawPalette("");
-
-  /* ------------------------------------------------ inspector */
-  let inspectorOwned: Owned[] = [];
-  scope.track({ destroy: () => inspectorOwned.splice(0).forEach((item) => item.destroy()) });
-  let rename: (() => void) | null = null;
-  function drawInspector(): void {
-    inspectorOwned.splice(0).forEach((item) => item.destroy());
-    inspector.replaceChildren();
-    rename = null;
+  const inspectorContext = (): InspectorContext | null => {
     const node = detail.graph.nodes.find((item) => item.id === selectedId);
-    if (!node) {
-      inspector.append(el("p", "xwflow-small xwflow-sec", words.selectStep));
-      return;
-    }
-    const handle = renderInspector(inspector, { track: (item) => (inspectorOwned.push(item), item) }, {
+    if (!node) return null;
+    return {
       detail,
       node,
       connections,
       section,
       sectionChanged: (next) => (section = next),
+      showSection: (body) => part<XWUIComposer>("inspector-section")?.setTree(body),
+      nameField: (input) => (nameField = input),
       changed: (updated, step) => {
         const index = detail.graph.nodes.findIndex((item) => item.id === updated.id);
         if (index !== -1) detail.graph.nodes[index] = updated;
@@ -216,86 +177,79 @@ export async function render(context: PageContext<EditorRoute>): Promise<void> {
         if (stepIndex !== -1) detail.steps[stepIndex] = { ...step, nodeId: updated.id };
         else detail.steps.push({ ...step, nodeId: updated.id });
         if (detail.flow.status === "published") detail.flow = { ...detail.flow, status: "changed" };
-        drawTags();
+        redrawTags();
         redrawCanvas();
-        crumbs.querySelector("b")!.textContent = detail.flow.name;
         if (updated.state !== node.state || updated.name !== node.name) drawInspector();
       },
       executeTo: () => void startTestRun(),
-    });
-    rename = handle.rename;
+    };
+  };
+  const inspectorTree = (): Node => {
+    const ctx = inspectorContext();
+    return ctx ? inspector(ctx) : text("small", words.selectStep, { tone: "secondary" });
+  };
+  function drawInspector(): void {
+    part<XWUIComposer>("editor-inspector")?.setTree(inspectorTree());
   }
-  drawInspector();
 
-  /* ------------------------------------------------ run panel */
-  let runOwned: Owned[] = [];
-  scope.track({ destroy: () => runOwned.splice(0).forEach((item) => item.destroy()) });
-  function drawRunPanel(): void {
-    runOwned.splice(0).forEach((item) => item.destroy());
-    runPanel.replaceChildren();
-    const local: Tracker = { track: (item) => (runOwned.push(item), item) };
-    const head = el("div", "xwflow-row xwflow-gap-12 xwflow-wrap xwflow-editor__runs-head");
-    runPanel.append(head);
-    const tabHost = slot(head, "xwflow-tabs");
-    const runTabs = local.track(new XWUINavTabs(tabHost, { tabs: words.runTabs.map((item) => ({ ...item })), activeTab: runTab }, { variant: "button", size: "sm", hideContent: "true" }));
-    runTabs.onChange((id) => {
-      runTab = id;
-      drawRunPanel();
-    });
-    const content = el("div", "xwflow-editor__runs-body");
-    if (!latest) {
-      content.append(el("p", "xwflow-small xwflow-sec", words.noRun));
-      runPanel.append(content);
-      return;
-    }
+  const runHead = (): Node => {
+    if (!latest) return row([]);
     const finished = latest.attempts.filter((item) => !["disabled", "notRun", "pinned"].includes(item.result.kind)).length;
     const disabled = latest.attempts.filter((item) => item.result.kind === "disabled").length;
-    local.track(new XWFlowStatus(slot(head), { tone: "ok", label: fill(words.finished, { n: finished }) }));
-    if (disabled) local.track(new XWFlowStatus(slot(head), { tone: "dis", label: fill(words.disabled, { n: disabled }) }));
-    const receipt = local.track(new XWUIButton(slot(head, "xwflow-push"), { text: words.openReceipt }, { variant: "ghost", size: "sm", className: "xwflow-btn-glass" }));
     const runId = latest.id;
-    receipt.onClick(() => navigate(paths.run(runId)));
-    runPanel.append(content);
+    return row(
+      [
+        status("success", fill(words.finished, { n: finished })),
+        ...(disabled ? [status("disabled", fill(words.disabled, { n: disabled }))] : []),
+        button("glass", words.openReceipt, { size: "sm", onClick: () => navigate(paths.run(runId)) }),
+      ],
+      { gap: 12, wrap: true },
+    );
+  };
+  const drawRunPanel = (): void => {
+    part<XWUIComposer>("editor-run-head")?.setTree(runHead());
+    part<XWUIComposer>("editor-run-body")?.setTree(runBody(latest, runTab, selectedId));
+  };
 
-    const attempts = latest.attempts;
-    const forNode = attempts.filter((item) => item.nodeId === selectedId);
-    const focus = forNode.at(-1);
-    if (runTab === "ledger") {
-      mountMiniLedger(slot(content, "xwflow-table"), local, attempts.filter((item) => item.result.kind !== "notRun"), focus);
-    } else if (runTab === "problems") {
-      const problems = attempts.filter((item) => item.result.kind === "failed");
-      if (!problems.length) content.append(el("p", "xwflow-small xwflow-sec", words.noProblems));
-      for (const item of problems) local.track(new XWFlowStatus(slot(content), resultView(item.result, true)));
-    } else {
-      const payload = focus ? (runTab === "input" ? focus.io.input : focus.io.output) : {};
-      local.track(new XWUICodeBlock(slot(content), { code: JSON.stringify(payload, null, 2) }, { language: "json", copyable: true }));
-    }
-  }
-  drawRunPanel();
-
-  /* ------------------------------------------------ running */
-  async function startTestRun(): Promise<void> {
+  const addStep = async (item: FlowDetail["palette"][number]["items"][number]): Promise<void> => {
     try {
-      runButton.setLoading(true);
+      const node = await api.addStep(detail.flow.id, item);
+      detail = await api.getFlow(detail.flow.id);
+      selectedId = node.id;
+      redrawTags();
+      redrawCanvas();
+      canvas()?.fit();
+      drawInspector();
+      notify(fill(words.added, { name: node.name }), "success");
+    } catch (error) {
+      notify(errorMessage(error), "danger");
+    }
+  };
+
+  let polling: ReturnType<typeof setInterval> | undefined;
+  context.onLeave(() => clearInterval(polling));
+  async function startTestRun(): Promise<void> {
+    const runButton = part<XWUIButton>("editor-run");
+    try {
+      runButton?.setLoading(true);
       const started = await api.startRun(detail.flow.id, "test");
       notify(fill(words.runStarted, { id: started.id }), "info");
-      const poll = setInterval(async () => {
+      clearInterval(polling);
+      polling = setInterval(async () => {
         const next = await api.getRun(started.id);
         if (next.status === "running") return;
-        clearInterval(poll);
+        clearInterval(polling);
         latest = next;
-        runButton.setLoading(false);
+        part<XWUIButton>("editor-run")?.setLoading(false);
         redrawCanvas();
         drawRunPanel();
         notify(fill(words.runFinished, { id: next.id, status: catalog.studio.runStatus[next.status].toLocaleLowerCase() }), next.status === "failed" ? "danger" : "success");
       }, config.pollMs / 3);
-      scope.track({ destroy: () => clearInterval(poll) });
     } catch (error) {
-      runButton.setLoading(false);
+      runButton?.setLoading(false);
       notify(errorMessage(error), "danger");
     }
   }
-  runButton.onClick(() => void startTestRun());
 
   const onKey = (event: KeyboardEvent): void => {
     const typing = (event.target as HTMLElement).closest("input, textarea, select, [contenteditable]");
@@ -304,66 +258,175 @@ export async function render(context: PageContext<EditorRoute>): Promise<void> {
       void startTestRun();
     } else if (event.key === "F2") {
       event.preventDefault();
-      rename?.();
-    } else if (!typing && event.key.toLowerCase() === "p" && selectedId) {
-      inspector.querySelector<HTMLButtonElement>(".xwflow-btn-glass")?.click();
+      if (!nameField) {
+        section = "settings";
+        drawInspector();
+        part<{ setActiveTab(id: string): void }>("inspector-tabs")?.setActiveTab("settings");
+      }
+      setTimeout(() => nameField?.focus(), 50);
+    } else if (!typing && event.key.toLowerCase() === "p") {
+      const ctx = inspectorContext();
+      if (ctx) void pinToggle(ctx);
     }
   };
   document.addEventListener("keydown", onKey);
-  scope.track({ destroy: () => document.removeEventListener("keydown", onKey) });
-}
+  context.onLeave(() => document.removeEventListener("keydown", onKey));
 
-function latestFailure(run: RunDetail | null): Attempt | undefined {
-  return run?.attempts.find((item) => item.result.kind === "failed");
-}
-
-function mountMiniLedger(host: HTMLElement, scope: Tracker, attempts: Attempt[], focus: Attempt | undefined): void {
-  const columns = words.columns;
-  host.dataset.density = "dense";
-  scope.track(
-    new XWUITable(
-      host,
-      {
-        columns: [
-          { key: "step", title: columns.step, render: (_: unknown, item: Attempt) => el("b", undefined, item.step) },
-          {
-            key: "try",
-            title: columns.try,
-            render: (_: unknown, item: Attempt) =>
-              el(
-                "span",
-                undefined,
-                item.tryIndex === null
-                  ? catalog.studio.receipt.tryNone
-                  : item.tryCount && item.tryCount > 1
-                    ? fill(catalog.studio.receipt.tryOf, { n: item.tryIndex, total: item.tryCount })
-                    : String(item.tryIndex),
-              ),
-          },
-          {
-            key: "result",
-            title: columns.result,
-            render: (_: unknown, item: Attempt) => {
-              const box = el("div");
-              scope.track(new XWFlowStatus(box, resultView(item.result, true), { size: "sm" }));
-              return box;
-            },
-          },
-          { key: "inCount", title: columns.in, align: "end" },
-          { key: "outCount", title: columns.out, align: "end" },
-          {
-            key: "durationMs",
-            title: columns.time,
-            align: "end",
-            render: (_: unknown, item: Attempt) =>
-              item.durationMs === null ? el("span", "xwflow-mono xwflow-ter", catalog.studio.flows.notRecorded) : el("span", "xwflow-mono", formatMs(item.durationMs)),
-          },
+  const header = row(
+    [
+      row(
+        [
+          button("ghost", "", { icon: "arrow-left", size: "sm", label: words.back, onClick: () => navigate(paths.flows) }),
+          { tag: "xwui-logo", data: {}, config: { svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg", logoConfig: "logo", title: catalog.brand, size: "xs", href: href(paths.home) } },
+          row(
+            [
+              button("ghost", workspace.project.name, { size: "sm", href: href(paths.flows) }),
+              text("small", "/", { tone: "tertiary" }),
+              { tag: "xwui-composer", key: "editor-crumb", data: { tree: text("small", detail.flow.name, { bold: true }) } },
+            ],
+            { gap: 8 },
+          ),
+          { tag: "xwui-composer", key: "editor-tags", data: { tree: statusTags(detail) } },
         ],
-        data: attempts.map((item) => ({ ...item, key: item.id })),
+        { gap: 12 },
+      ),
+      {
+        tag: "xwui-tabs",
+        data: { tabs: words.views.map((item) => ({ ...item })), activeTab: "editor" },
+        config: { variant: "button", size: "sm", ariaLabel: words.viewsLabel, hideContent: "true" },
+        ref: (instance) => {
+          const tabs = instance as { onChange(handler: (id: string) => void): void; setActiveTab(id: string): void };
+          tabs.onChange((id) => {
+            if (id === "bpmn" || id === "3d") navigate(paths.flowView(detail.flow.id, id));
+            else if (id === "all") navigate(paths.notations);
+            else if (id === "runs") navigate(paths.runs, { q: detail.flow.name, range: "all" });
+            else if (id !== "editor") {
+              notify(words.versionsSoon, "info");
+              tabs.setActiveTab("editor");
+            }
+          });
+        },
       },
-      { hoverable: true, bordered: false, ariaLabel: catalog.studio.receipt.ledgerLabel },
-    ),
+      row(
+        [
+          button("glass", words.askAi, { size: "sm", icon: "sparkles", onClick: () => navigate(paths.studio) }),
+          row([button("gradient", words.run, { size: "sm", icon: "play", key: "editor-run", onClick: () => void startTestRun() }), keys(words.runKeys.split(" "), "sm")], { gap: 6 }),
+          button("primary", words.publish, {
+            size: "sm",
+            onClick: async () => {
+              if (detail.flow.status === "published") return notify(words.nothingToPublish, "info");
+              try {
+                detail.flow = await api.publishFlow(detail.flow.id);
+                redrawTags();
+                notify(fill(words.published, { name: detail.flow.name }), "success");
+              } catch (error) {
+                notify(errorMessage(error), "danger");
+              }
+            },
+          }),
+        ],
+        { gap: 8 },
+      ),
+    ],
+    { gap: 12, justify: "space-between", wrap: true },
   );
-  const index = focus ? attempts.findIndex((item) => item.id === focus.id) : -1;
-  host.querySelectorAll("tbody tr").forEach((row, rowIndex) => row.classList.toggle("is-selected", rowIndex === index));
+
+  const start = stack(
+    [
+      {
+        tag: "xwui-input-text",
+        data: { placeholder: words.searchSteps },
+        config: { type: "search", leadingIcon: "search", ariaLabel: words.searchSteps, suffix: words.searchKeys, fullWidth: true },
+        ref: (instance) =>
+          (instance as XWUIInputText).onChange((value: string) => {
+            paletteQuery = value;
+            part<XWUIComposer>("editor-palette")?.setTree(palette(detail, paletteQuery, (item) => void addStep(item)));
+          }),
+      },
+      { tag: "xwui-composer", key: "editor-palette", data: { tree: palette(detail, paletteQuery, (item) => void addStep(item)) } },
+    ],
+    { gap: 10 },
+  );
+
+  const bottom = stack(
+    [
+      row(
+        [
+          {
+            tag: "xwui-tabs",
+            data: { tabs: words.runTabs.map((item) => ({ ...item })), activeTab: runTab },
+            config: { variant: "button", size: "sm", hideContent: "true" },
+            ref: (instance) =>
+              (instance as { onChange(handler: (id: string) => void): void }).onChange((id) => {
+                runTab = id;
+                drawRunPanel();
+              }),
+          },
+          { tag: "xwui-composer", key: "editor-run-head", data: { tree: runHead() } },
+        ],
+        { gap: 12, justify: "space-between", wrap: true },
+      ),
+      { tag: "xwui-composer", key: "editor-run-body", data: { tree: runBody(latest, runTab, selectedId) } },
+    ],
+    { gap: 8 },
+  );
+
+  const stage: Node = {
+    tag: "xwui-flow-canvas",
+    key: "editor-canvas",
+    data: canvasData(detail.graph, { selectedId, attempts: latest?.attempts }),
+    config: {
+      nodeWidth: 150,
+      tools: true,
+      minimap: true,
+      flush: true,
+      maxFitScale: 1.15,
+      insets: {
+        top: PANEL.gap * 2 + PANEL.header,
+        left: PANEL.gap * 2 + PANEL.start,
+        right: PANEL.gap * 2 + PANEL.end,
+        bottom: PANEL.gap * 2 + PANEL.bottom,
+      },
+    },
+    ref: (instance) => {
+      const board = instance as XWUIFlowCanvas;
+      // The canvas marks the clicked card itself; selecting again would re-emit.
+      board.on("select", (({ id: nodeId }: { id: string }) => {
+        selectedId = nodeId;
+        replaceQuery(paths.flow(detail.flow.id), { node: nodeId });
+        drawInspector();
+        drawRunPanel();
+      }) as never);
+      board.on("move", (({ id, x, y }: { id: string; x: number; y: number }) =>
+        void api.moveSteps(detail.flow.id, [{ id, x, y }]).catch((error) => notify(errorMessage(error), "danger"))) as never);
+      board.on("tidy", (async ({ positions }: { positions: Array<{ id: string; x: number; y: number }> }) => {
+        try {
+          const nodes = await api.moveSteps(detail.flow.id, positions);
+          detail.graph = { ...detail.graph, nodes };
+          redrawCanvas();
+          board.fit();
+        } catch (error) {
+          notify(errorMessage(error), "danger");
+        }
+      }) as never);
+    },
+  };
+
+  return {
+    body: [
+      {
+        tag: "xwui-workbench",
+        data: { labels: { start: words.paletteLabel, end: words.inspectorLabel, bottom: words.runPanelLabel } },
+        config: { startWidth: PANEL.start, endWidth: PANEL.end, bottomHeight: PANEL.bottom },
+        slots: {
+          stage,
+          header,
+          start,
+          end: { tag: "xwui-composer", key: "editor-inspector", data: { tree: inspectorTree() } },
+          bottom: { tag: "xwui-box", config: { padding: 12 }, slots: { children: bottom } },
+        },
+      },
+    ],
+  };
 }
+

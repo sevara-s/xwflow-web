@@ -213,8 +213,8 @@ export function shape(kind: "orb" | "ring" | "cube" | "halo", hue: Hue, size: nu
   return { tag: "xwui-glow-shape", data: { kind }, config: { hue, size, thickness, ...place } };
 }
 
-export function keys(value: string[]): Node {
-  return { tag: "xwui-kbd", data: { keys: value } };
+export function keys(value: string[], size: "sm" | "md" = "md"): Node {
+  return { tag: "xwui-kbd", data: { keys: value }, config: { size } };
 }
 
 /** An XWUI element for a slot that takes an element, such as an XWUITable cell. */

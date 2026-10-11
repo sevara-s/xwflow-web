@@ -1,7 +1,0 @@
-.xwflow-stacked { display: flex; flex-direction: column; gap: 8px; }
-.xwflow-stacked__chart { display: flex; align-items: flex-end; gap: 6px; padding: 0 2px; border-bottom: 1px solid var(--xwflow-line); }
-.xwflow-stacked__column { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; }
-.xwflow-stacked__column i { display: block; border-radius: 5px 5px 2px 2px; }
-.xwflow-stacked__base { background: linear-gradient(180deg, var(--xwflow-cyan), rgba(155, 107, 255, 0.4)); }
-.xwflow-stacked__alert { background: var(--xwflow-red); box-shadow: 0 0 10px rgba(255, 92, 108, 0.7); }
-.xwflow-stacked__axis { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--xwflow-text-3); }

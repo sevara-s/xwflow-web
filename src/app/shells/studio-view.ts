@@ -167,7 +167,7 @@ function rail(workspace: Workspace, route: Route): Node {
   };
 }
 
-function appBar(workspace: Workspace, bar: PageBar | undefined): Node {
+export function appBar(workspace: Workspace, bar: PageBar | undefined): Node {
   const topbar = catalog.studio.topbar;
   const sample = bar?.sample === undefined ? "rows" : bar.sample;
   return {
@@ -190,13 +190,11 @@ function appBar(workspace: Workspace, bar: PageBar | undefined): Node {
   };
 }
 
-/** The studio frame: XWUIAppRail on the start side, XWUIAppBar and the page on the other. */
-export function studioShell(
-  workspace: Workspace,
-  route: Route,
-  page: Node[],
-  bar?: PageBar,
-): Node[] {
+/**
+ * An app frame: a rail on the start side, then the sticky XWUIAppBar and the
+ * page. Shared by the studio and the admin shells.
+ */
+export function appFrame(railNode: Node, workspace: Workspace, page: Node[], bar?: PageBar): Node[] {
   // A plain box, not a stack: the bar's host must be a direct child of the tall
   // column for its stickiness to hold while the page scrolls.
   const main: Node = {
@@ -222,7 +220,17 @@ export function studioShell(
         alignItems: "start",
         responsive: { md: { columns: "auto minmax(0, 1fr)" } },
       },
-      slots: { children: [rail(workspace, route), main] },
+      slots: { children: [railNode, main] },
     },
   ];
+}
+
+/** The studio frame: the studio rail beside the bar and the page. */
+export function studioShell(
+  workspace: Workspace,
+  route: Route,
+  page: Node[],
+  bar?: PageBar,
+): Node[] {
+  return appFrame(rail(workspace, route), workspace, page, bar);
 }

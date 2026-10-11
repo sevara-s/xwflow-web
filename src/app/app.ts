@@ -1,6 +1,6 @@
 import { api } from "../api/client";
 import { catalog } from "../content/catalog";
-import type { Workspace } from "../types/domain";
+import type { AdminContext, Workspace } from "../types/domain";
 import type { Node } from "../ui/kit";
 import { XWUIComposer, XWUIEmpty, XWUIProgressSpinner, type XWUIToast } from "../xwui";
 import { el } from "./dom";
@@ -11,6 +11,7 @@ import { href, parseLocation, paths, type Route } from "./router";
 import { mountAdminShell } from "./shells/admin";
 import { mountBareShell } from "./shells/bare";
 import { mountSiteShell } from "./shells/site";
+import { adminShell } from "./shells/admin-view";
 import { siteShell } from "./shells/site-view";
 import { studioShell } from "./shells/studio-view";
 import type { PageBar, PageResult, PageView, ViewContext } from "./view";
@@ -59,10 +60,13 @@ function shellKind(route: Route): ShellKind {
   return "bare";
 }
 
+const isAdminZone = (route: Route): boolean => route.zone === "admin" || route.zone === "system" || route.zone === "denied";
+
 /** The shell a composed page sits in. */
-function composedShell(route: Route, workspace: Workspace, page: Node[], bar?: PageBar): Node[] {
+function composedShell(route: Route, workspace: Workspace, page: Node[], bar?: PageBar, admin?: AdminContext | null): Node[] {
   if (route.zone === "site") return siteShell(route, page);
   if (route.zone === "studio") return studioShell(workspace, route, page, bar);
+  if (admin && isAdminZone(route)) return adminShell(workspace, route, admin, page, bar);
   return page;
 }
 
@@ -123,18 +127,22 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
         root.replaceChildren();
         composer = new XWUIComposer(root, { tree: [] });
       }
+      // Admin pages and their rail read the tenant and the health signal, fresh on each visit.
+      const admin = isAdminZone(route) ? await api.getAdminContext() : null;
+      if (current !== generation) return;
       const context: ViewContext = {
         route,
         workspace,
+        admin,
         refresh: () => void show(),
         instance: <T,>(key: string) => composer?.getInstanceByKey<T>(key),
         onLeave: (stop) => leave.push(stop),
       };
-      composer.setTree(composedShell(route, workspace, [{ tag: "xwui-spinner", data: { label: catalog.loading } }]));
+      composer.setTree(composedShell(route, workspace, [{ tag: "xwui-spinner", data: { label: catalog.loading } }], undefined, admin));
       try {
         const page = pageResult(await (peek.view as PageView)(context));
         if (current !== generation) return;
-        composer.setTree([...composedShell(route, workspace, page.body, page.bar), toastNode]);
+        composer.setTree([...composedShell(route, workspace, page.body, page.bar, admin), toastNode]);
         window.scrollTo({ top: 0 });
         if (route.zone === "site" && route.section) {
           requestAnimationFrame(() => composer?.getElementByKey(`band-${route.section}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -152,7 +160,7 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
                 description: error instanceof Error ? error.message : "",
               },
             },
-          ]),
+          ], undefined, admin),
         );
       }
       return;

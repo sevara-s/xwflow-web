@@ -165,7 +165,8 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
 
   const select = (value: string, options: Array<{ value: string; label: string }>, label: string, onPick: (value: string) => void): Node => ({
     tag: "xwui-select",
-    data: { value, options },
+    // XWUISelect reads an empty value as no choice, so the "any" option's label stands in as the placeholder.
+    data: { value, options, placeholder: options.find((item) => item.value === "")?.label },
     config: { ariaLabel: label },
     ref: (instance) => (instance as XWUISelect).onChange((picked) => onPick(String(picked))),
   });

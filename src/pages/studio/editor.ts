@@ -278,7 +278,7 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
       row(
         [
           button("ghost", "", { icon: "arrow-left", size: "sm", label: words.back, onClick: () => navigate(paths.flows) }),
-          { tag: "xwui-logo", data: {}, config: { svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg", logoConfig: "logo", title: catalog.brand, size: "xs", href: href(paths.home) } },
+          { tag: "xwui-logo", data: {}, config: { svgPath: config.logoPath, logoConfig: "logo", title: catalog.brand, size: "xs", href: href(paths.home) } },
           row(
             [
               button("ghost", workspace.project.name, { size: "sm", href: href(paths.flows) }),

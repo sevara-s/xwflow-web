@@ -1,0 +1,135 @@
+/* public/theme/xwflow/typography.css - part of the xwflow theme, kept in this repo; loaded over the published XWUI parts (index.html) */
+/* ============================================
+   XWFLOW TYPOGRAPHY - Unbounded display headings over Manrope text
+
+   Manrope carries body text and controls; Unbounded, a wide geometric
+   display face, carries headings through --font-headings-family, set here because a
+   preset bundle includes only this base file (headings/xwflow.css repeats it
+   for hosts that load the shape files). JetBrains
+   Mono carries code, IDs and timings. The faces load from the host page
+   (for example Google Fonts); the rest of the chain is xwui's curated
+   per-script fallback list.
+   ============================================ */
+
+:root[data-font="xwflow"] {
+    --font-family-base: 'Manrope',
+                        /* iOS/macOS San Francisco fallbacks */
+                        -apple-system, BlinkMacSystemFont,
+                        'SF Pro Display', 'SF Pro Text',
+                        /* Windows Segoe UI fallbacks */
+                        'Segoe UI', 'Segoe UI Light', 'Segoe UI Semibold',
+                        /* Android Roboto fallbacks */
+                        'Roboto', 'Roboto Condensed',
+                        /* Linux system fonts */
+                        'Ubuntu', 'Cantarell', 'Noto Sans',
+                        /* Arabic & Persian - Comprehensive support */
+                        'Segoe UI', 'Arabic UI Display', 'Arabic UI Text',
+                        'Roboto Arabic', 'Noto Sans Arabic', 'Noto Naskh Arabic', 'Noto Kufi Arabic',
+                        'Tahoma', 'Arial Unicode MS', 'Microsoft Sans Serif',
+                        'Geeza Pro', 'KufiStandardGK', 'Droid Arabic Naskh', 'Droid Arabic Kufi',
+                        /* Hebrew - Comprehensive support */
+                        'Segoe UI', 'Hebrew UI Display', 'Hebrew UI Text',
+                        'Roboto Hebrew', 'Noto Sans Hebrew', 'David', 'Miriam',
+                        'Helvetica Hebrew', 'Arial Hebrew', 'Droid Hebrew',
+                        /* Chinese Simplified - Comprehensive support */
+                        'Microsoft YaHei', '微软雅黑', 'Microsoft YaHei UI',
+                        'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC',
+                        'Source Han Sans SC', 'SimHei', '黑体', 'SimSun', '宋体',
+                        'WenQuanYi Micro Hei', 'Droid Sans Fallback',
+                        /* Chinese Traditional - Comprehensive support */
+                        'Microsoft JhengHei', '微軟正黑體', 'Microsoft JhengHei UI',
+                        'PingFang TC', 'PingFang HK', 'Noto Sans TC', 'Noto Sans HK',
+                        'Source Han Sans TC', 'Source Han Sans HK',
+                        'PMingLiU', '新細明體', 'MingLiU', '細明體',
+                        /* Japanese - Comprehensive support */
+                        'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 
+                        'Yu Gothic', '游ゴシック', 'Meiryo', 'メイリオ',
+                        'MS PGothic', 'Noto Sans JP', 'Source Han Sans JP',
+                        'Droid Sans Japanese', 'Takao Gothic', 'Takao Mincho',
+                        /* Korean - Comprehensive support */
+                        'Malgun Gothic', '맑은 고딕', 'Apple SD Gothic Neo',
+                        'Nanum Gothic', '나눔고딕', 'Noto Sans KR', 
+                        'Source Han Sans KR', 'Droid Sans Korean',
+                        'Nanum Myeongjo', 'Nanum Brush Script',
+                        /* Thai - Comprehensive support */
+                        'Noto Sans Thai', 'Noto Serif Thai', 'Sarabun',
+                        'Thonburi', 'Sathu', 'Leelawadee UI', 'Leelawadee',
+                        'Droid Sans Thai',
+                        /* Devanagari (Hindi, Sanskrit) - Comprehensive support */
+                        'Noto Sans Devanagari', 'Noto Serif Devanagari',
+                        'Nirmala UI', 'Nirmala', 'Mangal', 'Mukta',
+                        'Lohit Devanagari', 'Kohinoor Devanagari',
+                        /* Bengali - Comprehensive support */
+                        'Noto Sans Bengali', 'Noto Serif Bengali',
+                        'Vani', 'Shonar Bangla', 'Lohit Bengali', 'Mukti',
+                        /* Tamil - Comprehensive support */
+                        'Noto Sans Tamil', 'Noto Serif Tamil',
+                        'Latha', 'Vijaya', 'Lohit Tamil',
+                        /* Telugu - Comprehensive support */
+                        'Noto Sans Telugu', 'Noto Serif Telugu',
+                        'Gautami', 'Pothana2000', 'Lohit Telugu',
+                        /* Gujarati - Comprehensive support */
+                        'Noto Sans Gujarati', 'Noto Serif Gujarati',
+                        'Shruti', 'Lohit Gujarati',
+                        /* Kannada - Comprehensive support */
+                        'Noto Sans Kannada', 'Noto Serif Kannada',
+                        'Tunga', 'Lohit Kannada',
+                        /* Malayalam - Comprehensive support */
+                        'Noto Sans Malayalam', 'Noto Serif Malayalam',
+                        'Kartika', 'Lohit Malayalam',
+                        /* Oriya - Comprehensive support */
+                        'Noto Sans Oriya', 'Noto Serif Oriya',
+                        'Kalinga', 'Lohit Oriya',
+                        /* Punjabi - Comprehensive support */
+                        'Noto Sans Gurmukhi', 'Noto Serif Gurmukhi',
+                        'Raavi', 'Lohit Punjabi',
+                        /* Armenian - Comprehensive support */
+                        'Noto Sans Armenian', 'Noto Serif Armenian',
+                        'Arial Unicode MS',
+                        /* Georgian - Comprehensive support */
+                        'Noto Sans Georgian', 'Noto Serif Georgian',
+                        'Arial Unicode MS',
+                        /* Mongolian - Comprehensive support */
+                        'Noto Sans Mongolian', 'Noto Sans Mongolian UI',
+                        'Arial Unicode MS',
+                        /* Tibetan - Comprehensive support */
+                        'Noto Sans Tibetan', 'Noto Serif Tibetan',
+                        'Arial Unicode MS',
+                        /* Ethiopic - Comprehensive support */
+                        'Noto Sans Ethiopic', 'Noto Serif Ethiopic',
+                        'Arial Unicode MS',
+                        /* Khmer - Comprehensive support */
+                        'Noto Sans Khmer', 'Noto Serif Khmer',
+                        'Arial Unicode MS', 'Leelawadee UI',
+                        /* Lao - Comprehensive support */
+                        'Noto Sans Lao', 'Noto Serif Lao',
+                        'Arial Unicode MS',
+                        /* Myanmar - Comprehensive support */
+                        'Noto Sans Myanmar', 'Noto Serif Myanmar',
+                        'Arial Unicode MS',
+                        /* Sinhala - Comprehensive support */
+                        'Noto Sans Sinhala', 'Noto Serif Sinhala',
+                        'Arial Unicode MS',
+                        /* Cyrillic (Russian, Ukrainian, etc.) - Comprehensive support */
+                        'Segoe UI', 'Segoe UI Cyrillic', 'Roboto Cyrillic',
+                        'Noto Sans', 'Noto Sans Cyrillic', 'Tahoma',
+                        'Arial Unicode MS', 'DejaVu Sans', 'Liberation Sans',
+                        /* Greek - Comprehensive support */
+                        'Segoe UI', 'Segoe UI Greek', 'Roboto Greek',
+                        'Noto Sans Greek', 'Tahoma', 'DejaVu Sans',
+                        /* Vietnamese - Comprehensive support */
+                        'Segoe UI', 'Segoe UI Vietnamese', 'Roboto Vietnamese',
+                        'Noto Sans', 'Tahoma', 'DejaVu Sans',
+                        /* System fallbacks */
+                        'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-family: var(--font-family-base);
+    --font-family-mono: 'JetBrains Mono',
+                        'SF Mono', 'Monaco', 'Menlo',
+                        'Roboto Mono', 'Consolas', 'Courier New',
+                        'Liberation Mono', 'DejaVu Sans Mono', 'Noto Sans Mono',
+                        'Droid Sans Mono', monospace;
+    --font-display-weight: 800;
+
+    /* Wide display face for headings; text stays on the base family. */
+    --font-headings-family: 'Unbounded', var(--font-family-base, sans-serif);
+}

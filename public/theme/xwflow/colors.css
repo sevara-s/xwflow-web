@@ -1,0 +1,162 @@
+/* public/theme/xwflow/colors.css - part of the xwflow theme, kept in this repo; loaded over the published XWUI parts (index.html) */
+/* ============================================
+   XWFLOW NEON COLOR THEME - xwflow near-black ground with neon glows
+   @primary: #05050a
+   @secondary: #0a0a14
+   @text: #f5f5fa
+
+   The xwflow "Neon Depth" ground: near-black surfaces, translucent glass
+   panels and hairline borders, with lime, cyan, violet, pink and orange
+   glows. Ships BOTH contracts:
+   - the standard xwui surface variables, so every xwui component themes
+     correctly on this ground with no per-project CSS;
+   - the --xwflow-* design tokens (glow colours, gradients, glass), so a
+     product built on this ground reads its glows from the theme instead of
+     re-declaring them.
+   ============================================ */
+
+:root[data-theme="xwflow-neon"] {
+    color-scheme: dark;
+    /* Surfaces */
+    --bg-primary: #0a0a14;
+    --bg-secondary: #11111e;
+    --bg-tertiary: #181828;
+    --bg-app: #05050a;
+    --bg-elevated: #11111e;
+    --bg-card: rgba(255, 255, 255, 0.035);
+    --bg-hover: rgba(255, 255, 255, 0.06);
+    --bg-active: rgba(255, 255, 255, 0.09);
+    --bg-sunken: #07070f;
+    --bg-input: rgba(0, 0, 0, 0.35);
+    --bg-code: #07070f;
+
+    /* Text */
+    --text-primary: #f5f5fa;
+    --text-secondary: #a9a9c2;
+    --text-tertiary: #8585a3;
+    --text-inverse: #0a0a0a;
+
+    /* Borders - hairlines on glass */
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-light: rgba(255, 255, 255, 0.08);
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.16);
+    --border-strong: rgba(255, 255, 255, 0.24);
+
+    /* Controls */
+    --control-bg: rgba(255, 255, 255, 0.06);
+    --control-bg-hover: rgba(255, 255, 255, 0.09);
+    --control-bg-active: rgba(255, 255, 255, 0.12);
+    --control-border: rgba(255, 255, 255, 0.16);
+    --control-text: #f5f5fa;
+    --control-text-secondary: #a9a9c2;
+    --control-active: #c8ff3d;
+
+    /* The ground's glowing status colours. They live here, not on the accent,
+       because they would be unreadable as text on a light ground. */
+    --status-success: #3dffa2;
+    --status-warning: #ffc53d;
+
+    /* Status */
+    --status-before-start: #ffc53d;
+    --status-before-start-border: #e0a920;
+    --status-before-start-hover: #ffd15f;
+    --status-processing: #2ee6ff;
+    --status-processing-border: #19c7de;
+    --status-processing-hover: #5aedff;
+    --status-processing-text: #05050a;
+    --status-error: #ff5c6c;
+    --status-error-border: #e04454;
+    --status-error-hover: #ff7584;
+    --status-error-text: #ff8e9a;
+    --status-running: #2ee6ff;
+    --status-warning-surface: color-mix(in srgb, var(--accent-warning) 8%, var(--bg-app));
+    --status-warning-border: color-mix(in srgb, var(--accent-warning) 35%, var(--bg-app));
+
+    /* Component surfaces */
+    --bg-menu: #11111e;
+    --bg-user-info: var(--bg-elevated);
+    --bg-assistant: var(--bg-elevated);
+    --bg-view: var(--bg-elevated);
+    --bg-console: #07070f;
+    --bg-header: rgba(10, 10, 20, 0.6);
+    --bg-view-controls: var(--bg-secondary);
+
+    /* Neon Depth design tokens. --xwflow-mode lets a consumer branch on the
+       ground without hard-coding which palette id is active. */
+    --xwflow-mode: dark;
+    --xwflow-lime: #c8ff3d;
+    --xwflow-cyan: #2ee6ff;
+    --xwflow-violet: #9b6bff;
+    --xwflow-pink: #ff4fa3;
+    --xwflow-orange: #ff8a3d;
+    --xwflow-green: #3dffa2;
+    --xwflow-amber: #ffc53d;
+    --xwflow-red: #ff5c6c;
+    --xwflow-blue: #4d8bff;
+    /* The named hues XWUI components read (--xwui-hue-<name>). */
+    --xwui-hue-lime: #c8ff3d;
+    --xwui-hue-cyan: #2ee6ff;
+    --xwui-hue-violet: #9b6bff;
+    --xwui-hue-pink: #ff4fa3;
+    --xwui-hue-orange: #ff8a3d;
+    --xwui-hue-green: #3dffa2;
+    --xwui-hue-amber: #ffc53d;
+    --xwui-hue-red: #ff5c6c;
+    --xwui-hue-blue: #4d8bff;
+    --button-gradient-border: linear-gradient(100deg, #2ee6ff 0%, #9b6bff 34%, #ff4fa3 66%, #ff8a3d 100%);
+    --button-gradient-border-fill: #0a0a14;
+    --xwflow-gradient: linear-gradient(100deg, #2ee6ff 0%, #9b6bff 34%, #ff4fa3 66%, #ff8a3d 100%);
+    --xwflow-gradient-cool: linear-gradient(135deg, #c8ff3d 0%, #2ee6ff 100%);
+    --xwflow-glass: linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.02));
+    --xwflow-glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 30px 80px -40px rgba(0, 0, 0, 0.8);
+    /* The page backdrop and glass panels (XWUIBox surface: 'glass'). */
+    --bg-app-backdrop:
+        radial-gradient(1100px 620px at 8% -8%, rgba(155, 107, 255, 0.28), transparent 60%),
+        radial-gradient(900px 560px at 95% 2%, rgba(46, 230, 255, 0.18), transparent 60%),
+        radial-gradient(800px 600px at 50% 110%, rgba(255, 79, 163, 0.12), transparent 60%),
+        #05050a;
+    --surface-glass-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.02));
+    --surface-glass-border: rgba(255, 255, 255, 0.08);
+    --surface-gradient-border: linear-gradient(100deg, #2ee6ff 0%, #9b6bff 34%, #ff4fa3 66%, #ff8a3d 100%);
+    --surface-gradient-border-fill: #0a0a14;
+    --radius-glass: 20px;
+    /* Heavy labels on tags and buttons, and the floating site bar. */
+    --tag-font-weight: 800;
+    --button-font-weight: 800;
+    --bar-floating-bg: rgba(10, 10, 20, 0.6);
+    --bar-floating-border: rgba(255, 255, 255, 0.08);
+    --bar-floating-current-bg: #ffffff;
+    --bar-floating-current-ink: #0a0a0a;
+    /* Soft alert tints (info cyan, success lime, warning amber, error red). */
+    --border-alert-width: 1px;
+    --alert-info-bg: rgba(46, 230, 255, 0.07);
+    --alert-info-border: rgba(46, 230, 255, 0.3);
+    --alert-info-ink: var(--text-primary);
+    --alert-success-bg: rgba(200, 255, 61, 0.07);
+    --alert-success-border: rgba(200, 255, 61, 0.3);
+    --alert-success-ink: var(--text-primary);
+    --alert-warning-bg: rgba(255, 197, 61, 0.08);
+    --alert-warning-border: rgba(255, 197, 61, 0.35);
+    --alert-warning-ink: var(--text-primary);
+    --alert-error-bg: rgba(255, 92, 108, 0.09);
+    --alert-error-border: rgba(255, 92, 108, 0.4);
+    --alert-error-ink: var(--text-primary);
+    --xwflow-backdrop:
+        radial-gradient(1100px 620px at 8% -8%, rgba(155, 107, 255, 0.28), transparent 60%),
+        radial-gradient(900px 560px at 95% 2%, rgba(46, 230, 255, 0.18), transparent 60%),
+        radial-gradient(800px 600px at 50% 110%, rgba(255, 79, 163, 0.12), transparent 60%),
+        #05050a;
+
+    /* Role-pair ink layer: inks on the accent axis colours, plus this
+       theme's own surface. */
+    --role-primary-fg: #0a0a0a;
+    --role-success-fg: #052e16;
+    --role-warning-fg: #3d2e00;
+    --role-info-fg: #0a0a0a;
+    /* The error red is light enough that white on it is 3.0 : 1; near-black
+       reaches about 7 : 1. */
+    --role-danger-fg: #0a0a0a;
+    --role-surface-bg: var(--bg-primary);
+    --role-surface-fg: var(--text-primary);
+}

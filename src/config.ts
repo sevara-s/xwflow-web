@@ -8,4 +8,6 @@ export const config = {
   searchDebounceMs: 200,
   /** Toasts stay this long. */
   toastMs: 3500,
+  /** The xwflow logo, served from this app (public/brand), not from the XWUI library. */
+  logoPath: "/brand/xwflow-logo.svg",
 } as const;

@@ -11,6 +11,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { FlowView } from "../../types/domain";
 import { button, glass, row, shape, space, stack, tag, text, type Node } from "../../ui/kit";
+import { config } from "../../config";
 
 type ViewRoute = Extract<Route, { page: "view" }>;
 
@@ -79,7 +80,7 @@ export async function view(
                 tag: "xwui-logo",
                 data: {},
                 config: {
-                  svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg",
+                  svgPath: config.logoPath,
                   logoConfig: "logo",
                   title: catalog.brand,
                   size: "xs",

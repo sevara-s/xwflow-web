@@ -1,0 +1,29 @@
+/* public/theme/xwflow/accent.css - part of the xwflow theme, kept in this repo; loaded over the published XWUI parts (index.html) */
+/* ============================================
+   XWFLOW ACCENT - xwflow electric lime that glows on near-black grounds
+   ============================================ */
+
+:root[data-accent="xwflow"] {
+    --accent-primary: #c8ff3d;
+    --accent-hover: #d6ff6b;
+    --accent-light: #e2ff96;
+    /* Status fills an accent must define; light-ground safe. The neon ground
+       paints its own glowing statuses through --status-* (xwflow-neon.css). */
+    --accent-success: #10b981;
+    --accent-success-hover: #059669;
+    --accent-warning: #f59e0b;
+    --accent-error: #d23c3c;
+
+    /* Ink painted directly on --accent-primary / --accent-hover: near-black,
+       because white on #c8ff3d is about 1.2:1 and fails every contrast rule. */
+    --accent-primary-ink: #0a0a0a;
+    --role-primary-fg: var(--accent-primary-ink);
+    --role-info-fg: var(--accent-primary-ink);
+    --text-on-accent: #0a0a0a;
+
+    /* The xwflow glow: primary controls carry it at rest and grow it on hover. */
+    --glow-button-primary: 0 0 0 1px rgba(200, 255, 61, 0.4), 0 10px 40px -8px rgba(200, 255, 61, 0.6);
+    --glow-button-hover: 0 0 0 1px rgba(200, 255, 61, 0.6), 0 14px 50px -6px rgba(200, 255, 61, 0.8);
+    --glow-input-focus: 0 0 0 3px rgba(46, 230, 255, 0.25);
+    --glow-switch-track-checked: 0 0 16px rgba(200, 255, 61, 0.5);
+}

@@ -5,6 +5,7 @@ import { fill, formatDate, formatNumber } from "../format";
 import { href, navigate, paths, type Route } from "../router";
 import { debounce } from "../timing";
 import type { PageBar } from "../view";
+import { config } from "../../config";
 
 const words = catalog.studio.rail;
 
@@ -124,7 +125,7 @@ function rail(workspace: Workspace, route: Route): Node {
         tag: "xwui-logo",
         data: {},
         config: {
-          svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg",
+          svgPath: config.logoPath,
           logoConfig: "logo-title",
           title: catalog.brand,
           size: "xxs",

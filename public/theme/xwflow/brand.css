@@ -1,0 +1,133 @@
+/* public/theme/xwflow/brand.css - part of the xwflow theme, kept in this repo; loaded over the published XWUI parts (index.html) */
+/* ============================================
+   XWFLOW BRAND - xwflow workflow orchestration identity
+   Conic neon mark (cyan, violet, pink, orange, lime) around a dark core,
+   set in Unbounded. Pairs with the xwflow-neon colour theme, the xwflow
+   accent, pill roundness and the xwflow typography.
+   ============================================ */
+
+:root {
+    /* Brand name */
+    --brand-name: 'xwflow';
+
+    /* Brand colors */
+    --brand-primary: #c8ff3d;
+    --brand-secondary: #2ee6ff;
+    --brand-tertiary: #ff4fa3;
+
+    /* Brand logo */
+    --brand-logo-url: 'logo/xwflow-logo.svg';
+    --brand-logo-width: auto;
+    --brand-logo-height: auto;
+
+    /* Brand icon set */
+    --brand-icon-set: 'tabler';
+
+    /* The mark's conic sweep, shared by every surface that draws it. */
+    --brand-mark-gradient: conic-gradient(from 210deg, #2ee6ff, #9b6bff, #ff4fa3, #ff8a3d, #c8ff3d, #2ee6ff);
+}
+
+/* The xwflow radius scale on top of pill roundness: pill buttons, chips,
+   badges and tabs; softer inputs, menus and tables; 24px dialogs. */
+:root[data-brand="xwflow"][data-roundness="pill"] {
+    --radius-button: 999px;
+    --radius-chip: 999px;
+    --radius-badge: 999px;
+    --radius-tab: 999px;
+    --radius-input: 12px;
+    --radius-menu: 14px;
+    --radius-popover: 16px;
+    --radius-dialog: 24px;
+    --radius-table: 18px;
+    --radius-container: 20px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 22px;
+}
+
+/* The focus ring in cyan; primary buttons in the heavy weight. Links keep
+   each component's own colours (the site header's are grey, not cyan). */
+:root[data-brand="xwflow"] {
+    --focus-ring-color: #2ee6ff;
+}
+:root[data-brand="xwflow"] .xwui-button.xwui-button-primary { --button-font-weight: 800; }
+:root[data-brand="xwflow"] :focus-visible { outline: 2px solid var(--focus-ring-color); outline-offset: 3px; }
+
+/* Dialogs: an opaque glass sheet over a dimmed, blurred page. */
+:root[data-brand="xwflow"] .xwui-dialog-overlay { background: rgba(3, 3, 8, 0.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+:root[data-brand="xwflow"] .xwui-dialog {
+    background: linear-gradient(180deg, #14142a, #0b0b16);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-dialog, 24px);
+    box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+:root[data-brand="xwflow"] .xwui-dialog-title { font-family: var(--font-headings-family, Unbounded, sans-serif); font-weight: 700; }
+
+/* The wordmark: "xwflow" in Unbounded, heavy, as the prototype's header. */
+:root[data-brand="xwflow"] {
+    --logo-title-font-family: var(--font-headings-family, Unbounded, sans-serif);
+    --logo-title-font-weight: 800;
+    --logo-title-font-size: 1.15rem;
+    --logo-title-letter-spacing: -0.02em;
+}
+
+/* The xwflow type scale (the prototype's .h-mega, .h1 to .h4, .disp, .lead,
+   body, .small and .xs) and its text gradients, as tokens: an xwflow page
+   names a step of the scale and the brand decides its size, leading and
+   tracking. */
+:root[data-brand="xwflow"] {
+    --type-mega-size: clamp(2.6rem, 7.2vw, 6.4rem);
+    --type-mega-leading: 0.98;
+    --type-mega-tracking: -0.035em;
+    --type-hero-size: clamp(2.4rem, 6vw, 5.4rem);
+    --type-hero-leading: 0.98;
+    --type-hero-tracking: -0.035em;
+    --type-h1-size: clamp(2.2rem, 4.8vw, 4rem);
+    --type-h1-leading: 1.03;
+    --type-h1-tracking: -0.03em;
+    --type-h2-size: clamp(1.8rem, 3.4vw, 3rem);
+    --type-h2-leading: 1.08;
+    --type-h2-tracking: -0.025em;
+    --type-h3-size: 1.25rem;
+    --type-h3-leading: 1.25;
+    --type-h3-tracking: -0.01em;
+    --type-h4-size: 1rem;
+    --type-disp-size: 1.9rem;
+    --type-disp-leading: 1.15;
+    --type-disp-tracking: -0.02em;
+    --type-lead-size: 1.2rem;
+    --type-lead-leading: 1.6;
+    --type-body-size: 1rem;
+    --type-body-leading: 1.55;
+    --type-small-size: 0.875rem;
+    --type-xs-size: 0.75rem;
+    --type-showcase-size: 3.4rem;
+    --type-caps-tracking: 0.1em;
+    --type-eyebrow-tracking: 0.14em;
+    --type-wordmark-size: clamp(4rem, 17vw, 15rem);
+    --type-wordmark-leading: 0.85;
+    --type-wordmark-tracking: -0.06em;
+    /* Highlighted headline words, and the wordmark fading into the footer. */
+    --brand-text-gradient: linear-gradient(100deg, #2ee6ff 0%, #9b6bff 34%, #ff4fa3 66%, #ff8a3d 100%);
+    --brand-wordmark-fade: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
+    /* One spacing scale on a 4px grid for every gap and padding, then the section rhythm. */
+    --space-xs: 4px;
+    --space-s: 8px;
+    --space-m: 12px;
+    --space-l: 16px;
+    --space-xl: 24px;
+    --space-xxl: 32px;
+    --space-xxxl: 48px;
+    --space-hero: 80px;
+    --space-section-s: 64px;
+    --space-section: 112px;
+    /* The app frame's page padding: roomy on a desktop, tight on a phone. */
+    --space-page: 32px;
+}
+
+@media (max-width: 640px) {
+    :root[data-brand="xwflow"] {
+        --space-page: 16px;
+    }
+}

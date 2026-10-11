@@ -6,6 +6,7 @@ import { href, paths, type Route } from "../router";
 import { siteHref } from "../site-links";
 import type { PageBar } from "../view";
 import { appFrame } from "./studio-view";
+import { config } from "../../config";
 
 const words = catalog.admin.rail;
 
@@ -62,7 +63,7 @@ function rail(admin: AdminContext, route: Route): Node {
       brand: {
         tag: "xwui-logo",
         data: {},
-        config: { svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg", logoConfig: "logo-title", title: catalog.brand, size: "xxs", layout: "h", href: href(paths.home) },
+        config: { svgPath: config.logoPath, logoConfig: "logo-title", title: catalog.brand, size: "xxs", layout: "h", href: href(paths.home) },
       },
     },
   };

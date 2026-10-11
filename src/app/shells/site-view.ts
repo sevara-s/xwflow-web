@@ -2,6 +2,7 @@ import { catalog } from "../../content/catalog";
 import { column, row, stack, tag, text, type Node } from "../../ui/kit";
 import { href, paths, type Route } from "../router";
 import { siteHref } from "../site-links";
+import { config } from "../../config";
 
 const words = catalog.site;
 
@@ -27,7 +28,7 @@ export function siteShell(route: Route, page: Node[]): Node[] {
         href: href(paths.home),
         title: catalog.brand,
         logo: {
-          svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg",
+          svgPath: config.logoPath,
           logoConfig: "logo-title",
           title: catalog.brand,
           size: "xxs",

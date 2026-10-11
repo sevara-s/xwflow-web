@@ -1,82 +1,83 @@
 import { api } from "../../api/client";
-import { el, slot } from "../../app/dom";
 import { fill } from "../../app/format";
 import { errorMessage, notify } from "../../app/notify";
-import type { PageContext } from "../../app/page";
 import { href, paths } from "../../app/router";
-import { XWFlowShape } from "../../components/XWFlowShape/XWFlowShape";
+import { adminBar } from "../../app/shells/admin-view";
+import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
-import { XWUIButton } from "../../xwui";
-import { linkButton } from "../site/common";
-import { mountAdminBar } from "./common";
-import "./admin.css";
+import { button, centred, glass, grid, measure, row, shape, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import type { XWUIButton } from "../../xwui";
 
 const words = catalog.admin.denied;
-const stepColors = ["lime", "cyan"];
+const stepHues: Hue[] = ["lime", "cyan"];
 
-export async function render(context: PageContext): Promise<void> {
-  const { scope, body } = context;
+export async function view(context: ViewContext): Promise<PageResult> {
   const denial = await api.getAccessDenial();
-  await mountAdminBar(context, "admin", denial.page, { sample: false });
 
-  const page = el("div", "xwflow-denied");
-  body.append(page);
-  scope.track(new XWFlowShape(slot(page), { kind: "halo" }, { size: 420, color: "violet", place: { left: "10%", top: "-40px" } }));
-  scope.track(new XWFlowShape(slot(page), { kind: "halo" }, { size: 360, color: "pink", place: { right: "8%", top: "120px" } }));
-
-  const lock = el("div", "xwflow-denied__lock");
-  lock.setAttribute("aria-hidden", "true");
-  page.append(lock);
-  scope.track(new XWFlowShape(slot(lock), { kind: "orb" }, { size: 110, color: "pink", place: { left: "35px", top: "35px" } }));
-  scope.track(new XWFlowShape(slot(lock), { kind: "ring" }, { size: 180, thickness: 5, place: { left: "0", top: "0" } }));
-
-  const panel = el("div", "xwflow-glass xwflow-stack xwflow-gap-24 xwflow-denied__panel");
-  panel.dataset.border = "gradient";
-  page.append(panel);
-  const head = el("div", "xwflow-stack xwflow-gap-8 xwflow-center");
-  panel.append(head);
-  const title = el("h1", "xwflow-h2");
-  title.append(`${words.titleBefore} `, el("span", "xwflow-grad-text", denial.page));
-  head.append(title, el("p", "xwflow-sec", words.lead));
-
-  const facts = el("div", "xwflow-grid");
-  facts.style.setProperty("--xwflow-min", "160px");
-  panel.append(facts);
-  for (const [label, value] of [
-    [words.missing, denial.missingRole],
-    [words.yours, denial.yourRole],
-    [words.grants, denial.grantedBy],
-  ] as const) {
-    const fact = el("div", "xwflow-glass xwflow-stack xwflow-gap-4");
-    fact.dataset.pad = "s";
-    fact.append(el("span", "xwflow-xs xwflow-ter xwflow-strong xwflow-caps", label), el("b", undefined, value));
-    facts.append(fact);
-  }
-
-  const steps = el("ol", "xwflow-stack xwflow-gap-12 xwflow-denied__steps");
-  panel.append(steps);
-  words.steps.forEach((text, index) => {
-    const step = el("li", "xwflow-row xwflow-gap-12");
-    const number = el("b", "xwflow-denied__num", String(index + 1));
-    number.dataset.color = stepColors[index % stepColors.length];
-    step.append(number, el("p", "xwflow-small", fill(text, { role: denial.missingRole })));
-    steps.append(step);
-  });
-
-  const actions = el("div", "xwflow-wrap xwflow-gap-12");
-  panel.append(actions);
-  const request = scope.track(new XWUIButton(slot(actions), { text: words.request }, { variant: "primary", size: "lg" }));
-  request.onClick(async () => {
-    request.setLoading(true);
+  const request = async (): Promise<void> => {
+    const requestButton = context.instance<XWUIButton>("denied-request");
+    requestButton?.setLoading(true);
     try {
       const result = await api.requestAccess(denial.missingRole);
       notify(fill(words.requested, { reference: result.reference, who: denial.grantedBy.toLocaleLowerCase() }), "success");
-      request.setDisabled(true);
+      requestButton?.setDisabled(true);
     } catch (error) {
       notify(errorMessage(error), "danger");
     } finally {
-      request.setLoading(false);
+      requestButton?.setLoading(false);
     }
-  });
-  linkButton(slot(actions), scope, words.back, { href: href(paths.admin) }, "glass", "lg");
+  };
+
+  const lock: Node = {
+    tag: "xwui-box",
+    config: { position: "relative", width: 180, height: 180 },
+    slots: { children: stack([shape("ring", "pink", 180, { left: "0", top: "0" }, 5), shape("orb", "pink", 110, { left: "35px", top: "35px" })], { gap: 0 }) },
+  };
+
+  const panel = glass(
+    stack(
+      [
+        centred(row([text("h2", words.titleBefore), text("h2", denial.page, { tone: "gradient" })], { gap: 12, wrap: true, justify: "center" })),
+        text("body", words.lead, { tone: "secondary", align: "center" }),
+        grid(
+          (
+            [
+              [words.missing, denial.missingRole],
+              [words.yours, denial.yourRole],
+              [words.grants, denial.grantedBy],
+            ] as const
+          ).map(([label, value]) => glass(stack([text("xs", label, { caps: true, bold: true, tone: "tertiary" }), text("body", value, { bold: true })], { gap: 4 }), { pad: "s" })),
+          160,
+          12,
+        ),
+        stack(
+          words.steps.map((step, index) => row([tag(String(index + 1), stepHues[index % stepHues.length]), text("small", fill(step, { role: denial.missingRole }))], { gap: 12 })),
+          { gap: 12 },
+        ),
+        row(
+          [{ ...button("primary", words.request, { size: "lg", onClick: () => void request() }), key: "denied-request" }, button("glass", words.back, { size: "lg", href: href(paths.admin) })],
+          { gap: 12, wrap: true },
+        ),
+      ],
+      { gap: 24 },
+    ),
+    { pad: "l", gradientBorder: true },
+  );
+
+  return {
+    bar: adminBar(context.admin!, "admin", denial.page, { sample: false }),
+    body: [
+      {
+        tag: "xwui-box",
+        // The halos may spill past the page edge; clip them rather than scroll sideways.
+        config: { position: "relative", overflow: "clip" },
+        slots: {
+          children: stack(
+            [shape("halo", "violet", 420, { left: "10%", top: "-40px" }), shape("halo", "pink", 360, { right: "8%", top: "120px" }), centred(lock), measure(panel, 760)],
+            { gap: 28 },
+          ),
+        },
+      },
+    ],
+  };
 }

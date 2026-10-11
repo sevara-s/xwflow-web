@@ -12,7 +12,8 @@ import { mountAdminShell } from "./shells/admin";
 import { mountBareShell } from "./shells/bare";
 import { mountSiteShell } from "./shells/site";
 import { siteShell } from "./shells/site-view";
-import type { PageView, ViewContext } from "./view";
+import { studioShell } from "./shells/studio-view";
+import type { PageBar, PageResult, PageView, ViewContext } from "./view";
 import { mountStudioShell, type Shell } from "./shells/studio";
 
 /** A page either composes XWUI nodes (`view`) or, until it moves, renders into the legacy shell. */
@@ -49,9 +50,14 @@ function shellKind(route: Route): ShellKind {
 }
 
 /** The shell a composed page sits in. */
-function composedShell(route: Route, page: Node[]): Node[] {
+function composedShell(route: Route, workspace: Workspace, page: Node[], bar?: PageBar): Node[] {
   if (route.zone === "site") return siteShell(route, page);
+  if (route.zone === "studio") return studioShell(workspace, route, page, bar);
   return page;
+}
+
+function pageResult(result: Node[] | PageResult): PageResult {
+  return Array.isArray(result) ? { body: result } : result;
 }
 
 /**
@@ -114,11 +120,11 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
         instance: <T,>(key: string) => composer?.getInstanceByKey<T>(key),
         onLeave: (stop) => leave.push(stop),
       };
-      composer.setTree(composedShell(route, [{ tag: "xwui-progress-spinner", data: { label: catalog.loading } }]));
+      composer.setTree(composedShell(route, workspace, [{ tag: "xwui-progress-spinner", data: { label: catalog.loading } }]));
       try {
-        const page = await (peek.view as PageView)(context);
+        const page = pageResult(await (peek.view as PageView)(context));
         if (current !== generation) return;
-        composer.setTree([...composedShell(route, page), toastNode]);
+        composer.setTree([...composedShell(route, workspace, page.body, page.bar), toastNode]);
         window.scrollTo({ top: 0 });
         if (route.zone === "site" && route.section) {
           requestAnimationFrame(() => composer?.getElementByKey(`band-${route.section}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -127,7 +133,7 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
         if (current !== generation) return;
         const missing = (error as { code?: string }).code === "not_found";
         composer.setTree(
-          composedShell(route, [
+          composedShell(route, workspace, [
             {
               tag: "xwui-empty",
               data: {

@@ -14,4 +14,21 @@ export interface ViewContext<R extends Route = Route> {
   onLeave: (stop: () => void) => void;
 }
 
-export type PageView<R extends Route = Route> = (context: ViewContext<R>) => Promise<Node[]> | Node[];
+/** What an app page puts in the top bar (XWUIAppBar). */
+export interface PageBar {
+  crumbs: Array<{ label: string; href?: string }>;
+  meta?: string;
+  /** "rows" or "data" marks illustrative content with a dashed tag. */
+  sample?: "rows" | "data" | null;
+  tags?: Array<{ label: string; hue?: string }>;
+  actions?: Node[];
+  hideAccount?: boolean;
+}
+
+/** A page's nodes, plus its top bar when it sits in an app shell. */
+export interface PageResult {
+  bar?: PageBar;
+  body: Node[];
+}
+
+export type PageView<R extends Route = Route> = (context: ViewContext<R>) => Promise<Node[] | PageResult> | Node[] | PageResult;

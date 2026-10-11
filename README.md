@@ -10,7 +10,7 @@ The app was built with AI assistance (Claude Code) for implementation, review an
 
 ## Requirements
 
-- Node.js 18 or newer (developed on Node 26) and npm.
+- Node.js 20 or newer (developed on Node 26) and npm.
 - A current Chrome, Edge, Firefox or Safari, online (XWUI loads from xwui.dev).
 
 ## Setup
@@ -18,13 +18,13 @@ The app was built with AI assistance (Claude Code) for implementation, review an
 ```bash
 npm install
 npm run dev         # http://127.0.0.1:4173
-npm test            # Vitest: 123 tests in 13 files
+npm test            # Vitest: 130 tests in 14 files
 npm run typecheck   # tsc --noEmit
 npm run build       # typecheck, then dist/
 npm run preview     # serve dist/
 ```
 
-The only npm packages are TypeScript, Vite and Vitest. There is no other component library and no CSS framework.
+The only npm packages are development tools: TypeScript, Vite, Vitest and happy-dom (a DOM for the component tests). There is no other component library and no CSS framework, and `npm audit` reports no vulnerabilities.
 
 ## How XWUI is used
 
@@ -42,7 +42,7 @@ XWUI basic has no layer stack, and ships an earlier notation diagram than the pr
 | `XWFlowLayerStack` | `#/notations` hero | Three notations of one flow on glowing planes, stacked in 3D, with labels |
 | `XWFlowNotationDiagram` | Flowchart, swimlane, BPMN, sequence and simulation views | Start and end terminators, retry loops, fixed columns and rows, the filled block notation with live counts for the simulation, sequence row selection, SVG export |
 
-Each follows XWUI's structure: `*.types.ts` (data and config), `*.json` (schema), `*.logic.ts` (headless logic on the published `XWUIComponentLogic`), `*.view.ts` (a pure projector of view nodes), `*.css`, and an adapter extending the published `XWUIComponent`. The bundle does not export its engine's view mount, so `src/components/view.ts` provides `h()` and a small renderer for those view nodes.
+Each follows XWUI's structure: `*.types.ts` (data and config), `*.json` (schema), `*.logic.ts` (headless logic on the published `XWUIComponentLogic`), `*.view.ts` (a pure projector of view nodes), `*.css`, and an adapter extending the published `XWUIComponent`; the diagram's geometry is a pure `*.layout.ts`. `tests/xwflow-components.test.ts` covers their layout, views and renderer. The bundle does not export its engine's view mount, so `src/components/view.ts` provides `h()` and a small renderer for those view nodes.
 
 The published `XWUIComposer` only mounts `xwui-` tags. Rather than register an `xwui-` tag of its own, the app places a component with the kit's `xwflow(name, { data, config, slots, key })`: a published `xwui-box` is mounted and the component is built in its element, as every XWUI component takes its container. `xwflowInstance(key)` reaches it (for example for the SVG export).
 
@@ -122,7 +122,7 @@ Two places hold pixel numbers because their component takes a number: the marque
 
 ## Tests and checks
 
-- `npm test`: 123 tests over the dummy API (studio, admin and operator console), router, formatting, status, simulation, exporters, contrast and the guard.
+- `npm test`: 130 tests over the dummy API (studio, admin and operator console), the XWFlow components, router, formatting, status, simulation, exporters, contrast and the guard.
 - On the published bundle (`npm run dev`), headless:
   - every route loads without errors at 1440 px, and at 390 px nothing reaches past the screen edge;
   - a scripted walkthrough clicks through the website, assistant, flows, editor, receipts, runs, connections, the six views, settings, admin and every admin and system page and action: 111 checks, all passing;

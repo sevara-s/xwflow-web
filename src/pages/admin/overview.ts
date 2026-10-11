@@ -1,158 +1,162 @@
 import { api } from "../../api/client";
-import { el, slot } from "../../app/dom";
 import { fill, formatAgo, formatList, formatNumber } from "../../app/format";
-import type { PageContext } from "../../app/page";
 import { href, paths } from "../../app/router";
-import { XWFlowIsoTiles } from "../../components/XWFlowIsoTiles/XWFlowIsoTiles";
-import type { IsoTile } from "../../components/XWFlowIsoTiles/XWFlowIsoTiles.types";
-import { XWFlowKpi } from "../../components/XWFlowKpi/XWFlowKpi";
-import type { KpiTone } from "../../components/XWFlowKpi/XWFlowKpi.types";
-import { XWFlowStackedBars } from "../../components/XWFlowStackedBars/XWFlowStackedBars";
-import { XWFlowStatus } from "../../components/XWFlowStatus/XWFlowStatus";
+import { adminBar } from "../../app/shells/admin-view";
+import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { AdminOverview } from "../../types/domain";
-import { XWUIAlert, XWUIProgressBar, XWUITable } from "../../xwui";
-import { glass, heading } from "../studio/common";
-import { mountAdminBar } from "./common";
-import "./admin.css";
+import { button, cell, glass, grid, row, stack, status, text, type Hue, type Node } from "../../ui/kit";
 
 const words = catalog.admin.overview;
-const kpiTones: Record<AdminOverview["kpis"][number]["id"], KpiTone> = { runs24h: "cyan", failed24h: "red", overdue: "lime", queued: "violet" };
+const kpiHues: Record<AdminOverview["kpis"][number]["id"], Hue> = { runs24h: "cyan", failed24h: "red", overdue: "lime", queued: "violet" };
+/** Where the four reachability tiles sit on the plane, and how far each lifts. */
 const tilePlaces = [
-  [20, 20, 30],
-  [200, 20, 44],
-  [20, 200, 20],
-  [200, 200, 8],
+  [10, 10, 30],
+  [160, 10, 44],
+  [10, 160, 20],
+  [160, 160, 8],
 ] as const;
+/** A 290px plane turned 45° fits a half-width panel without clipping a tile. */
+const PLANE = 290;
+const okHues: Hue[] = ["green", "cyan", "violet", "green"];
 
-export async function render(context: PageContext): Promise<void> {
-  const { scope, body } = context;
-  await mountAdminBar(context, "admin", words.title);
-  const intro = el("div", "xwflow-stack xwflow-gap-4");
-  body.append(intro);
-  heading(intro, 1, "h2", words.title);
-  intro.append(el("p", "xwflow-sec", words.lead));
-
-  let overview: AdminOverview;
-  try {
-    overview = await api.getAdminOverview();
-  } catch (error) {
-    scope.track(new XWUIAlert(slot(body), { message: fill(words.panelError, { message: (error as Error).message }) }, { variant: "error" }));
-    return;
-  }
-
-  const kpis = el("div", "xwflow-grid");
-  kpis.style.setProperty("--xwflow-min", "210px");
-  body.append(kpis);
-  for (const kpi of overview.kpis) {
-    const note = kpi.note === "noAdmission" ? words.noAdmission : kpi.asOf ? fill(words.asOf, { when: formatAgo(kpi.asOf) }) : undefined;
-    scope.track(
-      new XWFlowKpi(
-        slot(kpis),
-        { label: words.kpis[kpi.id], value: kpi.value, note, emptyLabel: words.notRecorded },
-        { tone: kpiTones[kpi.id], emphasis: kpi.id === "failed24h" && (kpi.value ?? 0) > 0 },
-      ),
-    );
-  }
-
-  const panels = el("div", "xwflow-admin-panels");
-  body.append(panels);
-  const chart = glass(panels, { pad: "m", className: "xwflow-stack xwflow-gap-16 xwflow-admin-panels__wide", label: words.runsByHour });
-  const chartHead = el("div", "xwflow-row xwflow-gap-12 xwflow-wrap");
-  chart.append(chartHead);
-  heading(chartHead, 2, "h3", words.runsByHour);
-  scope.track(new XWFlowStatus(slot(chartHead), { tone: "idle", label: words.succeeded }, { className: "xwflow-status--series" }));
-  scope.track(new XWFlowStatus(slot(chartHead), { tone: "err", label: words.failed }));
-  chartHead.append(el("span", "xwflow-xs xwflow-ter xwflow-push", words.last24));
-  const peak = overview.runsByHour.reduce((best, hour, index, list) => (hour.succeeded + hour.failed > list[best].succeeded + list[best].failed ? index : best), 0);
-  const peakHour = (new Date().getHours() - (overview.runsByHour.length - 1 - peak) + 24) % 24;
-  scope.track(
-    new XWFlowStackedBars(slot(chart), {
-      bars: overview.runsByHour.map((hour) => ({ base: hour.succeeded, alert: hour.failed })),
-      label: fill(words.chartLabel, { peak: String(peakHour).padStart(2, "0") }),
-      start: words.chartStart,
-      end: words.chartEnd,
-    }),
+function kpis(overview: AdminOverview): Node {
+  return grid(
+    overview.kpis.map((kpi) => ({
+      tag: "xwui-kpi-card",
+      data: {
+        label: words.kpis[kpi.id],
+        value: kpi.value === null ? null : formatNumber(kpi.value),
+        emptyLabel: words.notRecorded,
+        note: kpi.note === "noAdmission" ? words.noAdmission : kpi.asOf ? fill(words.asOf, { when: formatAgo(kpi.asOf) }) : undefined,
+      },
+      config: { hue: kpiHues[kpi.id], emphasis: kpi.id === "failed24h" && (kpi.value ?? 0) > 0 },
+    })),
+    210,
+    16,
   );
+}
 
-  const reach = glass(panels, { pad: "m", className: "xwflow-stack xwflow-gap-8", label: words.reachability });
-  const reachHead = el("div", "xwflow-row xwflow-gap-8");
-  reach.append(reachHead);
-  heading(reachHead, 2, "h3", words.reachability);
-  reachHead.append(el("span", "xwflow-xs xwflow-ter xwflow-push", words.perCheck));
+function runsByHour(overview: AdminOverview): Node {
+  const hours = overview.runsByHour;
+  const peak = hours.reduce((best, hour, index) => (hour.succeeded + hour.failed > hours[best].succeeded + hours[best].failed ? index : best), 0);
+  const peakHour = (new Date().getHours() - (hours.length - 1 - peak) + 24) % 24;
+  return glass(
+    stack(
+      [
+        row(
+          [text("h3", words.runsByHour), row([status("neutral", words.succeeded), status("error", words.failed), text("xs", words.last24, { tone: "tertiary" })], { gap: 14, wrap: true })],
+          { justify: "space-between", wrap: true },
+        ),
+        {
+          tag: "xwui-stacked-bars",
+          data: {
+            bars: hours.map((hour) => ({ base: hour.succeeded, alert: hour.failed })),
+            label: fill(words.chartLabel, { peak: String(peakHour).padStart(2, "0") }),
+            start: words.chartStart,
+            end: words.chartEnd,
+          },
+        },
+      ],
+      { gap: 16 },
+    ),
+    { pad: "m" },
+  );
+}
+
+function reachability(overview: AdminOverview): Node {
   const services = overview.reachability;
   const down = services.filter((service) => service.state === "err");
-  const tiles: IsoTile[] = services.slice(0, 4).map((service, index) => ({
+  const tiles = services.slice(0, 4).map((service, index) => ({
     id: service.id,
     label: service.label,
-    state: service.state === "ok" ? (["ok", "info", "violet", "ok"] as const)[index] : service.state,
+    hue: service.state === "ok" ? okHues[index] : service.state === "warn" ? "amber" : "red",
+    alert: service.state === "err",
     x: tilePlaces[index][0],
     y: tilePlaces[index][1],
     lift: tilePlaces[index][2],
   }));
-  scope.track(new XWFlowIsoTiles(slot(reach), { tiles, label: fill(words.reachLabel, { down: down.length, total: services.length }) }));
-  const issue = el("div", "xwflow-band xwflow-small");
-  issue.dataset.tone = down.length ? "err" : "lime";
+  let message: string = words.allClear;
   if (down.length) {
     const service = down[0];
     const minutes = service.downSince ? Math.max(1, Math.round((Date.now() - service.downSince) / 60_000)) : 0;
-    const others = services.filter((item) => item.state !== "err").map((item) => item.label);
-    const othersText = formatList(others);
-    const text = fill(words.issue, { service: service.label, minutes, others: othersText });
-    const [lead, rest] = [text.slice(0, text.indexOf(":") + 1), text.slice(text.indexOf(":") + 1)];
-    const line = el("div");
-    line.append(el("b", undefined, lead), rest, " ");
-    const link = el("a", undefined, words.openHealth);
-    link.href = href(paths.health);
-    line.append(link);
-    issue.append(line);
-  } else {
-    issue.append(words.allClear);
+    message = fill(words.issue, { service: service.label, minutes, others: formatList(services.filter((item) => item.state !== "err").map((item) => item.label)) });
   }
-  reach.append(issue);
-
-  const failing = el("section", "xwflow-stack xwflow-gap-12");
-  failing.setAttribute("aria-label", words.failingLabel);
-  body.append(failing);
-  const failingHead = el("div", "xwflow-row xwflow-gap-8");
-  failing.append(failingHead);
-  heading(failingHead, 2, "h3", words.failing);
-  const asOf = overview.kpis.find((kpi) => kpi.id === "failed24h")?.asOf;
-  if (asOf) failingHead.append(el("span", "xwflow-xs xwflow-ter xwflow-push", fill(words.asOf, { when: formatAgo(asOf) })));
-  const total = overview.failing.reduce((sum, row) => sum + row.failed, 0) || 1;
-  type Row = AdminOverview["failing"][number];
-  scope.track(
-    new XWUITable(
-      slot(failing, "xwflow-table"),
-      {
-        columns: [
-          {
-            key: "flow",
-            title: words.columns.flow,
-            render: (_: unknown, row: Row) => {
-              const link = el("a", "xwflow-cell-link", row.flow);
-              link.href = href(paths.runs, { q: row.flow, status: "failed", range: "all" });
-              return link;
-            },
-          },
-          { key: "tenant", title: words.columns.tenant, render: (_: unknown, row: Row) => el("span", "xwflow-sec", row.tenant) },
-          { key: "failed", title: words.columns.failed, align: "end", render: (_: unknown, row: Row) => el("span", "xwflow-mono", formatNumber(row.failed)) },
-          {
-            key: "share",
-            title: words.columns.share,
-            render: (_: unknown, row: Row) => {
-              const box = el("div", "xwflow-share");
-              const share = Math.round((row.failed / total) * 100);
-              scope.track(new XWUIProgressBar(box, { value: share }, { size: "sm", block: true, color: "error" }));
-              box.setAttribute("aria-label", `${share}%`);
-              return box;
-            },
-          },
-          { key: "cause", title: words.columns.cause, render: (_: unknown, row: Row) => el("span", undefined, row.cause) },
-        ],
-        data: overview.failing.map((row) => ({ ...row, key: row.flowId })),
-      },
-      { hoverable: true, bordered: false, ariaLabel: words.failingLabel },
+  return glass(
+    stack(
+      [
+        row([text("h3", words.reachability), text("xs", words.perCheck, { tone: "tertiary" })], { justify: "space-between" }),
+        { tag: "xwui-iso-tiles", data: { tiles, label: fill(words.reachLabel, { down: down.length, total: services.length }) }, config: { width: PLANE, height: PLANE, viewHeight: 280 } },
+        { tag: "xwui-alert", data: { message }, config: { variant: down.length ? "error" : "success" } },
+        row([button("ghost", words.openHealth, { size: "sm", iconAfter: true, icon: "arrow-right", href: href(paths.health) })]),
+      ],
+      { gap: 12 },
     ),
+    { pad: "m" },
   );
+}
+
+function failing(overview: AdminOverview): Node {
+  type Row = AdminOverview["failing"][number];
+  const total = overview.failing.reduce((sum, item) => sum + item.failed, 0) || 1;
+  const asOf = overview.kpis.find((kpi) => kpi.id === "failed24h")?.asOf;
+  const columns = words.columns;
+  return stack(
+    [
+      row([text("h3", words.failing), ...(asOf ? [text("xs", fill(words.asOf, { when: formatAgo(asOf) }), { tone: "tertiary" })] : [])], { justify: "space-between" }),
+      glass(
+        {
+          tag: "xwui-table",
+          data: {
+            columns: [
+              {
+                key: "flow",
+                title: columns.flow,
+                render: (_: unknown, item: Row) => cell(button("ghost", item.flow, { size: "sm", href: href(paths.runs, { q: item.flow, status: "failed", range: "all" }) })),
+              },
+              { key: "tenant", title: columns.tenant, render: (_: unknown, item: Row) => cell(text("small", item.tenant, { tone: "secondary" })) },
+              { key: "failed", title: columns.failed, align: "end", render: (_: unknown, item: Row) => cell(text("small", formatNumber(item.failed), { mono: true })) },
+              {
+                key: "share",
+                title: columns.share,
+                render: (_: unknown, item: Row) => {
+                  const share = Math.round((item.failed / total) * 100);
+                  return cell({ tag: "xwui-progress", data: { value: share, label: `${share}%` }, config: { size: "sm", color: "error" } });
+                },
+              },
+              { key: "cause", title: columns.cause, render: (_: unknown, item: Row) => cell(text("small", item.cause)) },
+            ],
+            data: overview.failing.map((item) => ({ ...item, key: item.flowId })),
+          },
+          config: { hoverable: true, bordered: false, ariaLabel: words.failingLabel },
+        },
+        { pad: "none", scroll: true },
+      ),
+    ],
+    { gap: 12 },
+  );
+}
+
+export async function view(context: ViewContext): Promise<PageResult> {
+  const bar = adminBar(context.admin!, "admin", words.title);
+  const head = [text("h2", words.title), text("lead", words.lead)];
+  let overview: AdminOverview;
+  try {
+    overview = await api.getAdminOverview();
+  } catch (error) {
+    return { bar, body: [...head, { tag: "xwui-alert", data: { message: fill(words.panelError, { message: (error as Error).message }) }, config: { variant: "error" } }] };
+  }
+  return {
+    bar,
+    body: [
+      ...head,
+      kpis(overview),
+      {
+        tag: "xwui-grid",
+        config: { columns: "minmax(0, 1fr)", gap: "24px", alignItems: "start", responsive: { lg: { columns: "minmax(0, 3fr) minmax(0, 2fr)" } } },
+        slots: { children: [runsByHour(overview), reachability(overview)] },
+      },
+      failing(overview),
+    ],
+  };
 }

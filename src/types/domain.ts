@@ -453,3 +453,100 @@ export interface SimulationModel {
   hours: number;
   seed: number;
 }
+
+/* ------------------------------------------------------------------ */
+/* Project areas: agents, tables, forms, variables, MCP servers        */
+/* ------------------------------------------------------------------ */
+
+export type AreaHue = "lime" | "cyan" | "violet" | "pink" | "orange";
+
+export type AgentStatus = "live" | "paused" | "draft";
+
+export interface Agent {
+  id: string;
+  name: string;
+  description: string;
+  model: string;
+  status: AgentStatus;
+  tools: Array<{ label: string; group: StepGroup }>;
+  conversations7d: number;
+  /** Share of conversations closed without a person; null before any. */
+  resolvedRate: number | null;
+  handoffs7d: number;
+  lastActiveAt: number | null;
+  owner: Person;
+  hue: AreaHue;
+}
+
+export interface AgentList {
+  agents: Agent[];
+  counts: { live: number; conversations7d: number; handoffs7d: number };
+}
+
+export interface DataColumn {
+  key: string;
+  label: string;
+  type: "text" | "number" | "choice" | "date";
+}
+
+export interface DataTableSummary {
+  id: string;
+  name: string;
+  description: string;
+  columns: DataColumn[];
+  columnCount: number;
+  rowCount: number;
+  usedBy: string[];
+  updatedAt: number;
+  hue: AreaHue;
+}
+
+export interface DataTable extends Omit<DataTableSummary, "columnCount"> {
+  records: Array<Record<string, string | number>>;
+}
+
+export type FormStatus = "live" | "draft";
+
+export interface ProjectForm {
+  id: string;
+  name: string;
+  status: FormStatus;
+  fields: number;
+  submissions7d: number;
+  views7d: number;
+  /** Submissions per day, oldest first. */
+  daily: number[];
+  flow: { id: string; name: string } | null;
+  path: string;
+  updatedAt: number;
+  hue: AreaHue;
+}
+
+export type VariableScope = "all" | "production" | "test";
+
+export interface ProjectVariable {
+  id: string;
+  key: string;
+  /** Null for a secret: the value never reaches the browser. */
+  value: string | null;
+  secret: boolean;
+  scope: VariableScope;
+  usedBy: number;
+  updatedAt: number;
+  owner: Person;
+}
+
+export type McpStatus = "connected" | "error" | "disabled";
+
+export interface McpServer {
+  id: string;
+  name: string;
+  url: string;
+  transport: "http" | "stdio";
+  status: McpStatus;
+  tools: string[];
+  calls24h: number;
+  latencyMs: number | null;
+  lastError: string | null;
+  hue: AreaHue;
+}

@@ -31,6 +31,16 @@ import type {
   Pricing,
   SelfHost,
   StepGroup,
+  Agent,
+  AgentList,
+  AgentStatus,
+  DataTable,
+  DataTableSummary,
+  FormStatus,
+  McpServer,
+  ProjectForm,
+  ProjectVariable,
+  VariableScope,
 } from "../types/domain";
 
 export interface StepPatch {
@@ -87,3 +97,17 @@ export function getAccessDenial(): Promise<AccessDenial>;
 export function requestAccess(role: string): Promise<{ role: string; reference: string }>;
 
 export function getFlowView(flowId: string): Promise<FlowView>;
+
+export function listAgents(query?: { q?: string; status?: AgentStatus | "" }): Promise<AgentList>;
+export function setAgentStatus(agentId: string, status: AgentStatus): Promise<Agent>;
+export function createAgent(input: { name: string; description?: string }): Promise<Agent>;
+export function listTables(): Promise<DataTableSummary[]>;
+export function getTable(tableId: string): Promise<DataTable>;
+export function listForms(): Promise<ProjectForm[]>;
+export function setFormStatus(formId: string, status: FormStatus): Promise<ProjectForm>;
+export function listVariables(query?: { scope?: VariableScope | ""; q?: string }): Promise<ProjectVariable[]>;
+export function addVariable(input: { key: string; value: string; secret?: boolean; scope?: VariableScope }): Promise<ProjectVariable>;
+export function deleteVariable(variableId: string): Promise<{ deleted: string }>;
+export function listMcpServers(): Promise<McpServer[]>;
+export function setMcpServerEnabled(serverId: string, enabled: boolean): Promise<McpServer>;
+export function addMcpServer(input: { name: string; url: string }): Promise<McpServer>;

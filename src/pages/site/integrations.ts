@@ -101,7 +101,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
     tag: "xwui-input-text",
     key: "integrations-search",
     data: { placeholder: words.search },
-    config: { type: "search", leadingIcon: "search", ariaLabel: words.searchLabel, suffix: words.searchKeys, fullWidth: true, size: "lg" },
+    config: { type: "search", leadingIcon: "search", ariaLabel: words.searchLabel, suffix: words.searchKeys, fullWidth: true, size: "xl" },
     ref: (instance) =>
       (instance as XWUIInputText).onChange(
         debounce((value: string) => {
@@ -124,14 +124,14 @@ export async function view(context: ViewContext): Promise<Node[]> {
   const hero: Node = {
     tag: "xwui-box",
     key: "band-hero",
-    config: { as: "section", position: "relative", padding: "80px 0 40px" },
+    config: { as: "section", position: "relative", padding: "70px 0 40px" },
     slots: {
       children: stack(
         [
           shape("halo", "violet", 520, { left: "32%", top: "-120px" }),
           shape("cube", "lime", 64, { left: "12%", top: "80px" }),
           shape("cube", "pink", 44, { right: "14%", top: "200px" }),
-          shape("orb", "violet", 70, { right: "9%", top: "40px" }),
+          shape("orb", "cyan", 70, { right: "9%", top: "40px" }),
           {
             tag: "xwui-container",
             config: { maxWidth: 1280, center: true, padding: "0 24px" },
@@ -141,7 +141,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
                   centred(eyebrow(words.eyebrow)),
                   headline("h1", words.title, words.titleHighlight, "center"),
                   measure(text("lead", fill(words.lead, { n: first.total }), { align: "center" })),
-                  measure(glass(search, { pad: "none" }), 640),
+                  measure(glass(search, { pad: "none", glow: "violet" }), 680),
                   centred(tabs),
                 ],
                 { gap: 24, align: "stretch" },
@@ -162,7 +162,8 @@ export async function view(context: ViewContext): Promise<Node[]> {
         { tag: "xwui-alert", data: { message: words.note }, config: { variant: "info", size: "small" } },
         { tag: "xwui-composer", key: "integrations-list", data: { tree: directory(first.items, false) } },
       ],
-      { gap: 24 },
+      // As the prototype: the directory follows the hero directly.
+      { gap: 24, padding: "0 0 100px" },
     ),
   ];
 }

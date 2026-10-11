@@ -129,12 +129,12 @@ export function glass(child: Node, options: PanelOptions = {}): Node {
 }
 
 /** A page band: the 1280px column with the prototype's vertical rhythm. */
-export function band(id: string, items: Node[], options: { tight?: boolean; gap?: Gap } = {}): Node {
+export function band(id: string, items: Node[], options: { tight?: boolean; gap?: Gap; padding?: string } = {}): Node {
   return {
     tag: "xwui-box",
     key: `band-${id}`,
     data: {},
-    config: { as: "section", padding: options.tight ? "64px 0" : "110px 0", ariaLabel: undefined },
+    config: { as: "section", padding: options.padding ?? (options.tight ? "64px 0" : "110px 0"), ariaLabel: undefined },
     slots: { children: column(stack(items, { gap: options.gap ?? 48 })) },
   };
 }

@@ -279,10 +279,10 @@ const assistant = {
   activeSuggestion: "s_order",
   starters: [
     { id: "flow", label: "Flow", hint: "Automated workflows", group: "trigger", route: "flows" },
-    { id: "agent", label: "Agent", hint: "AI teammates", group: "ai", route: null },
-    { id: "table", label: "Table", hint: "Automated data", group: "data", route: null },
-    { id: "form", label: "Form", hint: "Automation-ready forms", group: "control", route: null },
-    { id: "mcp", label: "MCP server", hint: "AI tool integrations", group: "integration", route: null },
+    { id: "agent", label: "Agent", hint: "AI teammates", group: "ai", route: "agents" },
+    { id: "table", label: "Table", hint: "Automated data", group: "data", route: "tables" },
+    { id: "form", label: "Form", hint: "Automation-ready forms", group: "control", route: "forms" },
+    { id: "mcp", label: "MCP server", hint: "AI tool integrations", group: "integration", route: "mcp" },
   ],
   recommended: [
     { id: "t1", title: "Order alert to a chat channel", summary: "", groups: ["trigger", "control", "ai"], toConnect: 1, top: true },

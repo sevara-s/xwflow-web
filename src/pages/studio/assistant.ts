@@ -11,6 +11,9 @@ import type { XWUIButton, XWUIComposer, XWUIInputText } from "../../xwui";
 
 const words = catalog.studio.assistant;
 
+/** Where each "start directly" tile opens. */
+const starterTargets: Record<string, string> = { flow: paths.flows, agent: paths.agents, table: paths.tables, form: paths.forms, mcp: paths.mcp };
+
 function preview(draft: AssistantDraft, saveable: boolean): Node {
   return stack(
     [
@@ -58,7 +61,7 @@ function starters(home: AssistantHome): Node {
             { pad: "s" },
           ),
           on: {
-            click: () => (starter.route === "flows" ? navigate(paths.flows) : notify(fill(words.notInPreview, { name: starter.label }), "info")),
+            click: () => navigate(starterTargets[starter.id] ?? paths.flows),
           },
         })),
         150,
@@ -105,12 +108,54 @@ export async function view(context: ViewContext): Promise<PageResult> {
   let draft: AssistantDraft = { prompt: "", title: home.preview.title, graph: home.preview.graph };
   const parts: { input?: XWUIInputText; send?: XWUIButton; pills: Map<string, XWUIButton> } = { pills: new Map() };
 
+  /* Attached files give the assistant context; the names travel with the prompt. */
+  let files: Array<{ id: string; name: string }> = [];
+  const fileChips = (): Node =>
+    row(
+      files.map((file) => ({
+        tag: "xwui-chip",
+        data: { label: file.name },
+        config: { closable: true, size: "small", ariaLabel: fill(words.removeFile, { name: file.name }) },
+        ref: (instance: unknown) =>
+          (instance as { onClose(handler: () => void): void }).onClose(() => {
+            files = files.filter((item) => item.id !== file.id);
+            context.instance<XWUIComposer>("assistant-files")?.setTree(fileChips());
+          }),
+      })),
+      { gap: 6, wrap: true },
+    );
+  const withFiles = (prompt: string): string => (files.length ? `${prompt} ${fill(words.usingFiles, { names: files.map((file) => file.name).join(", ") })}` : prompt);
+  let attachDialog: { open(): void; close(): void } | undefined;
+
+  /* Dictation through the browser's speech recognition, where it exists. */
+  type Recognition = { lang: string; interimResults: boolean; onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; start(): void };
+  const speak = (): void => {
+    const Speech = (window as unknown as { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition }).SpeechRecognition ??
+      (window as unknown as { webkitSpeechRecognition?: new () => Recognition }).webkitSpeechRecognition;
+    if (!Speech) {
+      notify(words.speakUnsupported, "info");
+      return;
+    }
+    const recognition = new Speech();
+    recognition.lang = document.documentElement.lang || "en";
+    recognition.interimResults = false;
+    recognition.onresult = (event) => {
+      const said = Array.from(event.results, (result) => result[0].transcript).join(" ").trim();
+      if (!said) return;
+      parts.input?.setValue(said);
+      parts.send?.setDisabled(false);
+      notify(words.heard, "success");
+    };
+    recognition.start();
+    notify(words.listening, "info");
+  };
+
   const propose = async (prompt: string): Promise<void> => {
     const panel = context.instance<XWUIComposer>("assistant-preview");
     panel?.setTree({ tag: "xwui-spinner", data: { label: words.drafting } });
     parts.send?.setLoading(true);
     try {
-      draft = await api.draftFlow(prompt);
+      draft = await api.draftFlow(withFiles(prompt));
       panel?.setTree(preview(draft, true));
     } catch (error) {
       notify(errorMessage(error), "danger");
@@ -162,12 +207,13 @@ export async function view(context: ViewContext): Promise<PageResult> {
             parts.input.onChange((value: string) => parts.send?.setDisabled(!value.trim()));
           },
         },
+        { tag: "xwui-composer", key: "assistant-files", data: { tree: fileChips() } },
         row(
           [
             row(
               [
-                button("ghost", "", { icon: "paperclip", size: "sm", label: words.attach, onClick: () => notify(fill(words.notInPreview, { name: words.attach }), "info") }),
-                button("ghost", "", { icon: "mic", size: "sm", label: words.speak, onClick: () => notify(fill(words.notInPreview, { name: words.speak }), "info") }),
+                button("ghost", "", { icon: "paperclip", size: "sm", label: words.attach, onClick: () => setTimeout(() => attachDialog?.open(), 0) }),
+                button("ghost", "", { icon: "mic", size: "sm", label: words.speak, onClick: speak }),
                 tag(workspace.project.name, "violet"),
               ],
               { gap: 8 },
@@ -211,7 +257,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
         pill.config = { ...pill.config, toggleable: true, pressed: suggestion.id === home.activeSuggestion };
         return { ...pill, ref: (instance: unknown) => parts.pills.set(suggestion.id, instance as XWUIButton) };
       }),
-      button("ghost", words.seeAll, { size: "sm", onClick: () => notify(fill(words.notInPreview, { name: words.seeAll }), "info") }),
+      button("ghost", words.seeAll, { size: "sm", onClick: () => navigate(paths.templates) }),
     ],
     { wrap: true, justify: "center" },
   );
@@ -263,6 +309,26 @@ export async function view(context: ViewContext): Promise<PageResult> {
             { gap: 24, align: "stretch" },
           ),
         },
+      },
+      {
+        tag: "xwui-dialog",
+        data: { title: words.attachTitle },
+        config: { size: "medium", closable: true },
+        slots: {
+          content: {
+            tag: "xwui-input-upload",
+            data: { label: words.attachPrompt },
+            config: { multiple: true, dragDrop: true, maxSize: 10 * 1024 * 1024 },
+            ref: (instance) =>
+              (instance as { onUpload(handler: (picked: File[]) => void): void }).onUpload((picked) => {
+                files = [...files, ...picked.map((file, index) => ({ id: `${Date.now()}-${index}-${file.name}`, name: file.name }))];
+                context.instance<XWUIComposer>("assistant-files")?.setTree(fileChips());
+                notify(fill(words.attached, { n: files.length }), "success");
+              }),
+          },
+          footer: row([button("primary", words.attachDone, { onClick: () => attachDialog?.close() })], { justify: "flex-end" }),
+        },
+        ref: (instance) => (attachDialog = instance as { open(): void; close(): void }),
       },
     ],
   };

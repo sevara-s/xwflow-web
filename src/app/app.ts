@@ -79,7 +79,9 @@ function notice(icon: string, title: string, description: string): Node {
 
 /** Which frame a route sits in; the frame is built once and kept while this stays the same. */
 function frameKind(route: Route, admin: AdminContext | null): string {
-  if (route.zone === "site") return "site";
+  // Each site section gets a freshly built header: the published XWUIBarSiteHeader
+  // adds a second copy of its actions on every setCurrentPath() (README, known issues).
+  if (route.zone === "site") return `site:${currentNav(route)}`;
   if (route.zone === "studio") return "studio";
   if (admin && isAdminZone(route)) return `admin:${admin.health}`;
   return "bare";
@@ -88,7 +90,6 @@ function frameKind(route: Route, admin: AdminContext | null): string {
 /** Point a kept frame at the new route: the rail's selection, the header's link, the bar. */
 function updateFrame(composer: XWUIComposer, route: Route, workspace: Workspace, bar: PageBar | undefined): void {
   const at = <T,>(key: string): T | undefined => composer.getInstanceByKey<T>(key);
-  if (route.zone === "site") at<{ setCurrentPath(path: string): void }>("site-header")?.setCurrentPath(currentNav(route).slice(1));
   if (route.zone === "studio") at<{ select(id: string): void }>("studio-rail")?.select(railSelection(route));
   if (isAdminZone(route)) at<{ select(id: string): void }>("admin-rail")?.select(adminSelection(route));
   at<{ setData(data: object): void }>("app-bar")?.setData(appBarData(workspace, bar));

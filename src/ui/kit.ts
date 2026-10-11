@@ -289,9 +289,22 @@ export function keys(value: string[], size: "sm" | "md" = "md"): Node {
   return { tag: "xwui-kbd", data: { keys: value }, config: { size } };
 }
 
-/** An XWUI element for a slot that takes an element, such as an XWUITable cell. */
+/**
+ * An XWUI element for a slot that takes an element, such as an XWUITable cell.
+ * The published XWUIComposer.element() drops a node's `ref` (README, known
+ * issues), so a ref is handed its instance on the first pointer or focus contact
+ * with the element, before a click inside it reaches the component.
+ */
 export function cell(node: Node): HTMLElement | string {
-  return XWUIComposer.element(node) ?? "";
+  const { ref } = node;
+  if (!ref) return XWUIComposer.element(node) ?? "";
+  let handed = false;
+  const handOver = (event: Event, instance: unknown): void => {
+    if (handed || !instance) return;
+    handed = true;
+    ref(instance, event.currentTarget as HTMLElement);
+  };
+  return XWUIComposer.element({ ...node, ref: undefined, on: { ...node.on, pointerdown: handOver, focusin: handOver } }) ?? "";
 }
 
 export function separator(): Node {

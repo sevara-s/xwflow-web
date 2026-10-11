@@ -20,6 +20,14 @@ const words = catalog.studio.editor;
 // Pixel numbers for the canvas insets below; the gap is the scale's 16 the workbench uses.
 const PANEL = { gap: 16, header: 62, start: 250, end: 340, bottom: 250 } as const;
 
+/** A press that moves further than this is a drag, not a click. */
+const CLICK_SLOP = 4;
+
+/** The id of the canvas step card an event started on, if any. */
+function stepUnder(target: EventTarget | null): string | undefined {
+  return (target as Element | null)?.closest<HTMLElement>(".xwui-flow-canvas__node")?.dataset.id;
+}
+
 function latestFailure(run: RunDetail | null): Attempt | undefined {
   return run?.attempts.find((item) => item.result.kind === "failed");
 }
@@ -369,6 +377,7 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
     { gap: "s" },
   );
 
+  let pressed: { id: string | undefined; x: number; y: number } | null = null;
   const stage: Node = {
     tag: "xwui-flow-canvas",
     key: "editor-canvas",
@@ -384,6 +393,24 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
         left: PANEL.gap * 2 + PANEL.start,
         right: PANEL.gap * 2 + PANEL.end,
         bottom: PANEL.gap * 2 + PANEL.bottom,
+      },
+    },
+    // The published XWUIFlowCanvas captures the pointer on its viewport, so Chrome
+    // sends a mouse click to the viewport, not the step card, and the canvas
+    // selects nothing (README, known issues). The step under the press is kept
+    // and selected through the canvas's public select() when that happens.
+    on: {
+      pointerdown: (event) => {
+        const pointer = event as PointerEvent;
+        pressed = { id: stepUnder(event.target), x: pointer.clientX, y: pointer.clientY };
+      },
+      click: (event, instance) => {
+        const press = pressed;
+        pressed = null;
+        const click = event as MouseEvent;
+        if (!press?.id || stepUnder(event.target)) return;
+        if (Math.hypot(click.clientX - press.x, click.clientY - press.y) > CLICK_SLOP) return;
+        (instance as XWUIFlowCanvas).select(press.id);
       },
     },
     ref: (instance) => {

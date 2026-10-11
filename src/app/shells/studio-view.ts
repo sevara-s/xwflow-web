@@ -127,7 +127,7 @@ function rail(workspace: Workspace, route: Route): Node {
           svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg",
           logoConfig: "logo-title",
           title: catalog.brand,
-          size: "xs",
+          size: "xxs",
           layout: "h",
           href: href(paths.home),
         },

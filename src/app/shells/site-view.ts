@@ -27,7 +27,7 @@ export function siteShell(route: Route, page: Node[]): Node[] {
           svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg",
           logoConfig: "logo-title",
           title: catalog.brand,
-          size: "xs",
+          size: "xxs",
           layout: "h",
         },
       },

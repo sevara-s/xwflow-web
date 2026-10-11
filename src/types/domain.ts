@@ -644,3 +644,139 @@ export interface FlowVersion {
   published: boolean;
   changes: { added: number; changed: number; removed: number };
 }
+
+/* Operator console: admin and system pages. */
+
+export type TenantPlan = "core" | "commercial";
+export type TenantStatus = "active" | "suspended";
+export interface Tenant {
+  id: string;
+  name: string;
+  plan: TenantPlan;
+  region: string;
+  members: number;
+  flows: number;
+  runs30d: number;
+  status: TenantStatus;
+  createdAt: number;
+}
+export interface TenantQuery {
+  q?: string;
+  plan?: TenantPlan | "";
+  status?: TenantStatus | "";
+}
+
+export interface CredentialPolicy {
+  preferOAuth: boolean;
+  rotationDays: number;
+  blockPersonalInPublished: boolean;
+  requireOwner: boolean;
+}
+export interface CredentialFinding {
+  connection: string;
+  issue: "rotation" | "expired" | "personal";
+  ageDays: number;
+}
+
+export interface RegistryNode {
+  id: string;
+  label: string;
+  group: StepGroup;
+  summary: string;
+  version: string;
+  usedBy: number;
+  enabled: boolean;
+}
+
+export interface Adapter {
+  id: string;
+  name: string;
+  format: string;
+  status: "available" | "preview";
+}
+export interface ImportRecord {
+  id: string;
+  adapter: string;
+  file: string;
+  flows: number;
+  result: "ok" | "partial";
+  at: number;
+  note: string | null;
+  flowId?: string;
+}
+
+export interface Usage {
+  runs: number;
+  runsIncluded: number;
+  periodEnds: number;
+  steps: number;
+  aiCalls: number;
+  storageGb: number;
+  storageIncludedGb: number;
+  daily: Array<{ runs: number; failed: number }>;
+  topFlows: Array<{ flow: string; runs: number }>;
+}
+
+export type AiApproval = "never" | "publish" | "everyRun";
+export interface AiModel {
+  id: string;
+  name: string;
+  provider: string;
+  enabled: boolean;
+}
+export interface AiPolicy {
+  models: AiModel[];
+  redactPersonalData: boolean;
+  approval: AiApproval;
+}
+export interface AiCall {
+  at: number;
+  flow: string;
+  step: string;
+  model: string;
+  tokens: number;
+  decision: "allowed" | "redacted" | "blocked";
+  reason: string | null;
+}
+
+export interface Schedule {
+  flowId: string;
+  flowName: string;
+  cadence: "hourly" | "weekly";
+  nextAt: number;
+  lastAt: number;
+  lastStatus: RunStatus;
+  enabled: boolean;
+}
+
+export type WorkerState = "busy" | "idle" | "draining";
+export interface Worker {
+  id: string;
+  region: string;
+  state: WorkerState;
+  inFlight: number;
+  cpu: number;
+  version: string;
+  heartbeatAt: number;
+}
+
+export interface Execution {
+  id: string;
+  tenant: string;
+  flowName: string;
+  status: RunStatus;
+  mode: RunMode;
+  startedAt: number;
+  durationMs: number | null;
+  own: boolean;
+}
+
+export interface ConfigEntry {
+  id: string;
+  group: "runtime" | "retention" | "limits";
+  value: string | number;
+  source: "file" | "env" | "default" | "console";
+  editable: boolean;
+  min?: number;
+  max?: number;
+}

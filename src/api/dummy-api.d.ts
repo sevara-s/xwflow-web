@@ -1,4 +1,20 @@
 import type {
+  Adapter,
+  AiCall,
+  AiPolicy,
+  ConfigEntry,
+  CredentialFinding,
+  CredentialPolicy,
+  Execution,
+  ImportRecord,
+  RegistryNode,
+  Schedule,
+  Tenant,
+  TenantPlan,
+  TenantQuery,
+  TenantStatus,
+  Usage,
+  Worker,
   AssistantDraft,
   AssistantHome,
   CanvasNode,
@@ -101,9 +117,29 @@ export function listAudit(query?: AuditQuery): Promise<AuditList>;
 export function getHealth(): Promise<Health>;
 export function recheckHealth(): Promise<Health>;
 export function pauseSchedules(): Promise<{ paused: number }>;
-export function drainWorker(): Promise<{ worker: string; remaining: number }>;
+export function drainWorker(workerId?: string): Promise<{ worker: string; remaining: number }>;
 export function getAccessDenial(): Promise<AccessDenial>;
 export function requestAccess(role: string): Promise<{ role: string; reference: string }>;
+
+export function listTenants(query?: TenantQuery): Promise<{ tenants: Tenant[]; total: number }>;
+export function addTenant(input: { name: string; plan: TenantPlan; region: string }): Promise<Tenant>;
+export function setTenantStatus(tenantId: string, status: TenantStatus): Promise<Tenant>;
+export function getCredentialPolicy(): Promise<{ policy: CredentialPolicy; findings: CredentialFinding[] }>;
+export function saveCredentialPolicy(policy: Partial<CredentialPolicy>): Promise<CredentialPolicy>;
+export function listNodeRegistry(query?: { q?: string; group?: StepGroup | "" }): Promise<{ nodes: RegistryNode[] }>;
+export function setNodeEnabled(typeId: string, enabled: boolean): Promise<{ id: string; enabled: boolean }>;
+export function listAdapters(): Promise<{ adapters: Adapter[]; imports: ImportRecord[] }>;
+export function runImport(adapterId: string): Promise<ImportRecord>;
+export function getUsage(): Promise<Usage>;
+export function getAiGovernance(): Promise<{ policy: AiPolicy; calls: AiCall[] }>;
+export function saveAiPolicy(patch: Partial<AiPolicy>): Promise<AiPolicy>;
+export function listSchedules(): Promise<{ schedules: Schedule[] }>;
+export function setScheduleEnabled(flowId: string, enabled: boolean): Promise<Omit<Schedule, "flowName">>;
+export function listWorkers(): Promise<{ workers: Worker[] }>;
+export function resumeWorker(workerId: string): Promise<Worker>;
+export function listExecutions(query?: { q?: string; tenant?: string; status?: RunStatus | "" }): Promise<{ runs: Execution[]; tenants: string[] }>;
+export function getConfig(): Promise<{ entries: ConfigEntry[] }>;
+export function saveConfig(values: Record<string, string | number>): Promise<{ entries: ConfigEntry[] }>;
 
 export function getFlowView(flowId: string): Promise<FlowView>;
 

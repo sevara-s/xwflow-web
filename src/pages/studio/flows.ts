@@ -67,7 +67,8 @@ function hero(workspace: Workspace, list: FlowList): Node {
       children: stack(
         [
           shape("halo", "violet", 260, { right: "-40px", top: "-120px" }),
-          shape("cube", "lime", 56, { right: "250px", top: "26px" }),
+          // On a phone the title fills the card, so the cube would sit on the folder tile.
+          ...(window.matchMedia("(max-width: 640px)").matches ? [] : [shape("cube", "lime", 56, { right: "250px", top: "26px" })]),
           row(
             [
               row(
@@ -75,13 +76,13 @@ function hero(workspace: Workspace, list: FlowList): Node {
                   { tag: "xwui-icon-tile", data: { icon: "folder" }, config: { hue: "violet", size: "lg" } },
                   stack(
                     [
-                      row([text("h2", workspace.project.name), tag(catalog.studio.visibility[workspace.project.visibility])], { gap: "m" }),
+                      row([text("h2", workspace.project.name), tag(catalog.studio.visibility[workspace.project.visibility])], { gap: "m", wrap: true }),
                       text("body", workspace.project.description, { tone: "secondary" }),
                     ],
                     { gap: "xs" },
                   ),
                 ],
-                { gap: "xl" },
+                { gap: "xl", wrap: true },
               ),
               row([demo, create], { gap: "s", wrap: true }),
             ],

@@ -194,6 +194,14 @@ export function appBar(workspace: Workspace, bar: PageBar | undefined): Node {
 }
 
 /**
+ * A page's items in the app frame's page area, one gap apart. The page area is
+ * swapped on its own, so the spacing lives in its tree, not around it.
+ */
+export function appPage(body: Node[]): Node[] {
+  return [stack(body, { gap: 22 })];
+}
+
+/**
  * An app frame: a rail on the start side, then the sticky XWUIAppBar and the
  * page. Shared by the studio and the admin shells.
  */
@@ -208,7 +216,7 @@ export function appFrame(railNode: Node, workspace: Workspace, page: Node[], bar
         {
           tag: "xwui-box",
           config: { padding: "28px" },
-          slots: { children: stack(page, { gap: 22 }) },
+          slots: { children: page },
         },
       ],
     },

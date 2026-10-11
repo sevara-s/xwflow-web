@@ -7,7 +7,7 @@ import { mountToaster } from "./notify";
 import { href, parseLocation, paths, type Route } from "./router";
 import { adminSelection, adminShell } from "./shells/admin-view";
 import { currentNav, siteShell } from "./shells/site-view";
-import { appBarData, railSelection, studioShell } from "./shells/studio-view";
+import { appBarData, appPage, railSelection, studioShell } from "./shells/studio-view";
 import type { PageBar, PageResult, PageView, ViewContext } from "./view";
 
 /** Every page composes XWUI nodes: it exports a view(). */
@@ -112,13 +112,15 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
   /** Show `body` in the page area, building the frame first when the route needs another one. */
   const place = (route: Route, admin: AdminContext | null, body: Node[], bar?: PageBar): void => {
     const kind = frameKind(route, admin);
+    // In the studio and admin frames the page's items stack with the frame's gap.
+    const tree = kind === "studio" || kind.startsWith("admin:") ? appPage(body) : body;
     if (kind !== mountedKind || !pageArea()) {
-      composer.setTree([...shell(route, workspace!, [{ tag: "xwui-composer", key: "page", data: { tree: body } }], bar, admin), toastNode]);
+      composer.setTree([...shell(route, workspace!, [{ tag: "xwui-composer", key: "page", data: { tree } }], bar, admin), toastNode]);
       mountedKind = kind;
       return;
     }
     updateFrame(composer, route, workspace!, bar);
-    pageArea()?.setTree(body);
+    pageArea()?.setTree(tree);
   };
 
   const show = async (): Promise<void> => {

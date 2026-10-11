@@ -9,7 +9,7 @@
  */
 import type { XWUIComponentStateSnapshot } from '../view';
 import { h, type XWUIViewNode } from '../view';
-import { branchRows, connector, extent, layout, LANE, type Box } from './XWFlowNotationDiagram.logic';
+import { branchRows, connector, extent, layout, LANE, type Box } from './XWFlowNotationDiagram.layout';
 import type { XWFlowNotationDiagramConfig, XWFlowNotationDiagramData, XWFlowNotationEdge, XWFlowNotationHue, XWFlowNotationStep } from './XWFlowNotationDiagram.types';
 
 export interface NotationDiagramViewContext {

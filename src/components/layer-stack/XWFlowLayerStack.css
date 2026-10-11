@@ -1,0 +1,53 @@
+/* components/layer-stack/XWFlowLayerStack.css - styles of this app's XWFlow component */
+.xwflow-layer-stack {
+  --layer-stack-hue: var(--xwui-hue-violet, #9b6bff);
+  position: relative;
+  block-size: var(--layer-stack-view-height, 600px);
+  perspective: 1800px;
+}
+.xwflow-layer-stack__layer {
+  position: absolute;
+  inset-inline-start: 50%;
+  top: 150px;
+  inline-size: var(--layer-stack-width, 600px);
+  block-size: var(--layer-stack-height, 320px);
+  margin-inline-start: calc(var(--layer-stack-width, 600px) / -2);
+  border-radius: 30px;
+  overflow: hidden;
+  transform: rotateX(var(--layer-stack-tilt-x, 60deg)) rotateZ(var(--layer-stack-tilt-z, -34deg)) translateZ(var(--layer-stack-z, 0px));
+  background: var(--layer-stack-surface, rgba(12, 12, 26, 0.72));
+  border: 1px solid var(--layer-stack-hue);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 80px -10px var(--layer-stack-hue);
+}
+.xwflow-layer-stack__layer > * { inline-size: 100%; block-size: 100%; }
+.xwflow-layer-stack__label {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.xwflow-layer-stack__label::before {
+  content: "";
+  inline-size: 60px;
+  block-size: 2px;
+  background: var(--layer-stack-hue);
+  box-shadow: 0 0 10px var(--layer-stack-hue);
+}
+.xwflow-layer-stack--lime { --layer-stack-hue: var(--xwui-hue-lime, #c8ff3d); }
+.xwflow-layer-stack--cyan { --layer-stack-hue: var(--xwui-hue-cyan, #2ee6ff); }
+.xwflow-layer-stack--violet { --layer-stack-hue: var(--xwui-hue-violet, #9b6bff); }
+.xwflow-layer-stack--pink { --layer-stack-hue: var(--xwui-hue-pink, #ff4fa3); }
+.xwflow-layer-stack--orange { --layer-stack-hue: var(--xwui-hue-orange, #ff8a3d); }
+.xwflow-layer-stack--green { --layer-stack-hue: var(--xwui-hue-green, #3dffa2); }
+.xwflow-layer-stack--amber { --layer-stack-hue: var(--xwui-hue-amber, #ffc53d); }
+.xwflow-layer-stack--red { --layer-stack-hue: var(--xwui-hue-red, #ff5c6c); }
+.xwflow-layer-stack--blue { --layer-stack-hue: var(--xwui-hue-blue, #4f8bff); }
+
+/* Narrow screens: the planes lie flat in a column, each under its label. */
+@media (max-width: 860px) {
+  .xwflow-layer-stack { block-size: auto; perspective: none; display: flex; flex-direction: column-reverse; gap: 12px; }
+  .xwflow-layer-stack__layer { position: relative; inset-inline-start: auto; top: auto; margin: 0; inline-size: 100%; block-size: auto; aspect-ratio: 15 / 8; transform: none; border-radius: 20px; }
+  .xwflow-layer-stack__label { display: none; }
+}

@@ -6,7 +6,7 @@ import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { Notation, NotationFamily, NotationGallery, NotationViewId, StepGroup } from "../../types/domain";
 import { hueOf } from "../../ui/flow";
-import { band, centred, eyebrow, glass, grid, headline, iconTile, inset, measure, row, shape, sides, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { band, centred, eyebrow, glass, grid, headline, iconTile, inset, measure, row, shape, sides, stack, tag, text, xwflow, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer } from "../../xwui";
 
 const words = catalog.site.notations;
@@ -71,14 +71,13 @@ export async function view(context: ViewContext): Promise<Node[]> {
   const layerHues: Hue[] = ["lime", "orange", "cyan"];
   const kinds = ["node-graph", "bpmn", "flowchart"];
   const order = [2, 1, 0];
-  const layers: Node = {
-    tag: "xwui-layer-stack",
+  const layers: Node = xwflow("layer-stack", {
     data: {
       label: words.layersLabel,
       layers: order.map((index) => ({ label: words.layers[index], hue: layerHues[index] })),
     },
     slots: { panels: order.map((index) => thumb(kinds[index], sample, words.layers[index])) },
-  };
+  });
 
   const hero: Node = {
     tag: "xwui-box",

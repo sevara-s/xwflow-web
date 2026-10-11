@@ -6,6 +6,7 @@
  * glass and glows come from the xwflow XWUI theme, and the type scale below
  * is the prototype's own (xw.css).
  */
+import { xwflowComponents, type XWFlowComponentName } from "../components";
 import { XWUIComposer, type XWUIComposerNode } from "../xwui";
 
 export type Node = XWUIComposerNode;
@@ -245,6 +246,43 @@ export function shape(kind: "orb" | "ring" | "cube" | "halo", hue: Hue, size: nu
  */
 export function behind(shapes: Node[], content: Node): Node[] {
   return [...shapes, content];
+}
+
+/** The XWFlow components built on a page, by key, so a page can reach one (an export, a listener). */
+const mountedXWFlow = new Map<string, { destroy(): void }>();
+
+/**
+ * One of this app's XWFlow components (src/components), placed in a published
+ * XWUI box. The box mounts first; then the component is built in it, the way
+ * every XWUI component takes its container. `slots` are XWUI nodes handed to
+ * the component as elements; `key` keeps one live instance per key and lets a
+ * page reach it with xwflowInstance(); `ref` receives the component once built.
+ */
+export function xwflow(
+  name: XWFlowComponentName,
+  options: { data?: Record<string, unknown>; config?: Record<string, unknown>; slots?: Record<string, Node | Node[]>; key?: string; ref?: (instance: unknown) => void } = {},
+): Node {
+  return {
+    tag: "xwui-box",
+    config: { width: "100%" },
+    ref: (box, element) => {
+      const container = (box as { getElement?(): HTMLElement | null }).getElement?.() ?? element;
+      const data: Record<string, unknown> = { ...(options.data ?? {}) };
+      for (const [field, slot] of Object.entries(options.slots ?? {})) {
+        data[field] = Array.isArray(slot) ? slot.map((child) => XWUIComposer.element(child)).filter(Boolean) : XWUIComposer.element(slot);
+      }
+      if (options.key) mountedXWFlow.get(options.key)?.destroy();
+      const Component = xwflowComponents[name];
+      const instance = new Component(container, data as never, (options.config ?? {}) as never);
+      if (options.key) mountedXWFlow.set(options.key, instance);
+      options.ref?.(instance);
+    },
+  };
+}
+
+/** The live XWFlow component placed with this key, if any. */
+export function xwflowInstance<T>(key: string): T | undefined {
+  return mountedXWFlow.get(key) as T | undefined;
 }
 
 export function keys(value: string[], size: "sm" | "md" = "md"): Node {

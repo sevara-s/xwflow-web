@@ -2,16 +2,19 @@ import { describe, expect, it } from "vitest";
 
 /**
  * The assessment rule: pages and shells build the UI only from XWUI
- * components (composer nodes), never from hand-written DOM, HTML or CSS.
- * This test reads every page, shell and the node kit and fails on any
- * construct that would break the rule.
+ * components (composer nodes) loaded from xwui.dev, never from hand-written
+ * DOM, HTML or CSS. Anything XWUI basic lacks is an XWFlow component in
+ * src/components, built on the published XWUIComponent. This test reads every
+ * page, shell, the node kit and the components, and fails on any construct
+ * that would break the rule.
  */
 const sources = import.meta.glob(["../src/pages/**/*.ts", "../src/app/shells/*.ts", "../src/ui/*.ts", "../src/app/app.ts"], {
   query: "?raw",
   import: "default",
   eager: true,
 }) as Record<string, string>;
-const styles = import.meta.glob(["../src/pages/**/*.css", "../src/app/**/*.css", "../src/components/**/*"], { query: "?raw", import: "default", eager: true });
+const styles = import.meta.glob(["../src/pages/**/*.css", "../src/app/**/*.css", "../src/ui/**/*.css"], { query: "?raw", import: "default", eager: true });
+const components = import.meta.glob("../src/components/**/*", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 
 const forbidden: Array<[string, RegExp]> = [
   ["document.createElement", /document\.createElement/],
@@ -51,7 +54,28 @@ describe("XWUI composition only", () => {
     for (const [path, code] of pages) expect(code, path).toMatch(/export (async )?function view\(/);
   });
 
-  it("keeps no page stylesheets or app components", () => {
+  it("keeps no page stylesheets", () => {
     expect(Object.keys(styles)).toEqual([]);
+  });
+
+  it("builds each XWFlow component like an XWUI component, on the published base", () => {
+    const adapters = Object.keys(components).filter((path) => /\/XWFlow[A-Za-z]+\.ts$/.test(path));
+    expect(adapters.length).toBeGreaterThan(0);
+    for (const path of adapters) {
+      const base = path.replace(/\.ts$/, "");
+      // XWUI's split: types, JSON schema, headless logic, pure view, stylesheet, adapter.
+      for (const part of [".types.ts", ".json", ".logic.ts", ".view.ts", ".css"]) expect(Object.keys(components), `${base}${part}`).toContain(`${base}${part}`);
+      expect(components[path], path).toMatch(/extends XWUIComponent\b/);
+      expect(components[path], path).toMatch(/from "\.\.\/\.\.\/xwui"/);
+    }
+  });
+
+  it("names app components XWFlow and never registers an xwui- tag of its own", () => {
+    for (const [path, code] of Object.entries(components)) {
+      expect(path, path).not.toMatch(/\/XWUI[A-Z]/);
+      expect(code, path).not.toMatch(/createXWUIElement\(|customElements\.define\(/);
+      expect(code, path).not.toMatch(/class XWUI[A-Z]/);
+      expect(code, path).not.toMatch(/["'`]\.?xwui-(?!hue)[a-z-]+/);
+    }
   });
 });

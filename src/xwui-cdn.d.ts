@@ -18,6 +18,27 @@ declare module "https://xwui.dev/esm/basic.bundle.js" {
     destroy(): void;
   }
 
+  /** Event names a component emits, mapped to their detail. */
+  export interface XWUIComponentEventMap {
+    [type: string]: unknown;
+  }
+  /** A component's JSON schema (its data and config fields). */
+  export interface ComponentSchema {
+    [field: string]: unknown;
+  }
+  /** XWUI's headless state holder: data, config, change listeners and events. */
+  export class XWUIComponentLogic<D = Record<string, unknown>, C = Record<string, unknown>, E = XWUIComponentEventMap> {
+    constructor(schema: ComponentSchema, data?: D, config?: C);
+    readonly data: D;
+    readonly config: C;
+    getState(): { data: D; config: C };
+    updateData(updates: Partial<D>): void;
+    updateConfig(updates: Partial<C>): void;
+    subscribe(callback: () => void): () => void;
+    emit<K extends keyof E & string>(type: K, detail?: E[K]): void;
+    on<K extends keyof E & string>(type: K, listener: (event: Event) => void): () => void;
+  }
+
   export class XWUIButton extends XWUIComponent {
     onClick(handler: (event: MouseEvent) => void): void;
     updateConfig(config: object): void;

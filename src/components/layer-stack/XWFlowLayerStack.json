@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "XWFlowLayerStack",
+  "name": "XWUI Layer Stack",
+  "description": "A layer stack: panels laid on glowing, tilted planes stacked in 3D (the first lowest), each named by a label with a line in its hue on the end side. For showing that several views are the same thing, e.g. one flow as a node graph, BPMN and a flowchart. Each panel is an element placed on its layer; on a narrow screen the planes lie flat in a column.",
+  "path": "basic/XWFlowLayerStack",
+  "tags": [
+    "basic",
+    "desktop",
+    "tablet",
+    "mobile"
+  ],
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "conf_comp": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tiltX": {
+          "type": "number",
+          "default": 60,
+          "description": "Plane tilt about the x axis, degrees."
+        },
+        "tiltZ": {
+          "type": "number",
+          "default": -34,
+          "description": "Plane turn about the z axis, degrees."
+        },
+        "spacing": {
+          "type": "number",
+          "default": 150,
+          "description": "Height between layers in pixels."
+        },
+        "width": {
+          "type": "number",
+          "default": 600,
+          "description": "Layer width in pixels."
+        },
+        "height": {
+          "type": "number",
+          "default": 320,
+          "description": "Layer height in pixels."
+        },
+        "viewHeight": {
+          "type": "number",
+          "default": 600,
+          "description": "Height of the drawing in pixels."
+        },
+        "className": {
+          "type": "string",
+          "description": "Additional CSS class name for the component"
+        }
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "layers": {
+          "type": "array",
+          "description": "Layers bottom first: { label, hue }."
+        },
+        "panels": {
+          "type": "array",
+          "description": "One element per layer, drawn on it."
+        },
+        "label": {
+          "type": "string",
+          "description": "Spoken description of the drawing."
+        },
+        "uid": {
+          "type": "string",
+          "description": "Auto-assigned unique instance id (injected by the base component, not user content)."
+        }
+      }
+    }
+  }
+}

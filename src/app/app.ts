@@ -79,7 +79,6 @@ function notice(icon: string, title: string, description: string): Node {
 
 export async function mountApplication(root: HTMLElement): Promise<void> {
   useTheme();
-  root.replaceChildren();
   // The whole screen is one XWUIComposer tree.
   const composer = new XWUIComposer(root, { tree: [toastNode] });
   let leave: Array<() => void> = [];

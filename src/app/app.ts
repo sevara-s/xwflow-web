@@ -120,7 +120,7 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
         instance: <T,>(key: string) => composer?.getInstanceByKey<T>(key),
         onLeave: (stop) => leave.push(stop),
       };
-      composer.setTree(composedShell(route, workspace, [{ tag: "xwui-progress-spinner", data: { label: catalog.loading } }]));
+      composer.setTree(composedShell(route, workspace, [{ tag: "xwui-spinner", data: { label: catalog.loading } }]));
       try {
         const page = pageResult(await (peek.view as PageView)(context));
         if (current !== generation) return;

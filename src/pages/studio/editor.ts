@@ -293,7 +293,7 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
       {
         tag: "xwui-tabs",
         data: { tabs: words.views.map((item) => ({ ...item })), activeTab: "editor" },
-        config: { variant: "button", size: "sm", ariaLabel: words.viewsLabel, hideContent: "true" },
+        config: { variant: "button", size: "sm", ariaLabel: words.viewsLabel, contentMode: "hidden" },
         ref: (instance) => {
           const tabs = instance as { onChange(handler: (id: string) => void): void };
           tabs.onChange((id) => {
@@ -352,7 +352,7 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
           {
             tag: "xwui-tabs",
             data: { tabs: words.runTabs.map((item) => ({ ...item })), activeTab: runTab },
-            config: { variant: "button", size: "sm", hideContent: "true" },
+            config: { variant: "button", size: "sm", contentMode: "hidden" },
             ref: (instance) =>
               (instance as { onChange(handler: (id: string) => void): void }).onChange((id) => {
                 runTab = id;

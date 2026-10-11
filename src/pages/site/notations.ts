@@ -125,7 +125,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
   const families: Node = {
     tag: "xwui-tabs",
     data: { tabs: words.families.map((item) => ({ id: item.id || "all", label: item.label })), activeTab: "all" },
-    config: { variant: "button", size: "sm", ariaLabel: words.familiesLabel, hideContent: "true" },
+    config: { variant: "button", size: "sm", ariaLabel: words.familiesLabel, contentMode: "hidden" },
     ref: (instance) =>
       (instance as { onChange(handler: (id: string) => void): void }).onChange(async (id) => {
         const next = await api.getNotations({ family: id === "all" ? "" : (id as NotationFamily) });

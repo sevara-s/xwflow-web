@@ -24,7 +24,7 @@ export function projectTabs(active: string, only?: ReadonlyArray<ProjectTab["id"
   const node: Node = {
     tag: "xwui-tabs",
     data: { tabs: tabs.map((tab) => ({ id: tab.id, label: tab.label })), activeTab: active },
-    config: { variant: "button", size: "sm", ariaLabel: words.projectTabsLabel, hideContent: "true" },
+    config: { variant: "button", size: "sm", ariaLabel: words.projectTabsLabel, contentMode: "hidden" },
     ref: (instance) => {
       const nav = instance as { onChange(handler: (id: string) => void): void; setActiveTab(id: string): void };
       nav.onChange((id) => {

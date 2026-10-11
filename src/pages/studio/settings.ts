@@ -327,7 +327,7 @@ export async function view(context: ViewContext<SettingsRoute>): Promise<PageRes
           children: {
             tag: "xwui-tabs",
             data: { tabs: words.tabs.map((item) => ({ ...item })), activeTab: tab },
-            config: { variant: "button", size: "sm", ariaLabel: words.tabsLabel, hideContent: "true" },
+            config: { variant: "button", size: "sm", ariaLabel: words.tabsLabel, contentMode: "hidden" },
             ref: (instance) =>
               (instance as Changeable<string>).onChange((id) => {
                 tab = id as Tab;

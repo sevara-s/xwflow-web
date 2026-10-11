@@ -187,7 +187,7 @@ function detail(run: RunDetail, attempt: Attempt, context: ViewContext): Node {
       {
         tag: "xwui-tabs",
         data: { tabs: words.detailTabs.map((item) => ({ ...item })), activeTab: initial },
-        config: { variant: "button", size: "sm", hideContent: "true" },
+        config: { variant: "button", size: "sm", contentMode: "hidden" },
         ref: (instance) =>
           (instance as { onChange(handler: (id: string) => void): void }).onChange((id) => context.instance<XWUIComposer>("receipt-payload")?.setTree(payloadNode(attempt, id))),
       },

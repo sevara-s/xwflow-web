@@ -167,7 +167,7 @@ export function inspector(context: InspectorContext): Node {
         tag: "xwui-tabs",
         key: "inspector-tabs",
         data: { tabs: words.sections.map((item) => ({ ...item })), activeTab: context.section },
-        config: { variant: "button", size: "sm", hideContent: "true" },
+        config: { variant: "button", size: "sm", contentMode: "hidden" },
         ref: (instance) =>
           (instance as { onChange(handler: (id: string) => void): void }).onChange((id) => {
             context.sectionChanged(id);

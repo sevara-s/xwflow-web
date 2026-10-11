@@ -124,7 +124,7 @@ export async function view(
                   variant: "button",
                   size: "sm",
                   ariaLabel: words.tabsLabel,
-                  hideContent: "true",
+                  contentMode: "hidden",
                 },
                 ref: (instance) =>
                   (

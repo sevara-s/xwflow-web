@@ -113,7 +113,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
   const tabs: Node = {
     tag: "xwui-tabs",
     data: { tabs: [{ id: "all", label: words.all }, ...groups.map((group) => ({ id: group, label: catalog.studio.groupLabels[group] }))], activeTab: "all" },
-    config: { variant: "button", size: "sm", ariaLabel: words.groupsLabel, hideContent: "true" },
+    config: { variant: "button", size: "sm", ariaLabel: words.groupsLabel, contentMode: "hidden" },
     ref: (instance) =>
       (instance as XWUINavTabs).onChange((id: string) => {
         query.group = id === "all" ? "" : (id as StepGroup);

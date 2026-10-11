@@ -6,7 +6,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { AssistantDraft, AssistantHome } from "../../types/domain";
 import { canvasData, hueOf } from "../../ui/flow";
-import { button, centred, glass, grid, iconTile, row, shape, stack, tag, text, type Node } from "../../ui/kit";
+import { behind, button, centred, glass, grid, iconTile, row, shape, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer, XWUIInputText } from "../../xwui";
 
 const words = catalog.studio.assistant;
@@ -292,21 +292,22 @@ export async function view(context: ViewContext): Promise<PageResult> {
         tag: "xwui-box",
         config: { position: "relative" },
         slots: {
-          children: stack(
-            [
-              shape("halo", "violet", 460, { left: "30%", top: "60px" }),
-              shape("halo", "cyan", 300, { right: "6%", top: "-40px" }),
-              centred(core),
-              centred(
-                row([text("h2", words.titleBefore), { ...text("h2", words.titleHighlight, { tone: "gradient" }) }, text("h2", words.titleAfter)], { gap: "m", wrap: true, justify: "center" }),
-              ),
-              centred(text("body", words.lead, { tone: "secondary", align: "center" })),
-              { tag: "xwui-container", config: { maxWidth: 860, center: true, width: "100%" }, slots: { children: stack([prompt, pills], { gap: "l" }) } },
-              glass({ tag: "xwui-composer", key: "assistant-preview", data: { tree: preview(draft, false) } }, { pad: "m" }),
-              starters(home),
-              stack([recommendedHead, { tag: "xwui-composer", key: "assistant-recommended", data: { tree: recommended(home, ask) } }], { gap: "m" }),
-            ],
-            { gap: "xl", align: "stretch" },
+          children: behind(
+            [shape("halo", "violet", 460, { left: "30%", top: "60px" }), shape("halo", "cyan", 300, { right: "6%", top: "-40px" })],
+            stack(
+              [
+                centred(core),
+                centred(
+                  row([text("h2", words.titleBefore), { ...text("h2", words.titleHighlight, { tone: "gradient" }) }, text("h2", words.titleAfter)], { gap: "m", wrap: true, justify: "center" }),
+                ),
+                centred(text("body", words.lead, { tone: "secondary", align: "center" })),
+                { tag: "xwui-container", config: { maxWidth: 860, center: true, width: "100%" }, slots: { children: stack([prompt, pills], { gap: "l" }) } },
+                glass({ tag: "xwui-composer", key: "assistant-preview", data: { tree: preview(draft, false) } }, { pad: "m" }),
+                starters(home),
+                stack([recommendedHead, { tag: "xwui-composer", key: "assistant-recommended", data: { tree: recommended(home, ask) } }], { gap: "m" }),
+              ],
+              { gap: "xl", align: "stretch" },
+            ),
           ),
         },
       },

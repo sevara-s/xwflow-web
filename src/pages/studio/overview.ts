@@ -6,7 +6,7 @@ import type { PageResult } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { AttentionItem, Overview } from "../../types/domain";
 import { toneOf } from "../../ui/flow";
-import { button, glass, grid, iconTile, row, shape, space, stack, status, text, type Hue, type Node } from "../../ui/kit";
+import { behind, button, glass, grid, iconTile, row, shape, space, stack, status, text, type Hue, type Node } from "../../ui/kit";
 
 const words = catalog.workspace.overview;
 
@@ -110,23 +110,27 @@ export async function view(): Promise<PageResult> {
         tag: "xwui-box",
         config: { surface: "glass", padding: space("xxl"), overflow: "clip" },
         slots: {
-          children: stack(
+          children: behind(
             [
               shape("halo", "violet", 380, { right: "-80px", top: "-140px" }),
               shape("halo", "lime", 240, { left: "-60px", bottom: "-120px" }),
               shape("orb", "violet", 72, { right: "48px", top: "36px" }),
-              text("h2", greeting(overview.you.name)),
-              text("lead", `${fill(words.today, { runs: overview.today.runs, failed: overview.today.failed, running: overview.today.running })} ${words.lead}`),
-              row(
-                [
-                  button("primary", words.actions.create, { icon: "sparkles", onClick: () => navigate(paths.studio) }),
-                  button("glass", words.actions.templates, { icon: "layers", onClick: () => navigate(paths.templates) }),
-                  button("ghost", words.actions.runs, { iconAfter: true, icon: "arrow-right", onClick: () => navigate(paths.runs) }),
-                ],
-                { gap: "m", wrap: true },
-              ),
             ],
-            { gap: "l" },
+            stack(
+              [
+                text("h2", greeting(overview.you.name)),
+                text("lead", `${fill(words.today, { runs: overview.today.runs, failed: overview.today.failed, running: overview.today.running })} ${words.lead}`),
+                row(
+                  [
+                    button("primary", words.actions.create, { icon: "sparkles", onClick: () => navigate(paths.studio) }),
+                    button("glass", words.actions.templates, { icon: "layers", onClick: () => navigate(paths.templates) }),
+                    button("ghost", words.actions.runs, { iconAfter: true, icon: "arrow-right", onClick: () => navigate(paths.runs) }),
+                  ],
+                  { gap: "m", wrap: true },
+                ),
+              ],
+              { gap: "l" },
+            ),
           ),
         },
       },

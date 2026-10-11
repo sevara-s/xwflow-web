@@ -5,7 +5,7 @@ import { href, paths } from "../../app/router";
 import { adminBar } from "../../app/shells/admin-view";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
-import { button, centred, glass, grid, measure, row, shape, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { behind, button, centred, glass, grid, measure, row, shape, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIButton } from "../../xwui";
 
 const words = catalog.admin.denied;
@@ -72,9 +72,9 @@ export async function view(context: ViewContext): Promise<PageResult> {
         // The halos may spill past the page edge; clip them rather than scroll sideways.
         config: { position: "relative", overflow: "clip" },
         slots: {
-          children: stack(
-            [shape("halo", "violet", 420, { left: "10%", top: "-40px" }), shape("halo", "pink", 360, { right: "8%", top: "120px" }), centred(lock), measure(panel, 760)],
-            { gap: "xxl" },
+          children: behind(
+            [shape("halo", "violet", 420, { left: "10%", top: "-40px" }), shape("halo", "pink", 360, { right: "8%", top: "120px" })],
+            stack([centred(lock), measure(panel, 760)], { gap: "xxl" }),
           ),
         },
       },

@@ -239,6 +239,14 @@ export function shape(kind: "orb" | "ring" | "cube" | "halo", hue: Hue, size: nu
   return { tag: "xwui-glow-shape", data: { kind }, config: { hue, size, thickness, ...place } };
 }
 
+/**
+ * Decorative shapes behind a box's content. They sit beside the content, not in
+ * its stack, so they take no gap and push nothing down (a box takes a list).
+ */
+export function behind(shapes: Node[], content: Node): Node[] {
+  return [...shapes, content];
+}
+
 export function keys(value: string[], size: "sm" | "md" = "md"): Node {
   return { tag: "xwui-kbd", data: { keys: value }, config: { size } };
 }

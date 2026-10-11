@@ -8,7 +8,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { FlowTemplate, TemplateList } from "../../types/domain";
 import { hueOf } from "../../ui/flow";
-import { button, glass, grid, iconTile, row, shape, stack, tag, text, type Node } from "../../ui/kit";
+import { behind, button, glass, grid, iconTile, row, shape, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUIInputText } from "../../xwui";
 
 type TemplatesRoute = Extract<Route, { page: "templates" }>;
@@ -153,14 +153,9 @@ export async function view(
         tag: "xwui-box",
         config: { position: "relative" },
         slots: {
-          children: stack(
-            [
-              shape("ring", "violet", 160, { right: "2%", top: "-70px" }, 3),
-              shape("cube", "lime", 64, { right: "14%", top: "-24px" }),
-              text("h2", words.title),
-              text("lead", words.lead),
-            ],
-            { gap: "m" },
+          children: behind(
+            [shape("ring", "violet", 160, { right: "2%", top: "-70px" }, 3), shape("cube", "lime", 64, { right: "14%", top: "-24px" })],
+            stack([text("h2", words.title), text("lead", words.lead)], { gap: "m" }),
           ),
         },
       },

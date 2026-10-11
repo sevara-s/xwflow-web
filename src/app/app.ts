@@ -3,10 +3,10 @@ import { catalog } from "../content/catalog";
 import type { AdminContext, Workspace } from "../types/domain";
 import type { Node } from "../ui/kit";
 import { XWUIComposer, type XWUIToast } from "../xwui";
-import { mountToaster } from "./notify";
+import { mountToaster, notify } from "./notify";
 import { href, parseLocation, paths, type Route } from "./router";
 import { adminSelection, adminShell } from "./shells/admin-view";
-import { currentNav, siteShell } from "./shells/site-view";
+import { currentNav, LANGUAGE_LINK, siteShell } from "./shells/site-view";
 import { appBarData, appPage, railSelection, studioShell } from "./shells/studio-view";
 import type { PageBar, PageResult, PageView, ViewContext } from "./view";
 
@@ -168,7 +168,20 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
     }
   };
 
-  window.addEventListener("hashchange", () => void show());
+  // The language link is not a page: it says the Arabic interface comes next and
+  // leaves the address on the page the visitor was reading.
+  let lastPage = window.location.hash === LANGUAGE_LINK ? href(paths.home) : window.location.hash;
+  const onAddress = (): void => {
+    if (window.location.hash === LANGUAGE_LINK) {
+      window.history.replaceState(null, "", lastPage || href(paths.home));
+      notify(catalog.site.footer.languageSoon, "info");
+      return;
+    }
+    lastPage = window.location.hash;
+    void show();
+  };
+  window.addEventListener("hashchange", onAddress);
+  if (window.location.hash === LANGUAGE_LINK) window.history.replaceState(null, "", lastPage);
   await show();
   preloadPages();
 }

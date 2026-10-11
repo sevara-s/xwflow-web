@@ -15,6 +15,9 @@ export function currentNav(route: Route): string {
 }
 
 /** The website frame: XWUIBarSiteHeader, the page, XWUIBarSiteFooter and the wordmark. */
+/** The header's language link. It opens no page: the app answers it with a notice (see app.ts). */
+export const LANGUAGE_LINK = "#language";
+
 export function siteShell(route: Route, page: Node[]): Node[] {
   const header: Node = {
     tag: "xwui-bar-site-header",
@@ -40,7 +43,7 @@ export function siteShell(route: Route, page: Node[]): Node[] {
       actions: [
         {
           label: words.nav.language,
-          href: "#language",
+          href: LANGUAGE_LINK,
           variant: "ghost",
           collapsePriority: 3,
         },

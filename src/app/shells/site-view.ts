@@ -8,7 +8,9 @@ const words = catalog.site;
 function currentNav(route: Route): string {
   if (route.zone !== "site") return "";
   const page = route.page === "landing" ? "landing" : route.page;
-  const match = words.nav.links.find((link) => link.target === page && !link.section);
+  const match = words.nav.links.find(
+    (link) => link.target === page && !link.section,
+  );
   return match ? siteHref(match.target, match.section) : "";
 }
 
@@ -21,18 +23,49 @@ export function siteShell(route: Route, page: Node[]): Node[] {
       brand: {
         href: href(paths.home),
         title: catalog.brand,
-        logo: { svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg", logoConfig: "logo-title", title: catalog.brand, size: "xs", layout: "h" },
+        logo: {
+          svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg",
+          logoConfig: "logo-title",
+          title: catalog.brand,
+          size: "xs",
+          layout: "h",
+        },
       },
       // With routeLinks "hash", XWUI adds the "#" itself and matches currentPath against bare paths.
-      links: words.nav.links.map((link) => ({ path: siteHref(link.target, link.section).slice(1), label: link.label })),
+      links: words.nav.links.map((link) => ({
+        path: siteHref(link.target, link.section).slice(1),
+        label: link.label,
+      })),
       currentPath: currentNav(route).slice(1),
       actions: [
-        { label: words.nav.language, href: "#language", variant: "ghost", collapsePriority: 3 },
-        { label: words.nav.signIn, href: href(paths.studio), variant: "ghost", collapsePriority: 2 },
-        { label: words.nav.start, href: href(paths.flows), variant: "primary", collapsePriority: 1 },
+        {
+          label: words.nav.language,
+          href: "#language",
+          variant: "ghost",
+          collapsePriority: 3,
+        },
+        {
+          label: words.nav.signIn,
+          href: href(paths.studio),
+          variant: "ghost",
+          collapsePriority: 2,
+        },
+        {
+          label: words.nav.start,
+          href: href(paths.flows),
+          variant: "primary",
+          collapsePriority: 1,
+        },
       ],
     },
-    config: { position: "static", floating: true, routeLinks: "hash", autoSyncRoute: false, ariaLabel: words.nav.label, mobileBreakpoint: 980 },
+    config: {
+      position: "sticky",
+      floating: true,
+      routeLinks: "hash",
+      autoSyncRoute: false,
+      ariaLabel: words.nav.label,
+      mobileBreakpoint: 980,
+    },
   };
 
   const footer: Node = {
@@ -41,7 +74,10 @@ export function siteShell(route: Route, page: Node[]): Node[] {
       brand: { href: href(paths.home), description: words.footer.tagline },
       columns: words.footer.columns.map((group) => ({
         title: group.title,
-        links: group.links.map((link) => ({ label: link.label, href: siteHref(link.target, link.section) })),
+        links: group.links.map((link) => ({
+          label: link.label,
+          href: siteHref(link.target, link.section),
+        })),
       })),
       bottom: { left: "", right: "" },
     },
@@ -57,13 +93,17 @@ export function siteShell(route: Route, page: Node[]): Node[] {
     lineHeight: 0.85,
     letterSpacing: "-0.06em",
     color: "gradient",
-    gradient: "linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0))",
+    gradient:
+      "linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0))",
   };
 
   const legal = row(
     [
       text("small", words.footer.license, { tone: "tertiary" }),
-      row([text("small", words.footer.source, { tone: "tertiary" }), tag(words.footer.sourcePlaceholder, "lime")]),
+      row([
+        text("small", words.footer.source, { tone: "tertiary" }),
+        tag(words.footer.sourcePlaceholder, "lime"),
+      ]),
     ],
     { justify: "space-between", wrap: true },
   );
@@ -75,19 +115,37 @@ export function siteShell(route: Route, page: Node[]): Node[] {
       tag: "xwui-box",
       config: { position: "relative", overflow: "clip" },
       slots: {
-        children: stack(
-          [
-            column(header),
-            ...page,
-            column(
-      stack(
-        [footer, row(words.footer.tags.map((item) => tag(item.label, item.color === "plain" ? undefined : (item.color as "lime")))), wordmark, legal],
-        { gap: 24 },
-      ),
-    ),
-          ],
-          { gap: 0 },
-        ),
+        // The header is a direct child of the page box (not inside the stack),
+        // so it stays at the top while the whole page scrolls under it.
+        children: [
+          header,
+          stack(
+            [
+              ...page,
+              column(
+                stack(
+                  [
+                    footer,
+                    row(
+                      words.footer.tags.map((item) =>
+                        tag(
+                          item.label,
+                          item.color === "plain"
+                            ? undefined
+                            : (item.color as "lime"),
+                        ),
+                      ),
+                    ),
+                    wordmark,
+                    legal,
+                  ],
+                  { gap: 24 },
+                ),
+              ),
+            ],
+            { gap: 0 },
+          ),
+        ],
       },
     },
   ];

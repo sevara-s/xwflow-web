@@ -140,7 +140,9 @@ export async function view(context: ViewContext): Promise<PageResult> {
             {
               tag: "xwui-input-color",
               data: { value: draft.primary },
-              config: { presets: kit.swatches, pickerPresetLayout: "circles", ariaLabel: words.primaryHex },
+              // The published picker names its field by the placeholder and ignores ariaLabel
+              // (README, known issues); the field always holds a colour, so the placeholder is never shown.
+              config: { presets: kit.swatches, pickerPresetLayout: "circles", ariaLabel: words.primaryHex, placeholder: words.primaryHex },
               ref: (instance) =>
                 (instance as Changeable<string>).onChange((value) => {
                   const hex = value.trim().toLowerCase();

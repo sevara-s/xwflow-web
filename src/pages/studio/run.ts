@@ -106,7 +106,8 @@ function timeline(run: RunDetail): Node {
     stack(
       [
         row([text("h3", words.timeline), row([text("xs", formatMs(0), { tone: "tertiary" }), text("xs", formatMs(end), { tone: "tertiary" })], { gap: "m" })], { justify: "space-between" }),
-        { tag: "xwui-run-waterfall", data: { rows, label: words.timeline } },
+        // On a phone the track is too narrow for a caption beside its bar, so captions get their own column.
+        { tag: "xwui-run-waterfall", data: { rows, label: words.timeline }, config: { layout: window.matchMedia("(max-width: 640px)").matches ? "columns" : "track" } },
       ],
       { gap: "l" },
     ),
@@ -243,8 +244,8 @@ export async function view(context: ViewContext<RunRoute>): Promise<PageResult> 
         timeline(run),
         {
           tag: "xwui-grid",
-          data: { spans: [2, 1] },
-          config: { columns: 3, gap: space("xl"), alignItems: "start" },
+          // One column on a phone; minmax(0, ...) lets the ledger scroll inside its panel instead of widening the page.
+          config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 2fr) minmax(0, 1fr)" } } },
           slots: {
             children: [
               stack([text("h3", words.ledger), glass(ledger(run, pick), { pad: "none", scroll: true })], { gap: "m" }),

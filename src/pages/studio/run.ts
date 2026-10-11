@@ -1,181 +1,90 @@
 import { api } from "../../api/client";
-import { el, slot } from "../../app/dom";
 import { fill, formatDate, formatMs, formatStampLong } from "../../app/format";
-import type { Tracker } from "../../app/mount";
 import { errorMessage, notify } from "../../app/notify";
-import type { PageContext } from "../../app/page";
 import { href, navigate, paths, replaceQuery, type Route } from "../../app/router";
 import { resultView, runModeTag, runStatusView } from "../../app/status";
-import { XWFlowGauge } from "../../components/XWFlowGauge/XWFlowGauge";
-import { XWFlowShape } from "../../components/XWFlowShape/XWFlowShape";
-import { XWFlowStatus } from "../../components/XWFlowStatus/XWFlowStatus";
-import { XWFlowWaterfall } from "../../components/XWFlowWaterfall/XWFlowWaterfall";
-import type { WaterfallRow } from "../../components/XWFlowWaterfall/XWFlowWaterfall.types";
+import type { PageResult, ViewContext } from "../../app/view";
 import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Attempt, RunDetail } from "../../types/domain";
-import { XWUIButton, XWUICodeBlock, XWUINavTabs, XWUITable } from "../../xwui";
-import { glass, heading, mountAppBar, mountTag, projectCrumb } from "./common";
-import "./run.css";
+import { hueOf, toneOf } from "../../ui/flow";
+import { button, cell, glass, row, shape, stack, status, tag, text, type Hue, type Node } from "../../ui/kit";
+import type { XWUIComposer } from "../../xwui";
 
 type RunRoute = Extract<Route, { page: "run" }>;
-type Owned = { destroy(): void };
 
 const words = catalog.studio.receipt;
-
-export async function render(context: PageContext<RunRoute>): Promise<void> {
-  const { route, scope, body } = context;
-  let run = await api.getRun(route.runId);
-
-  const bar = mountAppBar(context, [projectCrumb(context), { label: catalog.studio.runs.title, href: href(paths.runs) }, { label: run.flowName }], {
-    meta: run.id,
-    sample: null,
-  });
-  const actions = bar.actions;
-  const compare = scope.track(new XWUIButton(slot(actions), { text: words.compare }, { variant: "ghost", size: "sm", className: "xwflow-btn-glass" }));
-  compare.onClick(() => navigate(paths.runs, { q: run.flowName, range: "all" }));
-  const exporter = scope.track(new XWUIButton(slot(actions), { text: words.export }, { variant: "ghost", size: "sm", className: "xwflow-btn-glass" }));
-  exporter.onClick(async () => {
-    try {
-      await navigator.clipboard.writeText(JSON.stringify(run, null, 2));
-      notify(words.exported, "success");
-    } catch (error) {
-      notify(errorMessage(error), "danger");
-    }
-  });
-  const canvas = scope.track(new XWUIButton(slot(actions), { text: words.showOnCanvas }, { variant: "ghost", size: "sm", className: "xwflow-btn-gradient" }));
-  canvas.onClick(() => navigate(paths.flow(run.flowId), { node: selectedAttempt()?.nodeId }));
-
-  const sections = el("div", "xwflow-stack xwflow-gap-24");
-  body.append(sections);
-  let owned: Owned[] = [];
-  const tracker: Tracker = { track: (item) => (owned.push(item), item) };
-  scope.track({ destroy: () => owned.splice(0).forEach((item) => item.destroy()) });
-
-  let selectedId = route.attempt ?? defaultAttempt(run)?.id ?? null;
-  function selectedAttempt(): Attempt | undefined {
-    return run.attempts.find((item) => item.id === selectedId) ?? run.attempts[0];
-  }
-
-  const draw = (): void => {
-    owned.splice(0).forEach((item) => item.destroy());
-    sections.replaceChildren();
-    renderHero(sections, tracker, run);
-    renderProblem(sections, run);
-    renderTimeline(sections, tracker, run);
-
-    const split = el("div", "xwflow-receipt__split");
-    sections.append(split);
-    const ledger = el("section", "xwflow-stack xwflow-gap-12 xwflow-receipt__ledger");
-    ledger.setAttribute("aria-label", words.ledger);
-    split.append(ledger);
-    heading(ledger, 2, "h3", words.ledger);
-    const tableHost = slot(ledger, "xwflow-table");
-    const detail = glass(split, { pad: "m", border: "gradient", className: "xwflow-stack xwflow-gap-16 xwflow-receipt__detail", label: words.detailLabel });
-
-    const table = mountLedger(tableHost, tracker, run);
-    const markRow = (): void => {
-      const index = run.attempts.findIndex((item) => item.id === selectedAttempt()?.id);
-      tableHost.querySelectorAll("tbody tr").forEach((row, rowIndex) => row.classList.toggle("is-selected", rowIndex === index));
-    };
-    markRow();
-    let detailOwned: Owned[] = [];
-    owned.push({ destroy: () => detailOwned.splice(0).forEach((item) => item.destroy()) });
-    const drawDetail = (): void => {
-      detailOwned.splice(0).forEach((item) => item.destroy());
-      detail.replaceChildren();
-      const attempt = selectedAttempt();
-      if (attempt) renderDetail(detail, { track: (item) => (detailOwned.push(item), item) }, run, attempt);
-    };
-    drawDetail();
-    table.onRowClick<Attempt>((record) => {
-      selectedId = record.id;
-      replaceQuery(paths.run(run.id), { attempt: record.id });
-      markRow();
-      drawDetail();
-    });
-  };
-
-  draw();
-
-  if (run.status === "running") {
-    sections.prepend(el("div", "xwflow-band xwflow-small", words.running));
-    const timer = setInterval(async () => {
-      try {
-        run = await api.getRun(run.id);
-        if (run.status !== "running") {
-          clearInterval(timer);
-          selectedId = defaultAttempt(run)?.id ?? null;
-        }
-        draw();
-      } catch {
-        clearInterval(timer);
-      }
-    }, config.pollMs);
-    scope.track({ destroy: () => clearInterval(timer) });
-  }
-}
 
 /** The receipt opens on the first failure, or the first step. */
 function defaultAttempt(run: RunDetail): Attempt | undefined {
   return run.attempts.find((item) => item.result.kind === "failed") ?? run.attempts[0];
 }
 
-function renderHero(parent: HTMLElement, scope: Tracker, run: RunDetail): void {
-  const hero = glass(parent, { className: "xwflow-receipt__hero xwflow-clip" });
-  scope.track(new XWFlowShape(slot(hero), { kind: "halo" }, { size: 260, color: run.status === "failed" ? "pink" : "lime", place: { left: "-40px", top: "-60px" } }));
-  scope.track(
-    new XWFlowGauge(
-      slot(hero),
-      {
-        value: run.recordedSteps,
-        total: run.stepCount,
-        caption: words.recorded,
-        label: fill(words.gauge, { n: run.recordedSteps, total: run.stepCount }),
-      },
-      { tone: run.status === "failed" ? "red" : run.status === "running" ? "cyan" : "green" },
-    ),
-  );
-  const text = el("div", "xwflow-stack xwflow-gap-8 xwflow-receipt__title");
-  hero.append(text);
-  scope.track(new XWFlowStatus(slot(text), runStatusView(run.status), { className: "xwflow-status--lg" }));
-  heading(text, 1, "h2", fill(words.title, { flow: run.flowName, n: run.number }));
-  const tags = el("div", "xwflow-wrap xwflow-gap-8");
-  text.append(tags);
-  mountTag(slot(tags), scope, runModeTag(run.mode, true));
-  mountTag(slot(tags), scope, { label: formatStampLong(run.startedAt), color: "plain" });
+function hero(run: RunDetail): Node {
+  const tone = run.status === "failed" ? "red" : run.status === "running" ? "cyan" : "green";
+  const color = `var(--xwui-hue-${tone})`;
+  const view = runStatusView(run.status);
+  const mode = runModeTag(run.mode, true);
   const recorded = run.attempts.reduce((sum, item) => sum + (item.durationMs ?? 0), 0);
-  mountTag(slot(tags), scope, { label: fill(words.recordedMs, { ms: formatMs(recorded) }), color: "plain" });
-  mountTag(slot(tags), scope, { label: words.sample, color: "plan" });
+  return {
+    tag: "xwui-box",
+    config: { surface: "glass", padding: 28, overflow: "clip" },
+    slots: {
+      children: stack(
+        [
+          shape("halo", run.status === "failed" ? "pink" : "lime", 260, { left: "-40px", top: "-60px" }),
+          row(
+            [
+              stack(
+                [
+                  {
+                    tag: "xwui-progress-circle",
+                    data: { value: run.stepCount ? Math.round((run.recordedSteps / run.stepCount) * 100) : 0, label: fill(words.gauge, { n: run.recordedSteps, total: run.stepCount }) },
+                    config: { size: 116, strokeWidth: 10, showValue: false, valueColor: color },
+                  },
+                  text("small", `${run.recordedSteps}/${run.stepCount} ${words.recorded}`, { bold: true, align: "center" }),
+                ],
+                { gap: 6, align: "center" },
+              ),
+              stack(
+                [
+                  { tag: "xwui-status-glyph", data: { tone: toneOf[view.tone], label: view.label }, config: { size: "lg" } },
+                  text("h2", fill(words.title, { flow: run.flowName, n: run.number })),
+                  row(
+                    [
+                      tag(mode.label, mode.color === "plain" ? undefined : (mode.color as Hue)),
+                      tag(formatStampLong(run.startedAt)),
+                      tag(fill(words.recordedMs, { ms: formatMs(recorded) })),
+                      tag(words.sample, "plan"),
+                    ],
+                    { wrap: true },
+                  ),
+                ],
+                { gap: 8 },
+              ),
+            ],
+            { gap: 28, wrap: true },
+          ),
+        ],
+        { gap: 0 },
+      ),
+    },
+  };
 }
 
-function renderProblem(parent: HTMLElement, run: RunDetail): void {
-  const problem = run.problem;
-  if (!problem) return;
-  const band = el("div", "xwflow-band");
-  band.dataset.tone = "err";
-  band.setAttribute("role", "status");
-  let text = fill(words.problem, { step: problem.step, try: problem.tryIndex, tries: problem.tryCount, code: problem.code });
-  if (problem.recovered) text += fill(words.recovered, { next: problem.tryIndex + 1 });
-  const [before, after] = text.split(problem.step);
-  const line = el("div");
-  line.append(before, el("b", undefined, problem.step), after);
-  band.append(line);
-  parent.append(band);
+function problem(run: RunDetail): Node[] {
+  const issue = run.problem;
+  if (!issue) return [];
+  let message = fill(words.problem, { step: issue.step, try: issue.tryIndex, tries: issue.tryCount, code: issue.code });
+  if (issue.recovered) message += fill(words.recovered, { next: issue.tryIndex + 1 });
+  return [{ tag: "xwui-alert", data: { message }, config: { variant: "error" } }];
 }
 
-function renderTimeline(parent: HTMLElement, scope: Tracker, run: RunDetail): void {
-  const panel = glass(parent, { pad: "m", className: "xwflow-stack xwflow-gap-16", label: words.timeline });
-  const head = el("div", "xwflow-row xwflow-gap-8");
-  panel.append(head);
-  heading(head, 2, "h3", words.timeline);
+function timeline(run: RunDetail): Node {
   const end = run.attempts.reduce((max, item) => Math.max(max, (item.offsetMs ?? 0) + (item.durationMs ?? 0)), 0);
-  head.append(el("span", "xwflow-xs xwflow-ter xwflow-push", formatMs(0)), el("span", "xwflow-xs xwflow-ter", formatMs(end)));
-
   const sameStep = (attempt: Attempt) => run.attempts.filter((item) => item.nodeId === attempt.nodeId).length > 1;
-  const rows: WaterfallRow[] = run.attempts.map((attempt) => {
+  const rows = run.attempts.map((attempt) => {
     const kind = attempt.result.kind;
-    const label = sameStep(attempt) && attempt.tryIndex ? `${attempt.step}, ${attempt.tryIndex}` : attempt.step;
     let caption = attempt.durationMs !== null ? formatMs(attempt.durationMs) : "";
     if (kind === "failed") caption = `${caption}, ${attempt.result.code}`;
     if (kind === "pinned") caption = words.timelineEdge.pinned;
@@ -184,120 +93,209 @@ function renderTimeline(parent: HTMLElement, scope: Tracker, run: RunDetail): vo
     const timed = kind !== "disabled" && kind !== "notRun";
     return {
       id: attempt.id,
-      label,
+      label: sameStep(attempt) && attempt.tryIndex ? `${attempt.step}, ${attempt.tryIndex}` : attempt.step,
       startMs: timed ? attempt.offsetMs ?? 0 : null,
       durationMs: timed ? attempt.durationMs ?? 0 : null,
       caption,
-      group: attempt.group,
+      hue: attempt.group === "integration" ? "gradient" : hueOf[attempt.group],
       failed: kind === "failed",
       muted: !timed,
     };
   });
-  scope.track(new XWFlowWaterfall(slot(panel), { rows, label: words.timeline }));
+  return glass(
+    stack(
+      [
+        row([text("h3", words.timeline), row([text("xs", formatMs(0), { tone: "tertiary" }), text("xs", formatMs(end), { tone: "tertiary" })], { gap: 12 })], { justify: "space-between" }),
+        { tag: "xwui-run-waterfall", data: { rows, label: words.timeline } },
+      ],
+      { gap: 16 },
+    ),
+    { pad: "m" },
+  );
 }
 
-function mountLedger(host: HTMLElement, scope: Tracker, run: RunDetail): XWUITable {
+function ledger(run: RunDetail, onPick: (attempt: Attempt) => void): Node {
   const columns = words.columns;
-  const table = scope.track(
-    new XWUITable(
-      host,
-      {
-        columns: [
-          { key: "index", title: columns.index, render: (_: unknown, __: Attempt, index: number) => el("span", "xwflow-mono xwflow-ter", String(index + 1)) },
-          { key: "step", title: columns.step, render: (_: unknown, attempt: Attempt) => el("b", undefined, attempt.step) },
-          {
-            key: "try",
-            title: columns.try,
-            render: (_: unknown, attempt: Attempt) =>
-              el(
-                "span",
-                undefined,
+  return {
+    tag: "xwui-table",
+    data: {
+      columns: [
+        { key: "index", title: columns.index, render: (_: unknown, __: Attempt, index: number) => cell(text("small", String(index + 1), { mono: true, tone: "tertiary" })) },
+        { key: "step", title: columns.step, render: (_: unknown, attempt: Attempt) => cell(text("small", attempt.step, { bold: true })) },
+        {
+          key: "try",
+          title: columns.try,
+          render: (_: unknown, attempt: Attempt) =>
+            cell(
+              text(
+                "small",
                 attempt.tryIndex === null
                   ? words.tryNone
                   : attempt.tryCount && attempt.tryCount > 1
                     ? fill(words.tryOf, { n: attempt.tryIndex, total: attempt.tryCount })
                     : String(attempt.tryIndex),
               ),
+            ),
+        },
+        {
+          key: "result",
+          title: columns.result,
+          render: (_: unknown, attempt: Attempt) => {
+            const view = resultView(attempt.result);
+            return cell(status(toneOf[view.tone], view.label));
           },
-          {
-            key: "result",
-            title: columns.result,
-            render: (_: unknown, attempt: Attempt) => {
-              const box = el("div");
-              scope.track(new XWFlowStatus(box, resultView(attempt.result)));
-              return box;
-            },
-          },
-          { key: "payload", title: columns.payload, render: (_: unknown, attempt: Attempt) => el("span", undefined, words.payload[attempt.payload]) },
-          {
-            key: "durationMs",
-            title: columns.time,
-            align: "end",
-            render: (_: unknown, attempt: Attempt) =>
+        },
+        { key: "payload", title: columns.payload, render: (_: unknown, attempt: Attempt) => cell(text("small", words.payload[attempt.payload])) },
+        {
+          key: "durationMs",
+          title: columns.time,
+          align: "end",
+          render: (_: unknown, attempt: Attempt) =>
+            cell(
               attempt.durationMs === null
-                ? el("span", "xwflow-mono xwflow-ter", catalog.studio.flows.notRecorded)
-                : el("span", "xwflow-mono", formatMs(attempt.durationMs)),
-          },
-        ],
-        data: run.attempts.map((attempt) => ({ ...attempt, key: attempt.id })),
-      },
-      { hoverable: true, bordered: false, rowClickable: true, ariaLabel: words.ledgerLabel },
-    ),
-  );
-  return table;
+                ? text("small", catalog.studio.flows.notRecorded, { mono: true, tone: "tertiary" })
+                : text("small", formatMs(attempt.durationMs), { mono: true }),
+            ),
+        },
+      ],
+      data: run.attempts.map((attempt) => ({ ...attempt, key: attempt.id })),
+    },
+    config: { hoverable: true, bordered: false, rowClickable: true, ariaLabel: words.ledgerLabel },
+    ref: (instance) => (instance as { onRowClick(handler: (record: Attempt) => void): void }).onRowClick((record) => onPick(record)),
+  };
 }
 
-function renderDetail(panel: HTMLElement, scope: Tracker, run: RunDetail, attempt: Attempt): void {
-  const head = el("div", "xwflow-row xwflow-gap-8 xwflow-wrap");
-  panel.append(head);
-  heading(head, 2, "h3", attempt.step);
-  if (attempt.tryIndex !== null && attempt.tryCount !== null) {
-    const tone = attempt.result.kind === "failed" ? "red" : "plain";
-    mountTag(slot(head), scope, { label: fill(words.tryTag, { n: attempt.tryIndex, total: attempt.tryCount }), color: tone });
+function payloadNode(attempt: Attempt, tab: string): Node {
+  const payload = tab === "input" ? attempt.io.input : tab === "output" ? attempt.io.output : attempt.io.error;
+  if (tab === "error" && !payload) return text("small", words.noError, { tone: "secondary" });
+  return { tag: "xwui-code-block", data: { code: JSON.stringify(payload ?? {}, null, 2) }, config: { language: "json", copyable: true, showLineNumbers: false } };
+}
+
+function detail(run: RunDetail, attempt: Attempt, context: ViewContext): Node {
+  const initial = attempt.result.kind === "failed" ? "input" : "output";
+  return stack(
+    [
+      row(
+        [
+          text("h3", attempt.step),
+          ...(attempt.tryIndex !== null && attempt.tryCount !== null
+            ? [tag(fill(words.tryTag, { n: attempt.tryIndex, total: attempt.tryCount }), attempt.result.kind === "failed" ? "red" : undefined)]
+            : []),
+        ],
+        { wrap: true },
+      ),
+      {
+        tag: "xwui-tabs",
+        data: { tabs: words.detailTabs.map((item) => ({ ...item })), activeTab: initial },
+        config: { variant: "button", size: "sm", hideContent: "true" },
+        ref: (instance) =>
+          (instance as { onChange(handler: (id: string) => void): void }).onChange((id) => context.instance<XWUIComposer>("receipt-payload")?.setTree(payloadNode(attempt, id))),
+      },
+      row([tag(words.stored, "lime"), text("xs", fill(words.kept, { days: run.retentionDays, date: formatDate(run.expiresAt) }), { tone: "secondary" })], { wrap: true }),
+      { tag: "xwui-composer", key: "receipt-payload", data: { tree: payloadNode(attempt, initial) } },
+      text("xs", words.credentialsNote, { tone: "secondary" }),
+      row(
+        [
+          button("primary", words.retryFrom, {
+            size: "sm",
+            onClick: async () => {
+              try {
+                const next = await api.startRun(run.flowId, "retry");
+                notify(fill(words.retryStarted, { step: attempt.step }), "success");
+                navigate(paths.run(next.id));
+              } catch (error) {
+                notify(errorMessage(error), "danger");
+              }
+            },
+          }),
+          button("glass", words.openStep, { size: "sm", onClick: () => navigate(paths.flow(run.flowId), { node: attempt.nodeId }) }),
+        ],
+        { wrap: true },
+      ),
+    ],
+    { gap: 16 },
+  );
+}
+
+export async function view(context: ViewContext<RunRoute>): Promise<PageResult> {
+  const { route, workspace } = context;
+  let run = await api.getRun(route.runId);
+  let selectedId = route.attempt ?? defaultAttempt(run)?.id ?? null;
+  const selected = (): Attempt | undefined => run.attempts.find((item) => item.id === selectedId) ?? run.attempts[0];
+
+  const showDetail = (): void => {
+    const attempt = selected();
+    if (attempt) context.instance<XWUIComposer>("receipt-detail")?.setTree(detail(run, attempt, context));
+  };
+  const pick = (attempt: Attempt): void => {
+    selectedId = attempt.id;
+    replaceQuery(paths.run(run.id), { attempt: attempt.id });
+    showDetail();
+  };
+
+  const page = (): Node => {
+    const attempt = selected();
+    return stack(
+      [
+        ...(run.status === "running" ? [{ tag: "xwui-alert", data: { message: words.running }, config: { variant: "info" } }] : []),
+        hero(run),
+        ...problem(run),
+        timeline(run),
+        {
+          tag: "xwui-grid",
+          data: { spans: [2, 1] },
+          config: { columns: 3, gap: "24px", alignItems: "start" },
+          slots: {
+            children: [
+              stack([text("h3", words.ledger), glass(ledger(run, pick), { pad: "none", scroll: true })], { gap: 12 }),
+              glass({ tag: "xwui-composer", key: "receipt-detail", data: { tree: attempt ? detail(run, attempt, context) : stack([], { gap: 0 }) } }, { pad: "m", gradientBorder: true }),
+            ],
+          },
+        },
+      ],
+      { gap: 24 },
+    );
+  };
+
+  if (run.status === "running") {
+    const timer = setInterval(async () => {
+      try {
+        run = await api.getRun(run.id);
+        if (run.status !== "running") {
+          clearInterval(timer);
+          selectedId = defaultAttempt(run)?.id ?? null;
+        }
+        context.instance<XWUIComposer>("receipt-page")?.setTree(page());
+      } catch {
+        clearInterval(timer);
+      }
+    }, config.pollMs);
+    context.onLeave(() => clearInterval(timer));
   }
 
-  const tabsHost = slot(panel);
-  const stored = el("div", "xwflow-row xwflow-gap-8 xwflow-wrap");
-  panel.append(stored);
-  mountTag(slot(stored), scope, { label: words.stored, color: "lime" });
-  stored.append(el("span", "xwflow-xs xwflow-sec", fill(words.kept, { days: run.retentionDays, date: formatDate(run.expiresAt) })));
-  const codeHost = slot(panel, "xwflow-receipt__code");
-
-  let code: Owned | null = null;
-  const showPayload = (tab: string): void => {
-    code?.destroy();
-    codeHost.replaceChildren();
-    const payload = tab === "input" ? attempt.io.input : tab === "output" ? attempt.io.output : attempt.io.error;
-    if (tab === "error" && !payload) {
-      codeHost.append(el("p", "xwflow-small xwflow-sec", words.noError));
-      code = null;
-      return;
-    }
-    code = new XWUICodeBlock(codeHost, { code: JSON.stringify(payload ?? {}, null, 2) }, { language: "json", copyable: true, showLineNumbers: false });
+  return {
+    bar: {
+      crumbs: [{ label: workspace.project.name, href: href(paths.flows) }, { label: catalog.studio.runs.title, href: href(paths.runs) }, { label: run.flowName }],
+      meta: run.id,
+      sample: null,
+      actions: [
+        button("glass", words.compare, { size: "sm", onClick: () => navigate(paths.runs, { q: run.flowName, range: "all" }) }),
+        button("glass", words.export, {
+          size: "sm",
+          onClick: async () => {
+            try {
+              await navigator.clipboard.writeText(JSON.stringify(run, null, 2));
+              notify(words.exported, "success");
+            } catch (error) {
+              notify(errorMessage(error), "danger");
+            }
+          },
+        }),
+        button("gradient", words.showOnCanvas, { size: "sm", onClick: () => navigate(paths.flow(run.flowId), { node: selected()?.nodeId }) }),
+      ],
+    },
+    body: [{ tag: "xwui-composer", key: "receipt-page", data: { tree: page() } }],
   };
-  scope.track({ destroy: () => code?.destroy() });
-
-  const initial = attempt.result.kind === "failed" ? "input" : "output";
-  tabsHost.classList.add("xwflow-tabs");
-  const tabs = scope.track(
-    new XWUINavTabs(tabsHost, { tabs: words.detailTabs.map((tab) => ({ ...tab })), activeTab: initial }, { variant: "button", size: "sm", hideContent: "true" }),
-  );
-  tabs.onChange((id) => showPayload(id));
-  showPayload(initial);
-
-  panel.append(el("p", "xwflow-xs xwflow-sec", words.credentialsNote));
-  const buttons = el("div", "xwflow-wrap xwflow-gap-8");
-  panel.append(buttons);
-  const retry = scope.track(new XWUIButton(slot(buttons), { text: words.retryFrom }, { variant: "primary", size: "sm" }));
-  retry.onClick(async () => {
-    try {
-      const next = await api.startRun(run.flowId, "retry");
-      notify(fill(words.retryStarted, { step: attempt.step }), "success");
-      navigate(paths.run(next.id));
-    } catch (error) {
-      notify(errorMessage(error), "danger");
-    }
-  });
-  const open = scope.track(new XWUIButton(slot(buttons), { text: words.openStep }, { variant: "ghost", size: "sm", className: "xwflow-btn-glass" }));
-  open.onClick(() => navigate(paths.flow(run.flowId), { node: attempt.nodeId }));
 }
+
+

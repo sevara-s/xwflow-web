@@ -35,9 +35,9 @@ function switchRow(checked: boolean, title: string, detail: string, onChange: (c
   return row(
     [
       { tag: "xwui-switch", data: { checked, label: "" }, config: { size: "sm", ariaLabel: title }, ref: (instance) => (instance as Changeable).onChange(onChange as never) },
-      stack([text("small", title, { bold: true }), text("xs", detail, { tone: "secondary" })], { gap: 2 }),
+      stack([text("small", title, { bold: true }), text("xs", detail, { tone: "secondary" })], { gap: "xs" }),
     ],
-    { gap: 12 },
+    { gap: "m" },
   );
 }
 
@@ -69,11 +69,11 @@ function parameters(step: StepDetail, context: InspectorContext, save: (patch: S
                 : []),
               text("xs", words.valueHidden, { tone: "secondary" }),
             ],
-            { gap: 8, wrap: true },
+            { gap: "s", wrap: true },
           ),
         );
       }
-      return stack(parts, { gap: 6 });
+      return stack(parts, { gap: "s" });
     }
     return stack(
       [
@@ -83,10 +83,10 @@ function parameters(step: StepDetail, context: InspectorContext, save: (patch: S
           config: { fullWidth: true },
           ref: (instance) => (instance as XWUIInputText).onChange(debounce((value: string) => void save({ fields: { [field.id]: value } }), config.searchDebounceMs * 3)),
         },
-        ...(field.expression ? [row([tag(words.expression, "violet"), text("small", field.expression, { mono: true })], { gap: 8, wrap: true })] : []),
-        ...(field.lastResult ? [row([text("xs", words.lastResult, { tone: "secondary" }), text("xs", field.lastResult, { mono: true, tone: "lime" })], { gap: 6 })] : []),
+        ...(field.expression ? [row([tag(words.expression, "violet"), text("small", field.expression, { mono: true })], { gap: "s", wrap: true })] : []),
+        ...(field.lastResult ? [row([text("xs", words.lastResult, { tone: "secondary" }), text("xs", field.lastResult, { mono: true, tone: "lime" })], { gap: "s" })] : []),
       ],
-      { gap: 6 },
+      { gap: "s" },
     );
   });
   return stack(
@@ -100,7 +100,7 @@ function parameters(step: StepDetail, context: InspectorContext, save: (patch: S
           void save({ retry: { enabled: checked, tries: checked ? Math.max(3, step.retry.tries) : 1, delayMs: checked ? Math.max(1000, step.retry.delayMs) : 0 } }),
       ),
     ],
-    { gap: 16 },
+    { gap: "l" },
   );
 }
 
@@ -123,7 +123,7 @@ function settings(node: CanvasNode, context: InspectorContext, save: (patch: Ste
       },
       switchRow(node.state !== "disabled", words.enabled, words.enabledDetail, (checked) => void save({ state: checked ? "normal" : "disabled" })),
     ],
-    { gap: 16 },
+    { gap: "l" },
   );
 }
 
@@ -157,11 +157,11 @@ export function inspector(context: InspectorContext): Node {
       row(
         [
           iconTile(type.icon, hueOf[node.group]),
-          stack([text("h3", node.name), row([text("xs", fill(words.renameHint, { type: type.label }), { tone: "secondary" }), keys(words.renameKeys.split(" "), "sm")], { gap: 6 })], {
-            gap: 4,
+          stack([text("h3", node.name), row([text("xs", fill(words.renameHint, { type: type.label }), { tone: "secondary" }), keys(words.renameKeys.split(" "), "sm")], { gap: "s" })], {
+            gap: "xs",
           }),
         ],
-        { gap: 12 },
+        { gap: "m" },
       ),
       {
         tag: "xwui-tabs",
@@ -179,14 +179,14 @@ export function inspector(context: InspectorContext): Node {
       row(
         [
           row([button("glass", pinned ? words.unpinOutput : words.pinOutput, { size: "sm", key: "inspector-pin", onClick: () => void pinToggle(context) }), keys([words.pinKeys], "sm")], {
-            gap: 6,
+            gap: "s",
           }),
           button("glass", words.executeTo, { size: "sm", onClick: () => context.executeTo(node) }),
         ],
-        { gap: 8, wrap: true },
+        { gap: "s", wrap: true },
       ),
     ],
-    { gap: 16 },
+    { gap: "l" },
   );
 }
 

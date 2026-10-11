@@ -40,12 +40,12 @@ function kpis(list: RunList): Node {
               data: { bars: list.counts.perHour.map((hour) => ({ value: hour.runs, alert: hour.failed })), label: fill(words.perHourLabel, { n: failing }) },
             },
           ],
-          { gap: 8 },
+          { gap: "s" },
         ),
         { pad: "s" },
       ),
     ],
-    { gap: 16, wrap: true, align: "stretch" },
+    { gap: "l", wrap: true, align: "stretch" },
   );
 }
 
@@ -103,7 +103,7 @@ export async function view(context: ViewContext<RunsRoute>): Promise<PageResult>
   const selected = new Set<string>();
 
   const band = (): Node => {
-    if (!selected.size) return stack([], { gap: 0 });
+    if (!selected.size) return stack([], { gap: "none" });
     const n = selected.size;
     const act = async (work: () => Promise<string>): Promise<void> => {
       try {
@@ -134,7 +134,7 @@ export async function view(context: ViewContext<RunsRoute>): Promise<PageResult>
                 },
               }),
             ],
-            { gap: 8 },
+            { gap: "s" },
           ),
         ],
         { justify: "space-between", wrap: true },
@@ -165,7 +165,7 @@ export async function view(context: ViewContext<RunsRoute>): Promise<PageResult>
         ),
         text("small", words.end, { tone: "tertiary" }),
       ],
-      { gap: 12 },
+      { gap: "m" },
     );
   };
 
@@ -234,7 +234,7 @@ export async function view(context: ViewContext<RunsRoute>): Promise<PageResult>
           ]
         : []),
     ],
-    { gap: 12, wrap: true },
+    { gap: "m", wrap: true },
   );
 
   return {

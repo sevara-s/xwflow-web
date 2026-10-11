@@ -5,7 +5,7 @@ import { paths, replaceQuery, type Route } from "../../app/router";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { ApiKey, Member, MemberRole, NotificationPrefs, Settings } from "../../types/domain";
-import { button, cell, glass, row, stack, tag, text, type Node } from "../../ui/kit";
+import { button, cell, glass, row, space, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 
 type SettingsRoute = Extract<Route, { page: "settings" }>;
@@ -17,7 +17,7 @@ const words = catalog.workspace.settings;
 
 /** A label over a field, for fields whose component has no label of its own. */
 const labelled = (label: string, field: Node, hint?: string): Node =>
-  stack([text("small", label, { bold: true }), field, ...(hint ? [text("xs", hint, { tone: "tertiary" })] : [])], { gap: 6 });
+  stack([text("small", label, { bold: true }), field, ...(hint ? [text("xs", hint, { tone: "tertiary" })] : [])], { gap: "s" });
 
 function general(settings: Settings, refresh: () => void): Node {
   const draft = { ...settings.general };
@@ -48,10 +48,10 @@ function general(settings: Settings, refresh: () => void): Node {
         },
         {
           tag: "xwui-grid",
-          config: { columns: "minmax(0, 1fr)", gap: "16px", responsive: { md: { columns: "repeat(2, minmax(0, 1fr))" } } },
+          config: { columns: "minmax(0, 1fr)", gap: space("l"), responsive: { md: { columns: "repeat(2, minmax(0, 1fr))" } } },
           slots: {
             children: [
-              stack([select(draft.timezone, words.timezones, g.timezone, (value) => (draft.timezone = value)), text("xs", g.timezoneHint, { tone: "tertiary" })], { gap: 6 }),
+              stack([select(draft.timezone, words.timezones, g.timezone, (value) => (draft.timezone = value)), text("xs", g.timezoneHint, { tone: "tertiary" })], { gap: "s" }),
               select(draft.language, words.languages, g.language, (value) => (draft.language = value)),
               select(String(draft.retentionDays), g.retentionOptions, g.retention, (value) => (draft.retentionDays = Number(value))),
               labelled(g.weekStart, {
@@ -65,7 +65,7 @@ function general(settings: Settings, refresh: () => void): Node {
         },
         row([button("primary", g.save, { onClick: () => void save() })], { justify: "flex-end" }),
       ],
-      { gap: 20 },
+      { gap: "xl" },
     ),
     { pad: "l" },
   );
@@ -99,13 +99,13 @@ function members(settings: Settings, refresh: () => void, invite: () => void): N
                         { tag: "xwui-avatar", data: { name: member.name }, config: { size: "small" } },
                         stack(
                           [
-                            row([text("small", member.name, { bold: true }), ...(member.isYou ? [tag(m.you, "lime")] : []), ...(member.invited ? [tag(m.invited, "amber")] : [])], { gap: 6 }),
+                            row([text("small", member.name, { bold: true }), ...(member.isYou ? [tag(m.you, "lime")] : []), ...(member.invited ? [tag(m.invited, "amber")] : [])], { gap: "s" }),
                             text("xs", member.email, { tone: "tertiary" }),
                           ],
-                          { gap: 2 },
+                          { gap: "xs" },
                         ),
                       ],
-                      { gap: 10 },
+                      { gap: "m" },
                     ),
                   ),
               },
@@ -164,7 +164,7 @@ function members(settings: Settings, refresh: () => void, invite: () => void): N
         { pad: "none", scroll: true },
       ),
     ],
-    { gap: 16 },
+    { gap: "l" },
   );
 }
 
@@ -181,7 +181,7 @@ function keys(settings: Settings, refresh: () => void, create: () => void): Node
   };
   return stack(
     [
-      row([text("small", k.lead, { tone: "secondary" }), button("primary", k.create, { icon: "key", onClick: create })], { justify: "space-between", wrap: true, gap: 12 }),
+      row([text("small", k.lead, { tone: "secondary" }), button("primary", k.create, { icon: "key", onClick: create })], { justify: "space-between", wrap: true, gap: "m" }),
       ...(settings.apiKeys.length
         ? settings.apiKeys.map((key) =>
             glass(
@@ -189,26 +189,26 @@ function keys(settings: Settings, refresh: () => void, create: () => void): Node
                 [
                   stack(
                     [
-                      row([text("body", key.name, { bold: true }), text("small", `${key.prefix}••••`, { mono: true, tone: "tertiary" })], { gap: 12, wrap: true }),
-                      row(key.scopes.map((scope) => tag(scope, scope.endsWith("write") ? "orange" : "cyan")), { gap: 6 }),
+                      row([text("body", key.name, { bold: true }), text("small", `${key.prefix}••••`, { mono: true, tone: "tertiary" })], { gap: "m", wrap: true }),
+                      row(key.scopes.map((scope) => tag(scope, scope.endsWith("write") ? "orange" : "cyan")), { gap: "s" }),
                       text(
                         "xs",
                         `${fill(k.created, { when: formatAgo(key.createdAt).toLocaleLowerCase() })} · ${key.lastUsedAt === null ? k.neverUsed : fill(k.lastUsed, { when: formatAgo(key.lastUsedAt).toLocaleLowerCase() })}`,
                         { tone: "tertiary" },
                       ),
                     ],
-                    { gap: 8 },
+                    { gap: "s" },
                   ),
                   button("glass", k.revoke, { size: "sm", onClick: () => void revoke(key) }),
                 ],
-                { justify: "space-between", wrap: true, gap: 12 },
+                { justify: "space-between", wrap: true, gap: "m" },
               ),
               { pad: "m" },
             ),
           )
         : [text("small", k.empty, { tone: "secondary" })]),
     ],
-    { gap: 16 },
+    { gap: "l" },
   );
 }
 
@@ -219,7 +219,7 @@ function notifications(settings: Settings): Node {
       n.items.map((item) =>
         row(
           [
-            stack([text("body", item.title, { bold: true }), text("small", item.detail, { tone: "secondary" })], { gap: 4 }),
+            stack([text("body", item.title, { bold: true }), text("small", item.detail, { tone: "secondary" })], { gap: "xs" }),
             {
               tag: "xwui-switch",
               data: { checked: settings.notifications[item.id as keyof NotificationPrefs], label: "" },
@@ -235,10 +235,10 @@ function notifications(settings: Settings): Node {
                 }),
             },
           ],
-          { justify: "space-between", gap: 16 },
+          { justify: "space-between", gap: "l" },
         ),
       ),
-      { gap: 22 },
+      { gap: "xl" },
     ),
     { pad: "l" },
   );
@@ -293,7 +293,7 @@ export async function view(context: ViewContext<SettingsRoute>): Promise<PageRes
         },
         row([button("glass", k.cancel, { onClick: () => dialogs.key?.close() }), button("primary", k.create, { onClick: () => void createKey() })], { justify: "flex-end" }),
       ],
-      { gap: 16 },
+      { gap: "l" },
     );
   const createKey = async (): Promise<void> => {
     try {
@@ -306,7 +306,7 @@ export async function view(context: ViewContext<SettingsRoute>): Promise<PageRes
             { tag: "xwui-code-block", data: { code: token }, config: { language: "text", copyable: true, showLineNumbers: false } },
             row([button("primary", k.done, { onClick: () => dialogs.key?.close() })], { justify: "flex-end" }),
           ],
-          { gap: 16 },
+          { gap: "l" },
         ),
       );
       refresh();
@@ -353,7 +353,7 @@ export async function view(context: ViewContext<SettingsRoute>): Promise<PageRes
                 ref: (i) => (dialogs.inviteRole = i as XWUISelect),
               },
             ],
-            { gap: 16 },
+            { gap: "l" },
           ),
           footer: row([button("glass", m.cancel, { onClick: () => dialogs.invite?.close() }), button("primary", m.send, { icon: "send", onClick: () => void sendInvite() })], { justify: "flex-end" }),
         },

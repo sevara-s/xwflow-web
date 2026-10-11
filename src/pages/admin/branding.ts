@@ -7,7 +7,7 @@ import { siteHref } from "../../app/site-links";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { BrandKit } from "../../types/domain";
-import { button, cell, glass, grid, row, shape, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, cell, glass, grid, row, shape, space, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 
 const words = catalog.admin.branding;
@@ -63,7 +63,7 @@ function contrast(kit: BrandKit): Node {
       },
       text("xs", fill(words.contrastNote, { ink: bestInk(kit.primary) === INK.light ? words.inkLight : words.inkDark }), { tone: "secondary" }),
     ],
-    { gap: 12 },
+    { gap: "m" },
   );
 }
 
@@ -86,7 +86,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
         },
         ...(options.hint ? [text("xs", options.hint, { tone: "tertiary" })] : []),
       ],
-      { gap: 6 },
+      { gap: "s" },
     );
 
   const save = async (): Promise<void> => {
@@ -130,9 +130,9 @@ export async function view(context: ViewContext): Promise<PageResult> {
           [
             [words.logo, words.uploadLogo],
             [words.favicon, words.uploadFavicon],
-          ].map(([label, action]) => stack([text("small", label, { bold: true }), button("glass", action, { icon: "upload", onClick: () => notify(words.uploadsOff, "info") })], { gap: 8 })),
+          ].map(([label, action]) => stack([text("small", label, { bold: true }), button("glass", action, { icon: "upload", onClick: () => notify(words.uploadsOff, "info") })], { gap: "s" })),
           160,
-          16,
+          "l",
         ),
         stack(
           [
@@ -150,7 +150,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
                 }),
             },
           ],
-          { gap: 8 },
+          { gap: "s" },
         ),
         {
           tag: "xwui-select",
@@ -170,9 +170,9 @@ export async function view(context: ViewContext): Promise<PageResult> {
               config: { size: "sm", ariaLabel: words.removeMarks },
               ref: (instance) => (instance as Changeable<boolean>).onChange((checked) => (draft.removeMarks = checked)),
             },
-            stack([text("small", words.removeMarks, { bold: true }), text("xs", words.removeMarksBody, { tone: "secondary" })], { gap: 2 }),
+            stack([text("small", words.removeMarks, { bold: true }), text("xs", words.removeMarksBody, { tone: "secondary" })], { gap: "xs" }),
           ],
-          { gap: 12 },
+          { gap: "m" },
         ),
         field(words.domain, draft.domain, (value) => (draft.domain = value), { placeholder: words.domainPlaceholder, hint: words.domainHint }),
         { tag: "xwui-separator" },
@@ -181,10 +181,10 @@ export async function view(context: ViewContext): Promise<PageResult> {
             { ...button("primary", words.save, { disabled: core, onClick: () => void save() }), key: "brand-save" },
             ...(core ? [tag(words.requires, "violet")] : []),
           ],
-          { gap: 12 },
+          { gap: "m" },
         ),
       ],
-      { gap: 18 },
+      { gap: "l" },
     ),
     { pad: "m" },
   );
@@ -192,17 +192,17 @@ export async function view(context: ViewContext): Promise<PageResult> {
   return {
     bar: adminBar(context.admin!, "admin", catalog.admin.rail.admin.find((item) => item.id === "branding")?.label ?? words.title, { sample: false, plan: true }),
     body: [
-      row([text("h2", words.title), text("h2", words.titleHighlight, { tone: "gradient" })], { gap: 12 }),
+      row([text("h2", words.title), text("h2", words.titleHighlight, { tone: "gradient" })], { gap: "m" }),
       text("lead", words.lead),
       ...(core
         ? [
             glass(
               row(
                 [
-                  row([status("warning", words.gate), text("small", words.gateBody, { tone: "secondary" })], { gap: 10, wrap: true }),
+                  row([status("warning", words.gate), text("small", words.gateBody, { tone: "secondary" })], { gap: "m", wrap: true }),
                   button("glass", words.seePlans, { size: "sm", href: siteHref("pricing") }),
                 ],
-                { justify: "space-between", wrap: true, gap: 12 },
+                { justify: "space-between", wrap: true, gap: "m" },
               ),
               { pad: "s" },
             ),
@@ -210,7 +210,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
         : []),
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: "24px", alignItems: "start", responsive: { lg: { columns: "minmax(0, 1fr) minmax(0, 1fr)" } } },
+        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 1fr) minmax(0, 1fr)" } } },
         slots: {
           children: [
             form,
@@ -218,7 +218,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
               [
                 {
                   tag: "xwui-box",
-                  config: { surface: "glass", overflow: "clip", position: "relative", padding: 20 },
+                  config: { surface: "glass", overflow: "clip", position: "relative", padding: space("xl") },
                   slots: {
                     children: stack(
                       [
@@ -226,13 +226,13 @@ export async function view(context: ViewContext): Promise<PageResult> {
                         row([text("body", words.preview, { bold: true }), tag(words.notSaved, "plan")], { justify: "space-between" }),
                         { tag: "xwui-composer", key: "brand-preview", data: { tree: preview(draft) } },
                       ],
-                      { gap: 0 },
+                      { gap: "none" },
                     ),
                   },
                 },
-                glass(stack([text("h3", words.contrast), { tag: "xwui-composer", key: "brand-contrast", data: { tree: contrast(draft) } }], { gap: 12 }), { pad: "m" }),
+                glass(stack([text("h3", words.contrast), { tag: "xwui-composer", key: "brand-contrast", data: { tree: contrast(draft) } }], { gap: "m" }), { pad: "m" }),
               ],
-              { gap: 16 },
+              { gap: "l" },
             ),
           ],
         },

@@ -44,7 +44,7 @@ function preview(draft: AssistantDraft, saveable: boolean): Node {
       ),
       { tag: "xwui-flow-canvas", data: canvasData(draft.graph, { frames: false }), config: { readOnly: true, height: 150, maxFitScale: 1 } },
     ],
-    { gap: 12 },
+    { gap: "m" },
   );
 }
 
@@ -56,7 +56,7 @@ function starters(home: AssistantHome): Node {
         home.starters.map((starter) => ({
           ...glass(
             stack([iconTile(catalog.studio.groupIcons[starter.group], hueOf[starter.group], "sm"), text("small", starter.label, { bold: true }), text("xs", starter.hint, { tone: "secondary" })], {
-              gap: 8,
+              gap: "s",
             }),
             { pad: "s" },
           ),
@@ -65,10 +65,10 @@ function starters(home: AssistantHome): Node {
           },
         })),
         150,
-        12,
+        "m",
       ),
     ],
-    { gap: 12 },
+    { gap: "m" },
   );
 }
 
@@ -85,13 +85,13 @@ function recommended(home: AssistantHome, pick: (title: string) => void): Node {
               ...(item.summary ? [text("small", item.summary, { tone: "secondary" })] : []),
               row(
                 [
-                  row(item.groups.map((group) => iconTile(catalog.studio.groupIcons[group], hueOf[group], "sm")), { gap: 4 }),
+                  row(item.groups.map((group) => iconTile(catalog.studio.groupIcons[group], hueOf[group], "sm")), { gap: "xs" }),
                   text("xs", item.toConnect ? `${count}, ${fill(words.toConnect, { n: item.toConnect })}` : count, { tone: "secondary" }),
                 ],
                 { justify: "space-between" },
               ),
             ],
-            { gap: 10 },
+            { gap: "m" },
           ),
           { pad: "m", glow: item.top ? "violet" : undefined },
         ),
@@ -122,7 +122,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
             context.instance<XWUIComposer>("assistant-files")?.setTree(fileChips());
           }),
       })),
-      { gap: 6, wrap: true },
+      { gap: "s", wrap: true },
     );
   const withFiles = (prompt: string): string => (files.length ? `${prompt} ${fill(words.usingFiles, { names: files.map((file) => file.name).join(", ") })}` : prompt);
   let attachDialog: { open(): void; close(): void } | undefined;
@@ -189,7 +189,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
           shape("ring", "violet", 170, { left: "15px", top: "15px" }, 3),
           shape("orb", "violet", 120, { left: "40px", top: "40px" }),
         ],
-        { gap: 0 },
+        { gap: "none" },
       ),
     },
   };
@@ -216,7 +216,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
                 button("ghost", "", { icon: "mic", size: "sm", label: words.speak, onClick: speak }),
                 tag(workspace.project.name, "violet"),
               ],
-              { gap: 8 },
+              { gap: "s" },
             ),
             row(
               [
@@ -234,13 +234,13 @@ export async function view(context: ViewContext): Promise<PageResult> {
                   ref: (instance) => (parts.send = instance as XWUIButton),
                 },
               ],
-              { gap: 12 },
+              { gap: "m" },
             ),
           ],
           { justify: "space-between", wrap: true },
         ),
       ],
-      { gap: 12 },
+      { gap: "m" },
     ),
     { pad: "m", gradientBorder: true },
   );
@@ -271,7 +271,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
           size: "sm",
           onClick: () => {
             shown = !shown;
-            context.instance<XWUIComposer>("assistant-recommended")?.setTree(shown ? recommended(home, ask) : stack([], { gap: 0 }));
+            context.instance<XWUIComposer>("assistant-recommended")?.setTree(shown ? recommended(home, ask) : stack([], { gap: "none" }));
             context.instance<XWUIButton>("assistant-toggle")?.setText(shown ? words.hide : words.show);
           },
         }),
@@ -298,15 +298,15 @@ export async function view(context: ViewContext): Promise<PageResult> {
               shape("halo", "cyan", 300, { right: "6%", top: "-40px" }),
               centred(core),
               centred(
-                row([text("h2", words.titleBefore), { ...text("h2", words.titleHighlight, { tone: "gradient" }) }, text("h2", words.titleAfter)], { gap: 10, wrap: true, justify: "center" }),
+                row([text("h2", words.titleBefore), { ...text("h2", words.titleHighlight, { tone: "gradient" }) }, text("h2", words.titleAfter)], { gap: "m", wrap: true, justify: "center" }),
               ),
               centred(text("body", words.lead, { tone: "secondary", align: "center" })),
-              { tag: "xwui-container", config: { maxWidth: 860, center: true, width: "100%" }, slots: { children: stack([prompt, pills], { gap: 16 }) } },
+              { tag: "xwui-container", config: { maxWidth: 860, center: true, width: "100%" }, slots: { children: stack([prompt, pills], { gap: "l" }) } },
               glass({ tag: "xwui-composer", key: "assistant-preview", data: { tree: preview(draft, false) } }, { pad: "m" }),
               starters(home),
-              stack([recommendedHead, { tag: "xwui-composer", key: "assistant-recommended", data: { tree: recommended(home, ask) } }], { gap: 12 }),
+              stack([recommendedHead, { tag: "xwui-composer", key: "assistant-recommended", data: { tree: recommended(home, ask) } }], { gap: "m" }),
             ],
-            { gap: 24, align: "stretch" },
+            { gap: "xl", align: "stretch" },
           ),
         },
       },

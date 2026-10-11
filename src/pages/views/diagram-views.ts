@@ -174,7 +174,7 @@ export function diagramPart(view: FlowView, mode: DiagramMode, { instance }: Vie
           [words.swimlane.handoffs, handoffs],
           [words.swimlane.retries, retries],
         ] as const
-      ).map(([label, value]) => row([text("disp", String(value)), text("xs", label, { tone: "secondary" })], { gap: 8, align: "center" })),
+      ).map(([label, value]) => row([text("disp", String(value)), text("xs", label, { tone: "secondary" })], { gap: "s", align: "center" })),
       select(words.swimlane.laneBy, laneBy, words.swimlane.laneOptions.map((item) => ({ ...item })), (value) => {
         laneBy = value === "group" ? "group" : "system";
         redraw();
@@ -194,7 +194,7 @@ export function diagramPart(view: FlowView, mode: DiagramMode, { instance }: Vie
   }
   if (mode === "sequence") {
     footer = [
-      stack([text("small", words.sequence.title, { bold: true }), text("xs", words.sequence.hint, { tone: "secondary" })], { gap: 2 }),
+      stack([text("small", words.sequence.title, { bold: true }), text("xs", words.sequence.hint, { tone: "secondary" })], { gap: "xs" }),
       ...(view.runs.length ? [] : [text("small", words.sequence.noRuns, { tone: "secondary" })]),
       select(
         words.sequence.run,

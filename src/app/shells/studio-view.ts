@@ -1,6 +1,6 @@
 import { catalog } from "../../content/catalog";
 import type { Workspace } from "../../types/domain";
-import { stack, type Node } from "../../ui/kit";
+import { space, stack, type Node } from "../../ui/kit";
 import { fill, formatDate, formatNumber } from "../format";
 import { href, navigate, paths, type Route } from "../router";
 import { debounce } from "../timing";
@@ -198,7 +198,7 @@ export function appBar(workspace: Workspace, bar: PageBar | undefined): Node {
  * swapped on its own, so the spacing lives in its tree, not around it.
  */
 export function appPage(body: Node[]): Node[] {
-  return [stack(body, { gap: 22 })];
+  return [stack(body, { gap: "xl" })];
 }
 
 /**
@@ -215,7 +215,7 @@ export function appFrame(railNode: Node, workspace: Workspace, page: Node[], bar
         appBar(workspace, bar),
         {
           tag: "xwui-box",
-          config: { padding: "28px" },
+          config: { padding: space("page") },
           slots: { children: page },
         },
       ],
@@ -227,7 +227,7 @@ export function appFrame(railNode: Node, workspace: Workspace, page: Node[], bar
       tag: "xwui-grid",
       config: {
         columns: "minmax(0, 1fr)",
-        gap: "0",
+        gap: space("none"),
         alignItems: "start",
         responsive: { md: { columns: "auto minmax(0, 1fr)" } },
       },

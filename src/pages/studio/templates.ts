@@ -8,18 +8,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { FlowTemplate, TemplateList } from "../../types/domain";
 import { hueOf } from "../../ui/flow";
-import {
-  button,
-  glass,
-  grid,
-  iconTile,
-  row,
-  shape,
-  stack,
-  tag,
-  text,
-  type Node,
-} from "../../ui/kit";
+import { button, glass, grid, iconTile, row, shape, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUIInputText } from "../../xwui";
 
 type TemplatesRoute = Extract<Route, { page: "templates" }>;
@@ -51,7 +40,7 @@ function card(
                   ? [tag(words.popular, "lime", undefined, true)]
                   : []),
               ],
-              { gap: 6 },
+              { gap: "s" },
             ),
           ],
           { justify: "space-between" },
@@ -61,7 +50,7 @@ function card(
             text("body", template.name, { bold: true }),
             text("small", template.summary, { tone: "secondary" }),
           ],
-          { gap: 6 },
+          { gap: "s" },
         ),
         stack(
           [
@@ -76,7 +65,7 @@ function card(
               tone: "tertiary",
             }),
           ],
-          { gap: 8 },
+          { gap: "s" },
         ),
         row(
           [
@@ -91,7 +80,7 @@ function card(
                   tone: "lime",
                 }),
               ],
-              { gap: 2 },
+              { gap: "xs" },
             ),
             button("primary", words.use, {
               size: "sm",
@@ -101,7 +90,7 @@ function card(
           { justify: "space-between", wrap: true },
         ),
       ],
-      { gap: 16 },
+      { gap: "l" },
     ),
     { pad: "m", glow: template.popular ? "lime" : undefined },
   );
@@ -171,7 +160,7 @@ export async function view(
               text("h2", words.title),
               text("lead", words.lead),
             ],
-            { gap: 10 },
+            { gap: "m" },
           ),
         },
       },
@@ -229,7 +218,7 @@ export async function view(
             },
           },
         ],
-        { gap: 12 },
+        { gap: "m" },
       ),
       {
         tag: "xwui-composer",

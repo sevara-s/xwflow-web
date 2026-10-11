@@ -31,7 +31,7 @@ function table(variables: ProjectVariable[], remove: (variable: ProjectVariable)
             key: "key",
             title: columns.key,
             render: (_: unknown, item: Row) =>
-              cell(row([text("small", item.variable.key, { mono: true, bold: true }), ...(item.variable.secret ? [tag(words.secret, "pink", undefined, true)] : [])], { gap: 8 })),
+              cell(row([text("small", item.variable.key, { mono: true, bold: true }), ...(item.variable.secret ? [tag(words.secret, "pink", undefined, true)] : [])], { gap: "s" })),
           },
           {
             key: "value",
@@ -134,7 +134,7 @@ export async function view(context: ViewContext<VariablesRoute>): Promise<PageRe
             },
           },
         ],
-        { gap: 12, wrap: true },
+        { gap: "m", wrap: true },
       ),
       { tag: "xwui-composer", key: "variables-table", data: { tree: table(variables, (item) => void remove(item)) } },
       {
@@ -164,12 +164,12 @@ export async function view(context: ViewContext<VariablesRoute>): Promise<PageRe
                     config: { size: "sm", ariaLabel: dialogWords.secret },
                     ref: (i) => (i as { onChange(handler: (checked: boolean) => void): void }).onChange((checked) => (secret = checked)),
                   },
-                  stack([text("small", dialogWords.secret, { bold: true }), text("xs", dialogWords.secretDetail, { tone: "secondary" })], { gap: 2 }),
+                  stack([text("small", dialogWords.secret, { bold: true }), text("xs", dialogWords.secretDetail, { tone: "secondary" })], { gap: "xs" }),
                 ],
-                { gap: 12 },
+                { gap: "m" },
               ),
             ],
-            { gap: 16 },
+            { gap: "l" },
           ),
           footer: row([button("glass", dialogWords.cancel, { onClick: () => fields.dialog?.close() }), button("primary", dialogWords.save, { onClick: () => void add() })], { justify: "flex-end" }),
         },

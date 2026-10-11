@@ -8,7 +8,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Connection, ConnectionHealth, ConnectionQuery, StatusTone } from "../../types/domain";
 import { hueOf, toneOf } from "../../ui/flow";
-import { button, grid, iconTile, row, shape, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, grid, iconTile, row, shape, space, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 import { projectTabs } from "./common-view";
 
@@ -51,7 +51,7 @@ function card(connection: Connection, reload: () => Promise<void>): Node {
   const body = note(connection);
   return {
     tag: "xwui-box",
-    config: { surface: "glass", padding: 20, role: "group", ariaLabel: connection.name },
+    config: { surface: "glass", padding: space("xl"), role: "group", ariaLabel: connection.name },
     slots: {
       children: stack(
         [
@@ -61,10 +61,10 @@ function card(connection: Connection, reload: () => Promise<void>): Node {
                 [
                   iconTile(words.apps[connection.app as keyof typeof words.apps]?.icon ?? "plug", hueOf[connection.group]),
                   stack([text("body", connection.name, { bold: true }), text("xs", fill(words.ownedBy, { auth: words.auth[connection.auth], owner: connection.owner.name }), { tone: "secondary" })], {
-                    gap: 2,
+                    gap: "xs",
                   }),
                 ],
-                { gap: 12 },
+                { gap: "m" },
               ),
               status(toneOf[healthTones[connection.health]], label),
             ],
@@ -80,7 +80,7 @@ function card(connection: Connection, reload: () => Promise<void>): Node {
             { justify: "space-between", wrap: true },
           ),
         ],
-        { gap: 14 },
+        { gap: "l" },
       ),
     },
   };
@@ -101,8 +101,8 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
             .filter((group) => group.items.length)
         : [{ title: "", items: connections }];
     return stack(
-      groups.map((group) => stack([...(group.title ? [text("h3", group.title)] : []), grid(group.items.map((item) => card(item, reload)), 360)], { gap: 12 })),
-      { gap: 24 },
+      groups.map((group) => stack([...(group.title ? [text("h3", group.title)] : []), grid(group.items.map((item) => card(item, reload)), 360)], { gap: "m" })),
+      { gap: "xl" },
     );
   };
   async function reload(): Promise<void> {
@@ -156,7 +156,7 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
           },
           { tag: "xwui-input-text", data: { label: text_.audience, placeholder: text_.audiencePlaceholder }, config: { fullWidth: true }, ref: (i) => (fields.audience = i as XWUIInputText) },
         ],
-        { gap: 16 },
+        { gap: "l" },
       ),
       footer: row([button("glass", text_.cancel, { onClick: () => fields.dialog?.close() }), button("primary", text_.save, { onClick: () => void submit() })], { justify: "flex-end" }),
     },
@@ -178,20 +178,20 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
       projectTabs("connections", ["flows", "agents", "tables", "connections", "runs", "mcp"]),
       {
         tag: "xwui-box",
-        config: { surface: "glass", padding: 24, overflow: "clip" },
+        config: { surface: "glass", padding: space("xl"), overflow: "clip" },
         slots: {
           children: row(
             [
               row(
                 [
                   { tag: "xwui-box", config: { position: "relative", width: 96, height: 96 }, slots: { children: shape("orb", "lime", 96, { left: "0", top: "0" }) } },
-                  stack([text("h3", words.vaultTitle), text("body", words.vaultBody, { tone: "secondary" })], { gap: 4 }),
+                  stack([text("h3", words.vaultTitle), text("body", words.vaultBody, { tone: "secondary" })], { gap: "xs" }),
                 ],
-                { gap: 20 },
+                { gap: "xl" },
               ),
               { ...button("primary", words.add, { icon: "plus", onClick: () => setTimeout(() => fields.dialog?.open(), 0) }) },
             ],
-            { gap: 20, wrap: true, justify: "space-between" },
+            { gap: "xl", wrap: true, justify: "space-between" },
           ),
         },
       },
@@ -217,7 +217,7 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
             context.instance<XWUIComposer>("connection-list")?.setTree(list());
           }),
         ],
-        { gap: 12, wrap: true },
+        { gap: "m", wrap: true },
       ),
       { tag: "xwui-composer", key: "connection-list", data: { tree: list() } },
       dialog,

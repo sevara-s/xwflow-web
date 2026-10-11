@@ -26,7 +26,7 @@ function card(server: McpServer, act: (server: McpServer, enabled: boolean) => v
       [
         row(
           [
-            row([iconTile("server", server.hue), stack([text("body", server.name, { bold: true }), text("xs", server.url, { mono: true, tone: "tertiary" })], { gap: 2 })], { gap: 12 }),
+            row([iconTile("server", server.hue), stack([text("body", server.name, { bold: true }), text("xs", server.url, { mono: true, tone: "tertiary" })], { gap: "xs" })], { gap: "m" }),
             status(tones[server.status], words.status[server.status]),
           ],
           { justify: "space-between", wrap: true },
@@ -39,12 +39,12 @@ function card(server: McpServer, act: (server: McpServer, enabled: boolean) => v
             tag(fill(words.calls, { n: formatNumber(server.calls24h) })),
             tag(server.latencyMs === null ? words.noLatency : fill(words.latency, { ms: server.latencyMs })),
           ],
-          { gap: 6, wrap: true },
+          { gap: "s", wrap: true },
         ),
-        server.tools.length ? row(server.tools.map((tool) => ({ tag: "xwui-kbd", data: { keys: [tool] }, config: { size: "sm" } })), { gap: 6, wrap: true }) : stack([], { gap: 0 }),
-        row([action], { gap: 8 }),
+        server.tools.length ? row(server.tools.map((tool) => ({ tag: "xwui-kbd", data: { keys: [tool] }, config: { size: "sm" } })), { gap: "s", wrap: true }) : stack([], { gap: "none" }),
+        row([action], { gap: "s" }),
       ],
-      { gap: 14 },
+      { gap: "l" },
     ),
     { pad: "m", glow: server.status === "connected" ? "violet" : undefined },
   );
@@ -99,7 +99,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
               { tag: "xwui-input-text", data: { label: dialogWords.name, placeholder: dialogWords.namePlaceholder }, config: { fullWidth: true, required: true }, ref: (i) => (fields.name = i as XWUIInputText) },
               { tag: "xwui-input-text", data: { label: dialogWords.url, placeholder: dialogWords.urlPlaceholder }, config: { fullWidth: true, required: true }, ref: (i) => (fields.url = i as XWUIInputText) },
             ],
-            { gap: 16 },
+            { gap: "l" },
           ),
           footer: row([button("glass", dialogWords.cancel, { onClick: () => fields.dialog?.close() }), button("primary", dialogWords.save, { onClick: () => void add() })], { justify: "flex-end" }),
         },

@@ -6,7 +6,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { ActorClass, AuditEvent, AuditList, AuditQuery } from "../../types/domain";
 import { hueOf } from "../../ui/flow";
-import { button, glass, iconTile, row, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { button, glass, iconTile, row, space, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUISelect } from "../../xwui";
 
 const words = catalog.admin.audit;
@@ -28,8 +28,8 @@ function eventRow(event: AuditEvent, project: string): Node {
   return glass(
     row(
       [
-        row([iconTile(eventIcons[event.kind] ?? "file-text", hueOf[event.group], "sm"), stack([text("small", event.title, { bold: true }), text("xs", objectLine, { tone: "secondary" })], { gap: 2 })], {
-          gap: 12,
+        row([iconTile(eventIcons[event.kind] ?? "file-text", hueOf[event.group], "sm"), stack([text("small", event.title, { bold: true }), text("xs", objectLine, { tone: "secondary" })], { gap: "xs" })], {
+          gap: "m",
         }),
         row(
           [
@@ -39,10 +39,10 @@ function eventRow(event: AuditEvent, project: string): Node {
             ...(event.onBehalfOf ? [text("xs", fill(words.forWhom, { name: event.onBehalfOf }), { tone: "tertiary" })] : []),
             text("xs", formatAgo(event.at), { tone: "tertiary" }),
           ],
-          { gap: 8, wrap: true },
+          { gap: "s", wrap: true },
         ),
       ],
-      { justify: "space-between", wrap: true, gap: 12 },
+      { justify: "space-between", wrap: true, gap: "m" },
     ),
     { pad: "s" },
   );
@@ -57,7 +57,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
     list.events.length
       ? stack(
           list.events.map((event) => eventRow(event, workspace.project.name)),
-          { gap: 10 },
+          { gap: "m" },
         )
       : { tag: "xwui-empty", data: { icon: "search", title: words.empty.title, description: words.empty.description } };
   const reload = async (): Promise<void> => {
@@ -95,14 +95,14 @@ export async function view(context: ViewContext): Promise<PageResult> {
     bar: adminBar(context.admin!, "admin", words.title, { actions: [button("glass", words.download, { size: "sm", icon: "download", onClick: download })] }),
     body: [
       text("h2", words.title),
-      row([text("lead", leadStart), tag(String(list.retentionDays), "lime"), text("lead", leadEnd)], { gap: 6, wrap: true }),
+      row([text("lead", leadStart), tag(String(list.retentionDays), "lime"), text("lead", leadEnd)], { gap: "s", wrap: true }),
       glass(
         row(
           [
             text("small", `${lineStart}${words.identityLink}${lineEnd}`, { tone: "secondary" }),
             button("ghost", words.identityLink, { size: "sm", icon: "external-link", onClick: () => notify(words.identitySoon, "info") }),
           ],
-          { justify: "space-between", wrap: true, gap: 12 },
+          { justify: "space-between", wrap: true, gap: "m" },
         ),
         { pad: "s" },
       ),
@@ -114,11 +114,11 @@ export async function view(context: ViewContext): Promise<PageResult> {
           filter("objectType", filters.object, filters.anyObject, list.objectTypes.map((value) => ({ value, label: words.objects[value as keyof typeof words.objects] ?? value }))),
           filter("days", filters.range, null, words.ranges.map((item) => ({ ...item })), words.ranges[0].value),
         ],
-        { gap: 10, wrap: true },
+        { gap: "m", wrap: true },
       ),
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: "24px", alignItems: "start", responsive: { lg: { columns: "minmax(0, 2fr) minmax(0, 1fr)" } } },
+        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 2fr) minmax(0, 1fr)" } } },
         slots: {
           children: [
             { tag: "xwui-composer", key: "audit-timeline", data: { tree: timeline() } },
@@ -129,7 +129,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
                   text("small", words.streamBody, { tone: "secondary" }),
                   row([button("glass", words.configure, { disabled: true })]),
                 ],
-                { gap: 14 },
+                { gap: "l" },
               ),
               { pad: "m", gradientBorder: true },
             ),

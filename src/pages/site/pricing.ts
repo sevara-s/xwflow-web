@@ -5,26 +5,7 @@ import { siteHref } from "../../app/site-links";
 import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { Cell, PricingTier } from "../../types/domain";
-import {
-  band,
-  button,
-  cell,
-  centred,
-  eyebrow,
-  glass,
-  grid,
-  headline,
-  icon,
-  measure,
-  row,
-  separator,
-  shape,
-  stack,
-  tag,
-  text,
-  ticks,
-  type Node,
-} from "../../ui/kit";
+import { band, button, cell, centred, eyebrow, glass, grid, headline, icon, inset, measure, row, separator, shape, sides, space, stack, tag, text, ticks, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIInputText } from "../../xwui";
 
 const words = catalog.site.pricing;
@@ -33,8 +14,8 @@ function price(tier: PricingTier): Node {
   if (tier.price.kind === "free") return text("disp", words.free);
   if (tier.price.kind === "quote") {
     const amount = tier.price.amount === null ? tag(words.pricePlaceholder, "lime") : text("disp", String(tier.price.amount), { tone: "gradient" });
-    const unit = row([text("small", words.per, { tone: "secondary" }), tier.price.unit === null ? tag(words.unitPlaceholder, "lime") : text("small", tier.price.unit, { tone: "secondary" })], { gap: 6 });
-    return row([amount, unit], { gap: 8 });
+    const unit = row([text("small", words.per, { tone: "secondary" }), tier.price.unit === null ? tag(words.unitPlaceholder, "lime") : text("small", tier.price.unit, { tone: "secondary" })], { gap: "s" });
+    return row([amount, unit], { gap: "s" });
   }
   return tag(words.contactPlaceholder, "lime");
 }
@@ -50,26 +31,26 @@ function tierCard(tier: PricingTier, context: ViewContext): Node {
   cta.config = { ...cta.config, fullWidth: true };
   return {
     tag: "xwui-box",
-    config: { surface: "glass", padding: 28, glow: tier.highlighted ? "violet" : undefined, gradientBorder: tier.highlighted, overflow: "clip" },
+    config: { surface: "glass", padding: space("xxl"), glow: tier.highlighted ? "violet" : undefined, gradientBorder: tier.highlighted, overflow: "clip" },
     slots: {
       children: stack(
         [
           ...(tier.highlighted ? [shape("halo", "violet", 240, { right: "-80px", top: "-80px" })] : []),
-          stack([row([tag(tier.tag.label, tier.tag.color)]), text("h3", tier.name), text("small", tier.blurb, { tone: "secondary" })], { gap: 8 }),
+          stack([row([tag(tier.tag.label, tier.tag.color)]), text("h3", tier.name), text("small", tier.blurb, { tone: "secondary" })], { gap: "s" }),
           price(tier),
           cta,
           separator(),
           ticks(tier.features, tier.tag.color),
           ...(tier.planned ? [row([tag(words.planned, "plan")])] : []),
         ],
-        { gap: 20 },
+        { gap: "xl" },
       ),
     },
   };
 }
 
 function cellNode(value: Cell): Node {
-  if (value.kind === "included") return row([icon("check", 16, "var(--accent-primary)"), text("small", words.included)], { gap: 8 });
+  if (value.kind === "included") return row([icon("check", 16, "var(--accent-primary)"), text("small", words.included)], { gap: "s" });
   if (value.kind === "text") return text("small", value.text);
   return tag(fill(words.requires, { tier: value.tier }));
 }
@@ -115,19 +96,19 @@ function contact(): Node {
         },
       ]),
     ],
-    { gap: 16 },
+    { gap: "l" },
   );
   return {
     tag: "xwui-box",
     key: "band-contact",
-    config: { surface: "glass", gradientBorder: true, padding: 40, overflow: "clip", ariaLabel: words.contactLabel, role: "form" },
+    config: { surface: "glass", gradientBorder: true, padding: space("xxxl"), overflow: "clip", ariaLabel: words.contactLabel, role: "form" },
     slots: {
       children: stack(
         [
           shape("cube", "violet", 60, { right: "8%", top: "30px" }),
-          grid([stack([headline("h2", words.contactTitle, words.contactHighlight), text("body", words.contactBody, { tone: "secondary" })], { gap: 16 }), form], 380, 40),
+          grid([stack([headline("h2", words.contactTitle, words.contactHighlight), text("body", words.contactBody, { tone: "secondary" })], { gap: "l" }), form], 380, "xxxl"),
         ],
-        { gap: 0 },
+        { gap: "none" },
       ),
     },
   };
@@ -140,7 +121,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
   const hero: Node = {
     tag: "xwui-box",
     key: "band-hero",
-    config: { as: "section", position: "relative", padding: "80px 0 40px" },
+    config: { as: "section", position: "relative", padding: inset("hero", "xxxl") },
     slots: {
       children: stack(
         [
@@ -149,16 +130,16 @@ export async function view(context: ViewContext): Promise<Node[]> {
           shape("orb", "cyan", 46, { right: "24%", top: "220px" }),
           {
             tag: "xwui-container",
-            config: { maxWidth: 1280, center: true, padding: "0 24px" },
+            config: { maxWidth: 1280, center: true, padding: sides("xl") },
             slots: {
               children: stack(
                 [centred(eyebrow(words.eyebrow)), headline("h1", words.title, words.titleHighlight, "center"), measure(text("lead", words.lead, { align: "center" }))],
-                { gap: 24, align: "stretch" },
+                { gap: "xl", align: "stretch" },
               ),
             },
           },
         ],
-        { gap: 0 },
+        { gap: "none" },
       ),
     },
   };
@@ -179,8 +160,8 @@ export async function view(context: ViewContext): Promise<Node[]> {
   return [
     hero,
     band("tiers", [grid(pricing.tiers.map((tier) => tierCard(tier, context)), 300)], { tight: true }),
-    band("compare", [stack([eyebrow(words.compareEyebrow), text("h2", words.compareTitle), text("body", words.compareBody, { tone: "secondary" })], { gap: 12 }), glass(table, { pad: "none" })], {
-      gap: 24,
+    band("compare", [stack([eyebrow(words.compareEyebrow), text("h2", words.compareTitle), text("body", words.compareBody, { tone: "secondary" })], { gap: "m" }), glass(table, { pad: "none" })], {
+      gap: "xl",
     }),
     band("contact", [contact()]),
   ];

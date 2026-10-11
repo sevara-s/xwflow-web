@@ -4,7 +4,7 @@ import { notify } from "../../app/notify";
 import { averageWaitMinutes, createSimulation, finished, step, workerUse, type SimulationState } from "../../app/simulation";
 import { catalog } from "../../content/catalog";
 import type { FlowView, SimulationModel } from "../../types/domain";
-import { button, glass, grid, row, stack, tag, text, type Node } from "../../ui/kit";
+import { button, glass, grid, row, space, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer } from "../../xwui";
 import type { ViewPart, ViewPartContext } from "./view";
 
@@ -38,7 +38,7 @@ function line(state: SimulationState, model: SimulationModel): Node {
     [
       row(
         [
-          row([tag(words.badge, "amber", undefined, true), tag(words.sample, "plan")], { gap: 10, wrap: true }),
+          row([tag(words.badge, "amber", undefined, true), tag(words.sample, "plan")], { gap: "m", wrap: true }),
           text("small", fill(words.clock, { now: clock(state.minute), end: clock(model.hours * 60) }), { mono: true, tone: "secondary" }),
         ],
         { justify: "space-between", wrap: true },
@@ -76,7 +76,7 @@ function line(state: SimulationState, model: SimulationModel): Node {
         },
       },
     ],
-    { gap: 12 },
+    { gap: "m" },
   );
 }
 
@@ -93,7 +93,7 @@ function results(state: SimulationState, model: SimulationModel): Node {
           kpi(words.kpis.alerts, formatNumber(state.alerts), "pink"),
         ],
         160,
-        12,
+        "m",
       ),
       glass(
         stack(
@@ -105,12 +105,12 @@ function results(state: SimulationState, model: SimulationModel): Node {
               config: { height: 80 },
             },
           ],
-          { gap: 8 },
+          { gap: "s" },
         ),
         { pad: "s" },
       ),
     ],
-    { gap: 14 },
+    { gap: "l" },
   );
 }
 
@@ -192,7 +192,7 @@ export function simulationPart(view: FlowView, { instance, onLeave }: ViewPartCo
               ref: (picked) => (picked as { onChange?(handler: (value: string) => void): void }).onChange?.((value) => (speed = Number(value))),
             },
           ],
-          { gap: 8, wrap: true },
+          { gap: "s", wrap: true },
         ),
         { tag: "xwui-input-text", data: { label: words.arrival, value: fill(words.arrivalValue, { n: model.arrivalsPerHour }) }, config: { readonly: true, fullWidth: true } },
         { tag: "xwui-input-text", data: { label: words.service, value: fill(words.serviceValue, { n: model.serviceSeconds }) }, config: { readonly: true, fullWidth: true } },
@@ -210,10 +210,10 @@ export function simulationPart(view: FlowView, { instance, onLeave }: ViewPartCo
                 }),
             },
           ],
-          { gap: 8 },
+          { gap: "s" },
         ),
       ],
-      { gap: 14 },
+      { gap: "l" },
     ),
     { pad: "m" },
   );
@@ -223,7 +223,7 @@ export function simulationPart(view: FlowView, { instance, onLeave }: ViewPartCo
     footer: [
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: "16px", alignItems: "start", responsive: { lg: { columns: "minmax(0, 1fr) minmax(0, 2fr)" } } },
+        config: { columns: "minmax(0, 1fr)", gap: space("l"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 1fr) minmax(0, 2fr)" } } },
         slots: {
           children: [
             controls,

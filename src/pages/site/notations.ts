@@ -6,7 +6,7 @@ import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { Notation, NotationFamily, NotationGallery, NotationViewId, StepGroup } from "../../types/domain";
 import { hueOf } from "../../ui/flow";
-import { band, centred, eyebrow, glass, grid, headline, iconTile, measure, row, shape, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { band, centred, eyebrow, glass, grid, headline, iconTile, inset, measure, row, shape, sides, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer } from "../../xwui";
 
 const words = catalog.site.notations;
@@ -46,7 +46,7 @@ function card(notation: Notation, sample: NotationGallery["sample"]): Node {
         text("small", notation.summary, { tone: "secondary" }),
         row([...notation.tags.map((label) => tag(label)), ...open], { wrap: true }),
       ],
-      { gap: 10 },
+      { gap: "m" },
     ),
     { pad: "s" },
   );
@@ -83,7 +83,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
   const hero: Node = {
     tag: "xwui-box",
     key: "band-hero",
-    config: { as: "section", position: "relative", padding: "80px 0 40px" },
+    config: { as: "section", position: "relative", padding: inset("hero", "xxxl") },
     slots: {
       children: stack(
         [
@@ -91,7 +91,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
           shape("halo", "pink", 460, { right: "-60px", top: "120px" }),
           {
             tag: "xwui-container",
-            config: { maxWidth: 1280, center: true, padding: "0 24px" },
+            config: { maxWidth: 1280, center: true, padding: sides("xl") },
             slots: {
               children: stack(
                 [
@@ -100,22 +100,22 @@ export async function view(context: ViewContext): Promise<Node[]> {
                   measure(text("lead", words.lead, { align: "center" })),
                   centred(modes),
                   // Start the stack low enough that its top layer clears the mode switcher.
-                  { tag: "xwui-box", config: { padding: "56px 0 0" }, slots: { children: layers } },
+                  { tag: "xwui-box", config: { padding: inset("xxxl", "none") }, slots: { children: layers } },
                 ],
-                { gap: 24, align: "stretch" },
+                { gap: "xl", align: "stretch" },
               ),
             },
           },
         ],
-        { gap: 0 },
+        { gap: "none" },
       ),
     },
   };
 
   const modeTiles = words.modes.map((mode) => {
     const tile = glass(
-      stack([row([iconTile(mode.icon, hueOf[mode.group as StepGroup] ?? "cyan"), text("body", mode.label, { bold: true })], { gap: 12 }), text("small", mode.body, { tone: "secondary" })], {
-        gap: 12,
+      stack([row([iconTile(mode.icon, hueOf[mode.group as StepGroup] ?? "cyan"), text("body", mode.label, { bold: true })], { gap: "m" }), text("small", mode.body, { tone: "secondary" })], {
+        gap: "m",
       }),
       { pad: "m" },
     );
@@ -135,17 +135,17 @@ export async function view(context: ViewContext): Promise<Node[]> {
 
   return [
     hero,
-    band("modes", [stack([eyebrow(words.modesEyebrow), headline("h2", words.modesTitle, `${words.modesHighlight} ${words.modesTail}`)], { gap: 8 }), grid(modeTiles, 220)], {
+    band("modes", [stack([eyebrow(words.modesEyebrow), headline("h2", words.modesTitle, `${words.modesHighlight} ${words.modesTail}`)], { gap: "s" }), grid(modeTiles, 220)], {
       tight: true,
-      gap: 24,
+      gap: "xl",
     }),
     band(
       "gallery",
       [
-        row([stack([eyebrow(words.galleryEyebrow), headline("h2", words.galleryTitle, words.galleryHighlight)], { gap: 12 }), families], { gap: 24, wrap: true, justify: "space-between", align: "flex-end" }),
+        row([stack([eyebrow(words.galleryEyebrow), headline("h2", words.galleryTitle, words.galleryHighlight)], { gap: "m" }), families], { gap: "xl", wrap: true, justify: "space-between", align: "flex-end" }),
         { tag: "xwui-composer", key: "notation-gallery", data: { tree: grid(gallery.items.map((item) => card(item, sample)), 300) } },
       ],
-      { gap: 24 },
+      { gap: "xl" },
     ),
   ];
 }

@@ -42,7 +42,7 @@ export function projectTabs(active: string, only?: ReadonlyArray<ProjectTab["id"
 /** A project page's head: title and actions, the lead, then the project tabs. */
 export function projectHead(title: string, lead: string, active: string, actions: Node[] = []): Node[] {
   return [
-    row([text("h2", title), ...(actions.length ? [row(actions, { gap: 8, wrap: true })] : [])], { justify: "space-between", wrap: true, gap: 16 }),
+    row([text("h2", title), ...(actions.length ? [row(actions, { gap: "s", wrap: true })] : [])], { justify: "space-between", wrap: true, gap: "l" }),
     text("lead", lead),
     projectTabs(active),
   ];

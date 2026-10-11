@@ -4,7 +4,7 @@ import { navigate, paths, type Route } from "../../app/router";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { Insights } from "../../types/domain";
-import { button, cell, glass, grid, row, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, cell, glass, grid, row, space, stack, status, tag, text, type Node } from "../../ui/kit";
 
 type InsightsRoute = Extract<Route, { page: "insights" }>;
 
@@ -25,9 +25,9 @@ function kpis(insights: Insights): Node {
               data: { value: rate, label: words.kpis.success },
               config: { size: 76, strokeWidth: 8, showValue: false, valueColor: rate >= 95 ? "var(--xwui-hue-green)" : "var(--xwui-hue-amber)" },
             },
-            stack([text("xs", words.kpis.success, { bold: true, caps: true, tone: "secondary" }), text("disp", `${rate}%`)], { gap: 4 }),
+            stack([text("xs", words.kpis.success, { bold: true, caps: true, tone: "secondary" }), text("disp", `${rate}%`)], { gap: "xs" }),
           ],
-          { gap: 16 },
+          { gap: "l" },
         ),
         { pad: "s" },
       ),
@@ -35,7 +35,7 @@ function kpis(insights: Insights): Node {
       kpi(words.kpis.saved, fill(words.hours, { n: formatNumber(Math.round(totals.minutesSaved / 60)) }), "lime"),
     ],
     220,
-    16,
+    "l",
   );
 }
 
@@ -66,7 +66,7 @@ function topFlows(insights: Insights): Node {
           config: { hoverable: true, bordered: false, ariaLabel: words.tableLabel },
         },
       ],
-      { gap: 14 },
+      { gap: "l" },
     ),
     { pad: "m", scroll: true },
   );
@@ -81,15 +81,15 @@ function causes(insights: Insights): Node {
         ...insights.causes.map((item) =>
           stack(
             [
-              row([text("small", item.cause, { bold: true }), text("xs", fill(words.causeCount, { n: item.count }), { mono: true, tone: "secondary" })], { justify: "space-between", gap: 12 }),
+              row([text("small", item.cause, { bold: true }), text("xs", fill(words.causeCount, { n: item.count }), { mono: true, tone: "secondary" })], { justify: "space-between", gap: "m" }),
               { tag: "xwui-progress", data: { value: Math.round((item.count / most) * 100) }, config: { size: "sm", color: "error" } },
               text("xs", item.flow, { tone: "tertiary" }),
             ],
-            { gap: 6 },
+            { gap: "s" },
           ),
         ),
       ],
-      { gap: 16 },
+      { gap: "l" },
     ),
     { pad: "m" },
   );
@@ -102,12 +102,12 @@ function slowSteps(insights: Insights): Node {
         text("h3", words.slow),
         ...insights.slowSteps.map((step) =>
           row(
-            [stack([text("small", step.step, { bold: true }), text("xs", step.flow, { tone: "tertiary" })], { gap: 2 }), tag(fill(words.p95, { ms: formatNumber(step.p95Ms) }), step.p95Ms > 1500 ? "orange" : "cyan")],
-            { justify: "space-between", gap: 12 },
+            [stack([text("small", step.step, { bold: true }), text("xs", step.flow, { tone: "tertiary" })], { gap: "xs" }), tag(fill(words.p95, { ms: formatNumber(step.p95Ms) }), step.p95Ms > 1500 ? "orange" : "cyan")],
+            { justify: "space-between", gap: "m" },
           ),
         ),
       ],
-      { gap: 16 },
+      { gap: "l" },
     ),
     { pad: "m" },
   );
@@ -123,7 +123,7 @@ export async function view(context: ViewContext<InsightsRoute>): Promise<PageRes
     body: [
       row(
         [
-          stack([text("h2", words.title), text("lead", words.lead)], { gap: 8 }),
+          stack([text("h2", words.title), text("lead", words.lead)], { gap: "s" }),
           {
             tag: "xwui-segmented-control",
             data: { value: String(route.days) },
@@ -131,14 +131,14 @@ export async function view(context: ViewContext<InsightsRoute>): Promise<PageRes
             ref: (instance) => (instance as { onChange?(handler: (value: string) => void): void }).onChange?.((value) => navigate(paths.insights, { days: value === "7" ? "7" : null })),
           },
         ],
-        { justify: "space-between", wrap: true, gap: 16, align: "flex-end" },
+        { justify: "space-between", wrap: true, gap: "l", align: "flex-end" },
       ),
       kpis(insights),
       glass(
         stack(
           [
             row(
-              [text("h3", words.daily), row([status("neutral", words.succeeded), status("error", words.failed)], { gap: 16 })],
+              [text("h3", words.daily), row([status("neutral", words.succeeded), status("error", words.failed)], { gap: "l" })],
               { justify: "space-between", wrap: true },
             ),
             {
@@ -152,14 +152,14 @@ export async function view(context: ViewContext<InsightsRoute>): Promise<PageRes
               config: { height: 200 },
             },
           ],
-          { gap: 16 },
+          { gap: "l" },
         ),
         { pad: "m" },
       ),
       topFlows(insights),
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: "24px", alignItems: "start", responsive: { md: { columns: "repeat(2, minmax(0, 1fr))" } } },
+        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { md: { columns: "repeat(2, minmax(0, 1fr))" } } },
         slots: { children: [causes(insights), slowSteps(insights)] },
       },
     ],

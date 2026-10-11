@@ -9,7 +9,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { FlowList, FlowQuery, FlowSummary, Workspace } from "../../types/domain";
 import { hueOf, toneOf } from "../../ui/flow";
-import { button, cell, glass, grid, row, shape, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, cell, glass, grid, row, shape, space, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer } from "../../xwui";
 import { projectTabs } from "./common-view";
 
@@ -62,7 +62,7 @@ function hero(workspace: Workspace, list: FlowList): Node {
   );
   return {
     tag: "xwui-box",
-    config: { surface: "glass", padding: 28, overflow: "clip" },
+    config: { surface: "glass", padding: space("xxl"), overflow: "clip" },
     slots: {
       children: stack(
         [
@@ -75,20 +75,20 @@ function hero(workspace: Workspace, list: FlowList): Node {
                   { tag: "xwui-icon-tile", data: { icon: "folder" }, config: { hue: "violet", size: "lg" } },
                   stack(
                     [
-                      row([text("h2", workspace.project.name), tag(catalog.studio.visibility[workspace.project.visibility])], { gap: 12 }),
+                      row([text("h2", workspace.project.name), tag(catalog.studio.visibility[workspace.project.visibility])], { gap: "m" }),
                       text("body", workspace.project.description, { tone: "secondary" }),
                     ],
-                    { gap: 4 },
+                    { gap: "xs" },
                   ),
                 ],
-                { gap: 20 },
+                { gap: "xl" },
               ),
-              row([demo, create], { gap: 8, wrap: true }),
+              row([demo, create], { gap: "s", wrap: true }),
             ],
-            { gap: 20, wrap: true, justify: "space-between" },
+            { gap: "xl", wrap: true, justify: "space-between" },
           ),
         ],
-        { gap: 0 },
+        { gap: "none" },
       ),
     },
   };
@@ -105,7 +105,7 @@ function table(flows: FlowSummary[]): Node {
             key: "name",
             title: words.columns.name,
             render: (_: unknown, flow: FlowSummary) =>
-              cell(stack([{ ...text("small", flow.name, { bold: true }), on: { click: () => navigate(paths.flow(flow.id)) } }, text("xs", flow.folder, { tone: "secondary" })], { gap: 2 })),
+              cell(stack([{ ...text("small", flow.name, { bold: true }), on: { click: () => navigate(paths.flow(flow.id)) } }, text("xs", flow.folder, { tone: "secondary" })], { gap: "xs" })),
           },
           {
             key: "chain",
@@ -159,7 +159,7 @@ function table(flows: FlowSummary[]): Node {
 }
 
 function results(list: FlowList): Node {
-  return stack([table(list.flows), text("small", list.flows.length === 1 ? words.footerOne : fill(words.footer, { n: list.flows.length }), { tone: "secondary" })], { gap: 12 });
+  return stack([table(list.flows), text("small", list.flows.length === 1 ? words.footerOne : fill(words.footer, { n: list.flows.length }), { tone: "secondary" })], { gap: "m" });
 }
 
 export async function view(context: ViewContext<FlowsRoute>): Promise<PageResult> {
@@ -228,7 +228,7 @@ export async function view(context: ViewContext<FlowsRoute>): Promise<PageResult
           }),
       },
     ],
-    { gap: 12 },
+    { gap: "m" },
   );
 
   return {

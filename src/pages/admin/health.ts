@@ -6,19 +6,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Health, HealthCheck, HealthState } from "../../types/domain";
-import {
-  button,
-  glass,
-  grid,
-  row,
-  shape,
-  stack,
-  status,
-  text,
-  type Hue,
-  type Node,
-  type StatusTone,
-} from "../../ui/kit";
+import { button, glass, grid, row, shape, space, stack, status, text, type Hue, type Node, type StatusTone } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer } from "../../xwui";
 
 const words = catalog.admin.health;
@@ -61,7 +49,7 @@ function summary(health: Health): Node {
     : 0;
   return {
     tag: "xwui-box",
-    config: { surface: "glass", padding: 32, overflow: "clip" },
+    config: { surface: "glass", padding: space("xxl"), overflow: "clip" },
     slots: {
       children: row(
         [
@@ -74,7 +62,7 @@ function summary(health: Health): Node {
                   shape("halo", hue, 200, { left: "-55px", top: "-55px" }),
                   shape("orb", hue, 90, { left: "0", top: "0" }),
                 ],
-                { gap: 0 },
+                { gap: "none" },
               ),
             },
           },
@@ -97,10 +85,10 @@ function summary(health: Health): Node {
                 { tone: "secondary" },
               ),
             ],
-            { gap: 8 },
+            { gap: "s" },
           ),
         ],
-        { gap: 28, wrap: true },
+        { gap: "xxl", wrap: true },
       ),
     },
   };
@@ -158,7 +146,7 @@ function topology(health: Health): Node {
           },
         },
       ],
-      { gap: 8 },
+      { gap: "s" },
     ),
     { pad: "m" },
   );
@@ -189,7 +177,7 @@ function uptime(health: Health): Node {
             tag: "xwui-grid",
             config: {
               columns: "110px minmax(0, 1fr)",
-              gap: "12px",
+              gap: space("m"),
               alignItems: "center",
             },
             slots: {
@@ -231,7 +219,7 @@ function uptime(health: Health): Node {
           (["ok", "warn", "err"] as const).map((state) =>
             status(tones[state], words.legend[state]),
           ),
-          { gap: 16, wrap: true },
+          { gap: "l", wrap: true },
         ),
         {
           tag: "xwui-code-block",
@@ -244,7 +232,7 @@ function uptime(health: Health): Node {
           },
         },
       ],
-      { gap: 14 },
+      { gap: "l" },
     ),
     { pad: "m" },
   );
@@ -288,7 +276,7 @@ function checks(health: Health): Node {
             status(tones[check.state], words.summaries[check.summary]),
             text("small", detailText(check), { tone: "secondary" }),
           ],
-          { gap: 10 },
+          { gap: "m" },
         ),
         {
           pad: "s",
@@ -298,7 +286,7 @@ function checks(health: Health): Node {
       ),
     ),
     250,
-    16,
+    "l",
   );
 }
 
@@ -310,7 +298,7 @@ const content = (health: Health): Node =>
         tag: "xwui-grid",
         config: {
           columns: "minmax(0, 1fr)",
-          gap: "24px",
+          gap: space("xl"),
           alignItems: "start",
           responsive: { lg: { columns: "repeat(2, minmax(0, 1fr))" } },
         },
@@ -318,7 +306,7 @@ const content = (health: Health): Node =>
       },
       checks(health),
     ],
-    { gap: 22 },
+    { gap: "xl" },
   );
 
 export async function view(context: ViewContext): Promise<PageResult> {
@@ -371,7 +359,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
             },
           },
         ],
-        { justify: "flex-end", gap: 8 },
+        { justify: "flex-end", gap: "s" },
       ),
     },
     ref: (instance) => (dialogs[id] = instance as Dialog),
@@ -421,7 +409,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
           button("glass", words.drain, { onClick: () => open("drain") }),
           text("xs", words.confirmNote, { tone: "tertiary" }),
         ],
-        { gap: 8, wrap: true },
+        { gap: "s", wrap: true },
       ),
       confirmDialog(
         "pause",

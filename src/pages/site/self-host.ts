@@ -5,7 +5,7 @@ import { siteHref } from "../../app/site-links";
 import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { CodeToken, SelfHost } from "../../types/domain";
-import { band, button, eyebrow, glass, grid, headline, iconTile, keys, row, separator, shape, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { band, button, eyebrow, glass, grid, headline, iconTile, inset, keys, row, separator, shape, sides, space, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 
 const words = catalog.site.selfHost;
 const stepHues: Hue[] = ["lime", "cyan", "violet", "pink", "orange"];
@@ -39,7 +39,7 @@ function terminal(tokens: CodeToken[]): Node {
 
 function stepCard(number: number, title: string, items: Node[]): Node {
   return glass(
-    row([tag(String(number), stepHues[(number - 1) % stepHues.length]), stack([text("h3", title), ...items], { gap: 12 })], { gap: 16, align: "flex-start" }),
+    row([tag(String(number), stepHues[(number - 1) % stepHues.length]), stack([text("h3", title), ...items], { gap: "m" })], { gap: "l", align: "flex-start" }),
     { pad: "m" },
   );
 }
@@ -52,14 +52,14 @@ function firstFlow(offset: number): Node {
       [
         tag(line.key, line.color as Hue),
         text("small", before, { tone: "secondary" }),
-        ...(after !== undefined ? [row(t.keys.map((key) => keys([key])), { gap: 4 }), text("small", after, { tone: "secondary" })] : []),
+        ...(after !== undefined ? [row(t.keys.map((key) => keys([key])), { gap: "xs" }), text("small", after, { tone: "secondary" })] : []),
       ],
-      { gap: 8, wrap: true },
+      { gap: "s", wrap: true },
     );
   });
   return stepCard(offset + 1, t.title, [
-    stack(lines, { gap: 8 }),
-    row([button("primary", t.editor, { href: href(paths.flow("f_order_alert")) }), button("glass", t.receipt, { href: href(paths.run("r_7f39")) })], { gap: 12, wrap: true }),
+    stack(lines, { gap: "s" }),
+    row([button("primary", t.editor, { href: href(paths.flow("f_order_alert")) }), button("glass", t.receipt, { href: href(paths.run("r_7f39")) })], { gap: "m", wrap: true }),
   ]);
 }
 
@@ -73,18 +73,18 @@ function aside(guide: SelfHost): Node {
           row([text("small", item.label, { tone: "secondary" }), text("small", item.value, { mono: true })], { justify: "space-between" }),
         ]),
       ],
-      { gap: 12 },
+      { gap: "m" },
     ),
     { pad: "m" },
   );
-  const secrets = glass(stack([iconTile("shield", "lime", "sm"), text("h3", words.secretsTitle), text("small", words.secretsBody, { tone: "secondary" })], { gap: 8 }), {
+  const secrets = glass(stack([iconTile("shield", "lime", "sm"), text("h3", words.secretsTitle), text("small", words.secretsBody, { tone: "secondary" })], { gap: "s" }), {
     pad: "m",
     key: "band-secrets",
   });
   const pending = guide.pendingCommands
     ? [{ tag: "xwui-alert", data: { message: fill(words.pending, { n: guide.pendingCommands }) }, config: { variant: "warning", size: "small" } }]
     : [];
-  return stack([defaults, secrets, ...pending], { gap: 16 });
+  return stack([defaults, secrets, ...pending], { gap: "l" });
 }
 
 export async function view(_context: ViewContext): Promise<Node[]> {
@@ -96,11 +96,11 @@ export async function view(_context: ViewContext): Promise<Node[]> {
       headline("h1", words.title, words.titleHighlight),
       text("lead", words.lead),
       row([button("primary", words.start, { size: "lg", href: siteHref("selfHost", "steps") }), button("gradient", words.licence, { size: "lg", href: siteHref("pricing") })], {
-        gap: 12,
+        gap: "m",
         wrap: true,
       }),
     ],
-    { gap: 24 },
+    { gap: "xl" },
   );
   const art: Node = {
     tag: "xwui-box",
@@ -111,21 +111,21 @@ export async function view(_context: ViewContext): Promise<Node[]> {
           { tag: "xwui-iso-stack", data: { layers: [{ hue: "violet" }, { hue: "cyan" }, { hue: "pink" }, { hue: "lime" }] }, config: { size: 260, spacing: 46, height: 360 } },
           shape("orb", "lime", 46, { right: "16%", top: "20px" }),
         ],
-        { gap: 0 },
+        { gap: "none" },
       ),
     },
   };
   const hero: Node = {
     tag: "xwui-box",
     key: "band-hero",
-    config: { as: "section", position: "relative", padding: "80px 0 20px" },
+    config: { as: "section", position: "relative", padding: inset("hero", "xl") },
     slots: {
       children: stack(
         [
           shape("halo", "violet", 520, { left: "-80px", top: "-60px" }),
-          { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: "0 24px" }, slots: { children: grid([intro, art], 440, 48) } },
+          { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: sides("xl") }, slots: { children: grid([intro, art], 440, "xxxl") } },
         ],
-        { gap: 0 },
+        { gap: "none" },
       ),
     },
   };
@@ -135,8 +135,8 @@ export async function view(_context: ViewContext): Promise<Node[]> {
       ...guide.steps.map((step, index) => stepCard(index + 1, step.title, [text("body", bodyText(step.body, guide), { tone: "secondary" }), terminal(step.code)])),
       firstFlow(guide.steps.length),
     ],
-    { gap: 16 },
+    { gap: "l" },
   );
 
-  return [hero, band("steps", [{ tag: "xwui-grid", data: { spans: [2, 1] }, config: { columns: 3, gap: "24px", alignItems: "start" }, slots: { children: [steps, aside(guide)] } }])];
+  return [hero, band("steps", [{ tag: "xwui-grid", data: { spans: [2, 1] }, config: { columns: 3, gap: space("xl"), alignItems: "start" }, slots: { children: [steps, aside(guide)] } }])];
 }

@@ -10,8 +10,24 @@ import { XWUIComposer, type XWUIComposerNode } from "../xwui";
 
 export type Node = XWUIComposerNode;
 export type Hue = "lime" | "cyan" | "violet" | "pink" | "orange" | "green" | "amber" | "red" | "blue";
-/** Gap in pixels; the prototype uses 4, 8, 12, 16, 24, 32 and 48. */
-export type Gap = number;
+/**
+ * A step of the xwflow brand's spacing scale (4, 8, 12, 16, 24, 32, 48 on a 4px
+ * grid), the app frame's page padding (32, or 16 on a phone), then the section
+ * rhythm (hero 80, section-s 64, section 112). Every gap
+ * and padding in the app is one of these; the values live in the brand tokens.
+ */
+export type Space = "none" | "xs" | "s" | "m" | "l" | "xl" | "xxl" | "xxxl" | "page" | "hero" | "section-s" | "section";
+/** A gap between items: a step of the spacing scale. */
+export type Gap = Space;
+
+/** The CSS value of a spacing step. */
+export const space = (step: Space): string => (step === "none" ? "0" : `var(--space-${step})`);
+
+/** Side padding only: start and end from the scale, no top or bottom. */
+export const sides = (step: Space): string => `0 ${space(step)}`;
+
+/** A vertical inset: top and bottom from the scale, no side padding. */
+export const inset = (top: Space, bottom: Space = top): string => `${space(top)} 0 ${space(bottom)}`;
 
 const DISPLAY = "var(--font-headings-family)";
 const MONO = "var(--font-family-mono)";
@@ -71,7 +87,7 @@ export function headline(style: "mega" | "hero" | "h1" | "h2", title: string, hi
   const second = text(style, highlight, { tone: "gradient", align });
   // Plain inline text, so the gradient spans the words across their lines (not a column-wide box).
   second.config = { ...second.config, component: "span", inline: "text" };
-  return stack([text(style, title, { align }), { tag: "xwui-box", config: { padding: 0 }, slots: { children: second } }], { gap: 0, align: align ? "center" : undefined });
+  return stack([text(style, title, { align }), { tag: "xwui-box", config: { padding: space("none") }, slots: { children: second } }], { gap: "none", align: align ? "center" : undefined });
 }
 
 /** The lime overline that opens a section. */
@@ -84,7 +100,7 @@ export function eyebrow(value: string): Node {
 }
 
 export interface StackOptions {
-  gap?: Gap | 0;
+  gap?: Gap;
   row?: boolean;
   wrap?: boolean;
   align?: "flex-start" | "flex-end" | "center" | "stretch" | "baseline";
@@ -98,7 +114,7 @@ export function stack(items: Node[], options: StackOptions = {}): Node {
     key: options.key,
     config: {
       direction: options.row ? "row" : "column",
-      gap: `${options.gap ?? 16}px`,
+      gap: space(options.gap ?? "l"),
       wrap: options.wrap,
       align: options.align ?? (options.row ? "center" : undefined),
       justify: options.justify,
@@ -107,14 +123,14 @@ export function stack(items: Node[], options: StackOptions = {}): Node {
   };
 }
 
-export const row = (items: Node[], options: Omit<StackOptions, "row"> = {}): Node => stack(items, { gap: 8, ...options, row: true });
+export const row = (items: Node[], options: Omit<StackOptions, "row"> = {}): Node => stack(items, { gap: "s", ...options, row: true });
 
 /** One node centred on its own line, inside a stretched column. */
 export const centred = (item: Node): Node => row([item], { justify: "center" });
 
 /** Auto-fit columns never narrower than `min` (the prototype's g2 / g3 / g4). */
-export function grid(items: Node[], min: 440 | 300 | 230 | number, gap = 20): Node {
-  return { tag: "xwui-grid", config: { minChildWidth: `${min}px`, gap: `${gap}px` }, slots: { children: items } };
+export function grid(items: Node[], min: 440 | 300 | 230 | number, gap: Gap = "xl"): Node {
+  return { tag: "xwui-grid", config: { minChildWidth: `${min}px`, gap: space(gap) }, slots: { children: items } };
 }
 
 export interface PanelOptions {
@@ -126,7 +142,7 @@ export interface PanelOptions {
   key?: string;
 }
 
-const PAD = { none: undefined, s: 16, m: 24, l: 36 } as const;
+const PAD = { none: undefined, s: space("l"), m: space("xl"), l: space("xxl") } as const;
 
 /** A glass panel around one node (wrap several in a stack). */
 export function glass(child: Node, options: PanelOptions = {}): Node {
@@ -144,13 +160,13 @@ export function band(id: string, items: Node[], options: { tight?: boolean; gap?
     tag: "xwui-box",
     key: `band-${id}`,
     data: {},
-    config: { as: "section", padding: options.padding ?? (options.tight ? "64px 0" : "110px 0"), ariaLabel: undefined },
-    slots: { children: column(stack(items, { gap: options.gap ?? 48 })) },
+    config: { as: "section", padding: options.padding ?? inset(options.tight ? "section-s" : "section"), ariaLabel: undefined },
+    slots: { children: column(stack(items, { gap: options.gap ?? "xxxl" })) },
   };
 }
 
 export function column(child: Node): Node {
-  return { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: "0 24px" }, slots: { children: child } };
+  return { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: sides("xl") }, slots: { children: child } };
 }
 
 export type ButtonLook = "primary" | "glass" | "gradient" | "ghost";
@@ -239,7 +255,7 @@ export function separator(): Node {
 /** A list of lines, each led by a ring in the given hue (the prototype's ticks). */
 export function ticks(items: string[], hue: Hue = "lime"): Node {
   return stack(
-    items.map((item) => row([icon("circle-dot", 16, `var(--xwui-hue-${hue})`), text("small", item, { tone: "secondary" })], { gap: 10, align: "flex-start" })),
-    { gap: 10 },
+    items.map((item) => row([icon("circle-dot", 16, `var(--xwui-hue-${hue})`), text("small", item, { tone: "secondary" })], { gap: "m", align: "flex-start" })),
+    { gap: "m" },
   );
 }

@@ -22,7 +22,7 @@ function kpis(list: AgentList): Node {
   return grid(
     [kpi(words.kpis.live, list.counts.live, "violet"), kpi(words.kpis.conversations, list.counts.conversations7d, "cyan"), kpi(words.kpis.handoffs, list.counts.handoffs7d, "pink")],
     210,
-    16,
+    "l",
   );
 }
 
@@ -41,26 +41,26 @@ function card(agent: Agent, act: (agent: Agent, next: AgentStatus) => void): Nod
       [
         row(
           [
-            row([iconTile("bot", agent.hue), stack([text("body", agent.name, { bold: true }), text("xs", agent.owner.name, { tone: "tertiary" })], { gap: 2 })], { gap: 12 }),
+            row([iconTile("bot", agent.hue), stack([text("body", agent.name, { bold: true }), text("xs", agent.owner.name, { tone: "tertiary" })], { gap: "xs" })], { gap: "m" }),
             status(tones[agent.status], words.status[agent.status]),
           ],
           { justify: "space-between", wrap: true },
         ),
         text("small", agent.description, { tone: "secondary" }),
-        row([text("xs", words.model, { caps: true, bold: true, tone: "tertiary" }), tag(agent.model, "violet")], { gap: 8 }),
+        row([text("xs", words.model, { caps: true, bold: true, tone: "tertiary" }), tag(agent.model, "violet")], { gap: "s" }),
         stack(
           [
             text("xs", words.tools, { caps: true, bold: true, tone: "tertiary" }),
             agent.tools.length
-              ? row(agent.tools.map((tool) => tag(tool.label, hueOf[tool.group], undefined, true)), { gap: 6, wrap: true })
+              ? row(agent.tools.map((tool) => tag(tool.label, hueOf[tool.group], undefined, true)), { gap: "s", wrap: true })
               : text("small", words.noTools, { tone: "tertiary" }),
           ],
-          { gap: 6 },
+          { gap: "s" },
         ),
         text("xs", stats.join(" · "), { tone: "secondary" }),
-        row([primary, button("ghost", words.open, { size: "sm", onClick: () => (navigate(paths.studio), notify(fill(words.openSoon, { name: agent.name }), "info")) })], { gap: 8 }),
+        row([primary, button("ghost", words.open, { size: "sm", onClick: () => (navigate(paths.studio), notify(fill(words.openSoon, { name: agent.name }), "info")) })], { gap: "s" }),
       ],
-      { gap: 14 },
+      { gap: "l" },
     ),
     { pad: "m", glow: agent.status === "live" ? "violet" : undefined },
   );
@@ -139,7 +139,7 @@ export async function view(context: ViewContext<AgentsRoute>): Promise<PageResul
             ref: (instance) => (instance as XWUISelect).onChange((value) => apply({ status: String(value) as AgentStatus | "" })),
           },
         ],
-        { gap: 12, wrap: true },
+        { gap: "m", wrap: true },
       ),
       { tag: "xwui-composer", key: "agents-cards", data: { tree: cards() } },
       {
@@ -152,7 +152,7 @@ export async function view(context: ViewContext<AgentsRoute>): Promise<PageResul
               { tag: "xwui-input-text", data: { label: dialogWords.name, placeholder: dialogWords.namePlaceholder }, config: { fullWidth: true, required: true }, ref: (i) => (fields.name = i as XWUIInputText) },
               { tag: "xwui-textarea", data: { label: dialogWords.description, placeholder: dialogWords.descriptionPlaceholder, rows: 3 }, config: { fullWidth: true }, ref: (i) => (fields.description = i as XWUIInputText) },
             ],
-            { gap: 16 },
+            { gap: "l" },
           ),
           footer: row([button("glass", dialogWords.cancel, { onClick: () => fields.dialog?.close() }), button("primary", dialogWords.save, { onClick: () => void create() })], { justify: "flex-end" }),
         },

@@ -7,7 +7,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { NodeType, StepGroup } from "../../types/domain";
 import { hueOf, stepType } from "../../ui/flow";
-import { band, button, centred, eyebrow, glass, grid, headline, iconTile, measure, row, shape, stack, tag, text, type Node } from "../../ui/kit";
+import { band, button, centred, eyebrow, glass, grid, headline, iconTile, inset, measure, row, shape, sides, space, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUIInputText, XWUINavTabs } from "../../xwui";
 
 const words = catalog.site.integrations;
@@ -21,16 +21,16 @@ function card(item: NodeType): Node {
   const type = stepType(item.id, item.group);
   return {
     tag: "xwui-box",
-    config: { surface: "glass", padding: 20, hoverLift: true, role: "button", ariaLabel: item.label },
+    config: { surface: "glass", padding: space("xl"), hoverLift: true, role: "button", ariaLabel: item.label },
     on: { click: () => opened(item) },
     slots: {
       children: stack(
         [
           row([iconTile(type.icon, hueOf[item.group])]),
-          stack([text("body", item.label, { bold: true }), hueText(catalog.studio.groupLabels[item.group], hueOf[item.group])], { gap: 2 }),
+          stack([text("body", item.label, { bold: true }), hueText(catalog.studio.groupLabels[item.group], hueOf[item.group])], { gap: "xs" }),
           text("small", item.summary, { tone: "secondary" }),
         ],
-        { gap: 14 },
+        { gap: "l" },
       ),
     },
   };
@@ -57,14 +57,14 @@ function featured(item: NodeType): Node {
                 text("h3", item.label),
                 text("body", item.summary, { tone: "secondary" }),
               ],
-              { gap: 8 },
+              { gap: "s" },
             ),
           ],
-          { gap: 24 },
+          { gap: "xl" },
         ),
         button("gradient", words.viewStep, { icon: "arrow-right", iconAfter: true, onClick: () => opened(item) }),
       ],
-      { gap: 24, justify: "space-between" },
+      { gap: "xl", justify: "space-between" },
     ),
     { pad: "l" },
   );
@@ -74,10 +74,10 @@ function directory(items: NodeType[], filtered: boolean): Node {
   if (!items.length) return { tag: "xwui-empty", data: { icon: "search", title: words.empty.title, description: words.empty.description } };
   const first = items.find((item) => item.featured);
   const rest = items.filter((item) => item !== first);
-  const more = glass(stack([text("disp", "+", { tone: "gradient" }), text("body", words.more, { bold: true }), text("small", words.moreBody, { tone: "secondary" })], { gap: 8 }), {
+  const more = glass(stack([text("disp", "+", { tone: "gradient" }), text("body", words.more, { bold: true }), text("small", words.moreBody, { tone: "secondary" })], { gap: "s" }), {
     pad: "m",
   });
-  return stack([...(first ? [featured(first)] : []), grid([...rest.map(card), ...(filtered ? [] : [more])], 230)], { gap: 24 });
+  return stack([...(first ? [featured(first)] : []), grid([...rest.map(card), ...(filtered ? [] : [more])], 230)], { gap: "xl" });
 }
 
 export async function view(context: ViewContext): Promise<Node[]> {
@@ -124,7 +124,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
   const hero: Node = {
     tag: "xwui-box",
     key: "band-hero",
-    config: { as: "section", position: "relative", padding: "70px 0 40px" },
+    config: { as: "section", position: "relative", padding: inset("hero", "xxxl") },
     slots: {
       children: stack(
         [
@@ -134,7 +134,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
           shape("orb", "cyan", 70, { right: "9%", top: "40px" }),
           {
             tag: "xwui-container",
-            config: { maxWidth: 1280, center: true, padding: "0 24px" },
+            config: { maxWidth: 1280, center: true, padding: sides("xl") },
             slots: {
               children: stack(
                 [
@@ -144,12 +144,12 @@ export async function view(context: ViewContext): Promise<Node[]> {
                   measure(glass(search, { pad: "none", glow: "violet" }), 680),
                   centred(tabs),
                 ],
-                { gap: 24, align: "stretch" },
+                { gap: "xl", align: "stretch" },
               ),
             },
           },
         ],
-        { gap: 0 },
+        { gap: "none" },
       ),
     },
   };
@@ -163,7 +163,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
         { tag: "xwui-composer", key: "integrations-list", data: { tree: directory(first.items, false) } },
       ],
       // As the prototype: the directory follows the hero directly.
-      { gap: 24, padding: "0 0 100px" },
+      { gap: "xl", padding: inset("none", "section") },
     ),
   ];
 }

@@ -25,6 +25,9 @@ const forbidden: Array<[string, RegExp]> = [
   // Colours and type come from the xwflow brand's tokens, never literals in app code.
   ["colour literals (hex or rgba)", /["'`][^"'`]*(#[0-9a-fA-F]{3,8}\b|rgba?\()[^"'`]*["'`]/],
   ["type size literals (clamp, rem, em)", /["'`]\s*(clamp\(|-?[0-9.]+r?em\s*["'`])/],
+  // Gaps and paddings are steps of the brand's spacing scale (space(), inset(), "m", "xl"...).
+  // (A numeric gap is refused by the kit's types; the marquee and the canvas insets take pixel numbers.)
+  ["spacing literals (px gaps, paddings, margins)", /\b(gap|padding|margin|rowGap|columnGap)\s*:\s*["'`][^"'`]*\d|\b(padding|margin)\s*:\s*\d/],
 ];
 
 describe("XWUI composition only", () => {

@@ -85,7 +85,7 @@ export function spacePart(view: FlowView, { instance, onLeave }: ViewPartContext
         },
         text("small", label),
       ],
-      { gap: 12 },
+      { gap: "m" },
     );
   const turn = (by: number): void => {
     spin = Math.max(-80, Math.min(80, spin + by));
@@ -104,7 +104,7 @@ export function spacePart(view: FlowView, { instance, onLeave }: ViewPartContext
             button("glass", "", { size: "sm", icon: "zoom-out", label: words.zoomOut, onClick: () => scene()?.zoom(1 / 1.15) }),
             button("glass", "", { size: "sm", icon: "maximize", label: words.reset, onClick: () => scene()?.reset() }),
           ],
-          { gap: 6, wrap: true },
+          { gap: "s", wrap: true },
         ),
         stack(
           [
@@ -121,7 +121,7 @@ export function spacePart(view: FlowView, { instance, onLeave }: ViewPartContext
                 }),
             },
           ],
-          { gap: 6 },
+          { gap: "s" },
         ),
         text("small", words.layout, { bold: true }),
         toggle(words.lanesAsFloors, "lanes"),
@@ -139,7 +139,7 @@ export function spacePart(view: FlowView, { instance, onLeave }: ViewPartContext
         },
         button("primary", words.replay, { icon: "play", onClick: replay }),
       ],
-      { gap: 12 },
+      { gap: "m" },
     ),
     { pad: "m" },
   );

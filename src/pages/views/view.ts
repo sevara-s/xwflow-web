@@ -10,16 +10,7 @@ import {
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { FlowView } from "../../types/domain";
-import {
-  button,
-  glass,
-  row,
-  shape,
-  stack,
-  tag,
-  text,
-  type Node,
-} from "../../ui/kit";
+import { button, glass, row, shape, space, stack, tag, text, type Node } from "../../ui/kit";
 
 type ViewRoute = Extract<Route, { page: "view" }>;
 
@@ -70,7 +61,7 @@ export async function view(
       tag: "xwui-grid",
       config: {
         columns: "minmax(0, 1fr)",
-        gap: "10px",
+        gap: space("m"),
         alignItems: "center",
         responsive: { xl: { columns: "auto minmax(0, 1fr) auto" } },
       },
@@ -108,7 +99,7 @@ export async function view(
                 ? [tag(catalog.studio.flowStatus.published, "lime")]
                 : []),
             ],
-            { gap: 6, wrap: true },
+            { gap: "s", wrap: true },
           ),
           {
             tag: "xwui-box",
@@ -169,7 +160,7 @@ export async function view(
                 onClick: current.export,
               }),
             ],
-            { gap: 8 },
+            { gap: "s" },
           ),
         ],
       },
@@ -183,7 +174,7 @@ export async function view(
         tag: "xwui-box",
         config: {
           surface: "glass",
-          padding: 20,
+          padding: space("xl"),
           overflow: "clip",
           position: "relative",
           ariaLabel: fill(words.titles[route.view], { flow: flowName }),
@@ -194,7 +185,7 @@ export async function view(
               shape("halo", "violet", 420, { left: "30%", top: "30%" }),
               current.stage,
             ],
-            { gap: 0 },
+            { gap: "none" },
           ),
         },
       };
@@ -203,7 +194,7 @@ export async function view(
     body: [
       {
         tag: "xwui-box",
-        config: { padding: 16 },
+        config: { padding: space("l") },
         slots: {
           children: stack(
             [
@@ -216,7 +207,7 @@ export async function view(
                       current.footer.length === 1
                         ? current.footer[0]
                         : row(current.footer, {
-                            gap: 14,
+                            gap: "l",
                             wrap: true,
                             align: "center",
                           }),
@@ -225,7 +216,7 @@ export async function view(
                   ]
                 : []),
             ],
-            { gap: 16 },
+            { gap: "l" },
           ),
         },
       },

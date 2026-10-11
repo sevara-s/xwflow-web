@@ -8,7 +8,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Attempt, FlowDetail, RunDetail } from "../../types/domain";
 import { canvasData, hueOf, toneOf } from "../../ui/flow";
-import { button, cell, keys, row, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, cell, keys, row, space, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer, XWUIFlowCanvas, XWUIInputText } from "../../xwui";
 import { inspector, pinToggle, type InspectorContext } from "./editor-inspector";
 
@@ -17,6 +17,7 @@ type EditorRoute = Extract<Route, { page: "editor" }>;
 const words = catalog.studio.editor;
 
 /** Panel sizes; the canvas fit keeps clear of them. */
+// Pixel numbers for the canvas insets below; the gap is the scale's 16 the workbench uses.
 const PANEL = { gap: 16, header: 62, start: 250, end: 340, bottom: 250 } as const;
 
 function latestFailure(run: RunDetail | null): Attempt | undefined {
@@ -30,7 +31,7 @@ function statusTags(detail: FlowDetail): Node {
       ...(state !== "draft" ? [tag(catalog.studio.flowStatus.published, "lime")] : []),
       ...(state !== "published" ? [tag(flowStatusView(state).label, state === "draft" ? undefined : "amber")] : []),
     ],
-    { gap: 8 },
+    { gap: "s" },
   );
 }
 
@@ -62,10 +63,10 @@ function palette(detail: FlowDetail, query: string, add: (item: FlowDetail["pale
             };
           }),
         ],
-        { gap: 2 },
+        { gap: "xs" },
       ),
     ),
-    { gap: 10 },
+    { gap: "m" },
   );
 }
 
@@ -129,7 +130,7 @@ function runBody(latest: RunDetail | null, tab: string, selectedId: string | nul
         const view = resultView(item.result, true);
         return status(toneOf[view.tone], view.label);
       }),
-      { gap: 8 },
+      { gap: "s" },
     );
   }
   const payload = focus ? (tab === "input" ? focus.io.input : focus.io.output) : {};
@@ -203,7 +204,7 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
         ...(disabled ? [status("disabled", fill(words.disabled, { n: disabled }))] : []),
         button("glass", words.openReceipt, { size: "sm", onClick: () => navigate(paths.run(runId)) }),
       ],
-      { gap: 12, wrap: true },
+      { gap: "m", wrap: true },
     );
   };
   const drawRunPanel = (): void => {
@@ -284,11 +285,11 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
               text("small", "/", { tone: "tertiary" }),
               { tag: "xwui-composer", key: "editor-crumb", data: { tree: text("small", detail.flow.name, { bold: true }) } },
             ],
-            { gap: 8 },
+            { gap: "s" },
           ),
           { tag: "xwui-composer", key: "editor-tags", data: { tree: statusTags(detail) } },
         ],
-        { gap: 12 },
+        { gap: "m" },
       ),
       {
         tag: "xwui-tabs",
@@ -307,7 +308,7 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
       row(
         [
           button("glass", words.askAi, { size: "sm", icon: "sparkles", onClick: () => navigate(paths.studio) }),
-          row([button("gradient", words.run, { size: "sm", icon: "play", key: "editor-run", onClick: () => void startTestRun() }), keys(words.runKeys.split(" "), "sm")], { gap: 6 }),
+          row([button("gradient", words.run, { size: "sm", icon: "play", key: "editor-run", onClick: () => void startTestRun() }), keys(words.runKeys.split(" "), "sm")], { gap: "s" }),
           button("primary", words.publish, {
             size: "sm",
             onClick: async () => {
@@ -322,10 +323,10 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
             },
           }),
         ],
-        { gap: 8 },
+        { gap: "s" },
       ),
     ],
-    { gap: 12, justify: "space-between", wrap: true },
+    { gap: "m", justify: "space-between", wrap: true },
   );
 
   const start = stack(
@@ -342,7 +343,7 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
       },
       { tag: "xwui-composer", key: "editor-palette", data: { tree: palette(detail, paletteQuery, (item) => void addStep(item)) } },
     ],
-    { gap: 10 },
+    { gap: "m" },
   );
 
   const bottom = stack(
@@ -361,11 +362,11 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
           },
           { tag: "xwui-composer", key: "editor-run-head", data: { tree: runHead() } },
         ],
-        { gap: 12, justify: "space-between", wrap: true },
+        { gap: "m", justify: "space-between", wrap: true },
       ),
       { tag: "xwui-composer", key: "editor-run-body", data: { tree: runBody(latest, runTab, selectedId) } },
     ],
-    { gap: 8 },
+    { gap: "s" },
   );
 
   const stage: Node = {
@@ -420,7 +421,7 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
           header,
           start,
           end: { tag: "xwui-composer", key: "editor-inspector", data: { tree: inspectorTree() } },
-          bottom: { tag: "xwui-box", config: { padding: 12 }, slots: { children: bottom } },
+          bottom: { tag: "xwui-box", config: { padding: space("m") }, slots: { children: bottom } },
         },
       },
     ],

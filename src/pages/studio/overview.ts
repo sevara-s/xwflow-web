@@ -6,7 +6,7 @@ import type { PageResult } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { AttentionItem, Overview } from "../../types/domain";
 import { toneOf } from "../../ui/flow";
-import { button, glass, grid, iconTile, row, shape, stack, status, text, type Hue, type Node } from "../../ui/kit";
+import { button, glass, grid, iconTile, row, shape, space, stack, status, text, type Hue, type Node } from "../../ui/kit";
 
 const words = catalog.workspace.overview;
 
@@ -51,21 +51,21 @@ function attention(overview: Overview): Node {
                             text("small", item.title, { bold: true }),
                             status(item.tone, item.kind === "connection" ? words.connectionTone[item.tone] : words.kinds[item.kind]),
                           ],
-                          { gap: 2 },
+                          { gap: "xs" },
                         ),
                       ],
-                      { gap: 12 },
+                      { gap: "m" },
                     ),
                     button("glass", words.open, { size: "sm", iconAfter: true, icon: "arrow-right", onClick: target(item) }),
                   ],
-                  { justify: "space-between", gap: 12 },
+                  { justify: "space-between", gap: "m" },
                 ),
               ),
-              { gap: 14 },
+              { gap: "l" },
             )
           : { tag: "xwui-alert", data: { message: words.allClear }, config: { variant: "success" } },
       ],
-      { gap: 16 },
+      { gap: "l" },
     ),
     { pad: "m", gradientBorder: items.some((item) => item.tone === "error") },
   );
@@ -82,18 +82,18 @@ function recent(overview: Overview): Node {
             return {
               ...row(
                 [
-                  stack([text("small", run.flowName, { bold: true }), text("xs", `${formatAgo(run.startedAt)} · ${run.id}`, { tone: "tertiary", mono: false })], { gap: 2 }),
-                  row([status(toneOf[view.tone], view.label), text("xs", run.durationMs === null ? "" : formatMs(run.durationMs), { mono: true, tone: "secondary" })], { gap: 12 }),
+                  stack([text("small", run.flowName, { bold: true }), text("xs", `${formatAgo(run.startedAt)} · ${run.id}`, { tone: "tertiary", mono: false })], { gap: "xs" }),
+                  row([status(toneOf[view.tone], view.label), text("xs", run.durationMs === null ? "" : formatMs(run.durationMs), { mono: true, tone: "secondary" })], { gap: "m" }),
                 ],
                 { justify: "space-between", wrap: true },
               ),
               on: { click: () => navigate(paths.run(run.id)) },
             };
           }),
-          { gap: 14 },
+          { gap: "l" },
         ),
       ],
-      { gap: 16 },
+      { gap: "l" },
     ),
     { pad: "m" },
   );
@@ -108,7 +108,7 @@ export async function view(): Promise<PageResult> {
     body: [
       {
         tag: "xwui-box",
-        config: { surface: "glass", padding: 32, overflow: "clip" },
+        config: { surface: "glass", padding: space("xxl"), overflow: "clip" },
         slots: {
           children: stack(
             [
@@ -123,10 +123,10 @@ export async function view(): Promise<PageResult> {
                   button("glass", words.actions.templates, { icon: "layers", onClick: () => navigate(paths.templates) }),
                   button("ghost", words.actions.runs, { iconAfter: true, icon: "arrow-right", onClick: () => navigate(paths.runs) }),
                 ],
-                { gap: 10, wrap: true },
+                { gap: "m", wrap: true },
               ),
             ],
-            { gap: 14 },
+            { gap: "l" },
           ),
         },
       },
@@ -138,11 +138,11 @@ export async function view(): Promise<PageResult> {
           kpi(words.kpis.connections, overview.counts.connections, "cyan"),
         ],
         200,
-        16,
+        "l",
       ),
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: "24px", alignItems: "start", responsive: { lg: { columns: "minmax(0, 3fr) minmax(0, 2fr)" } } },
+        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 3fr) minmax(0, 2fr)" } } },
         slots: {
           children: [
             attention(overview),
@@ -154,13 +154,13 @@ export async function view(): Promise<PageResult> {
                       text("xs", words.week, { bold: true, caps: true, tone: "secondary" }),
                       { tag: "xwui-spark-bars", data: { bars: overview.week, label: words.weekLabel }, config: { height: 90 } },
                     ],
-                    { gap: 10 },
+                    { gap: "m" },
                   ),
                   { pad: "m" },
                 ),
                 recent(overview),
               ],
-              { gap: 24 },
+              { gap: "xl" },
             ),
           ],
         },

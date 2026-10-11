@@ -5,7 +5,7 @@ import { href, navigate, paths, type Route } from "../../app/router";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { FlowVersion } from "../../types/domain";
-import { button, glass, row, stack, tag, text, type Node } from "../../ui/kit";
+import { button, glass, row, space, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer } from "../../xwui";
 
 type VersionsRoute = Extract<Route, { page: "versions" }>;
@@ -21,7 +21,7 @@ function entry(version: FlowVersion, current: boolean, flowId: string, restore: 
           [
             {
               tag: "xwui-box",
-              config: { surface: "glass", padding: 12, gradientBorder: current },
+              config: { surface: "glass", padding: space("m"), gradientBorder: current },
               slots: { children: text("small", fill(words.number, { n: version.number }), { bold: true, mono: true }) },
             },
             stack(
@@ -32,7 +32,7 @@ function entry(version: FlowVersion, current: boolean, flowId: string, restore: 
                     ...(version.label === "Live" ? [tag(words.live, "lime", undefined, true)] : []),
                     ...(version.label === "Draft" ? [tag(words.draft, "amber", undefined, true)] : []),
                   ],
-                  { gap: 8, wrap: true },
+                  { gap: "s", wrap: true },
                 ),
                 text("xs", fill(words.by, { author: version.author.name, when: formatAgo(version.at).toLocaleLowerCase() }), { tone: "tertiary" }),
                 row(
@@ -41,19 +41,19 @@ function entry(version: FlowVersion, current: boolean, flowId: string, restore: 
                     ...(changed ? [tag(fill(words.changed, { n: changed }), "cyan")] : []),
                     ...(removed ? [tag(fill(words.removed, { n: removed }), "red")] : []),
                   ],
-                  { gap: 6 },
+                  { gap: "s" },
                 ),
               ],
-              { gap: 6 },
+              { gap: "s" },
             ),
           ],
-          { gap: 16, align: "flex-start" },
+          { gap: "l", align: "flex-start" },
         ),
         current
           ? button("primary", words.openEditor, { size: "sm", iconAfter: true, icon: "arrow-right", onClick: () => navigate(paths.flow(flowId)) })
           : button("glass", words.restore, { size: "sm", icon: "rotate-ccw", onClick: () => restore(version) }),
       ],
-      { justify: "space-between", wrap: true, gap: 16 },
+      { justify: "space-between", wrap: true, gap: "l" },
     ),
     { pad: "m", glow: current ? "lime" : undefined },
   );
@@ -63,7 +63,7 @@ export async function view(context: ViewContext<VersionsRoute>): Promise<PageRes
   const { route, workspace } = context;
   let history = await api.listVersions(route.flowId);
 
-  const list = (): Node => stack(history.versions.map((version, index) => entry(version, index === 0, route.flowId, (item) => void restore(item))), { gap: 14 });
+  const list = (): Node => stack(history.versions.map((version, index) => entry(version, index === 0, route.flowId, (item) => void restore(item))), { gap: "l" });
   async function restore(version: FlowVersion): Promise<void> {
     try {
       await api.restoreVersion(route.flowId, version.id);

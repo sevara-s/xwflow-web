@@ -5,7 +5,7 @@ import { adminBar } from "../../app/shells/admin-view";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { AdminOverview } from "../../types/domain";
-import { button, cell, glass, grid, row, stack, status, text, type Hue, type Node } from "../../ui/kit";
+import { button, cell, glass, grid, row, space, stack, status, text, type Hue, type Node } from "../../ui/kit";
 
 const words = catalog.admin.overview;
 const kpiHues: Record<AdminOverview["kpis"][number]["id"], Hue> = { runs24h: "cyan", failed24h: "red", overdue: "lime", queued: "violet" };
@@ -33,7 +33,7 @@ function kpis(overview: AdminOverview): Node {
       config: { hue: kpiHues[kpi.id], emphasis: kpi.id === "failed24h" && (kpi.value ?? 0) > 0 },
     })),
     210,
-    16,
+    "l",
   );
 }
 
@@ -45,7 +45,7 @@ function runsByHour(overview: AdminOverview): Node {
     stack(
       [
         row(
-          [text("h3", words.runsByHour), row([status("neutral", words.succeeded), status("error", words.failed), text("xs", words.last24, { tone: "tertiary" })], { gap: 14, wrap: true })],
+          [text("h3", words.runsByHour), row([status("neutral", words.succeeded), status("error", words.failed), text("xs", words.last24, { tone: "tertiary" })], { gap: "l", wrap: true })],
           { justify: "space-between", wrap: true },
         ),
         {
@@ -58,7 +58,7 @@ function runsByHour(overview: AdminOverview): Node {
           },
         },
       ],
-      { gap: 16 },
+      { gap: "l" },
     ),
     { pad: "m" },
   );
@@ -90,7 +90,7 @@ function reachability(overview: AdminOverview): Node {
         { tag: "xwui-alert", data: { message }, config: { variant: down.length ? "error" : "success" } },
         row([button("ghost", words.openHealth, { size: "sm", iconAfter: true, icon: "arrow-right", href: href(paths.health) })]),
       ],
-      { gap: 12 },
+      { gap: "m" },
     ),
     { pad: "m" },
   );
@@ -133,7 +133,7 @@ function failing(overview: AdminOverview): Node {
         { pad: "none", scroll: true },
       ),
     ],
-    { gap: 12 },
+    { gap: "m" },
   );
 }
 
@@ -153,7 +153,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
       kpis(overview),
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: "24px", alignItems: "start", responsive: { lg: { columns: "minmax(0, 3fr) minmax(0, 2fr)" } } },
+        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 3fr) minmax(0, 2fr)" } } },
         slots: { children: [runsByHour(overview), reachability(overview)] },
       },
       failing(overview),

@@ -8,7 +8,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Attempt, RunDetail } from "../../types/domain";
 import { hueOf, toneOf } from "../../ui/flow";
-import { button, cell, glass, row, shape, stack, status, tag, text, type Hue, type Node } from "../../ui/kit";
+import { button, cell, glass, row, shape, space, stack, status, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer } from "../../xwui";
 
 type RunRoute = Extract<Route, { page: "run" }>;
@@ -28,7 +28,7 @@ function hero(run: RunDetail): Node {
   const recorded = run.attempts.reduce((sum, item) => sum + (item.durationMs ?? 0), 0);
   return {
     tag: "xwui-box",
-    config: { surface: "glass", padding: 28, overflow: "clip" },
+    config: { surface: "glass", padding: space("xxl"), overflow: "clip" },
     slots: {
       children: stack(
         [
@@ -44,7 +44,7 @@ function hero(run: RunDetail): Node {
                   },
                   text("small", `${run.recordedSteps}/${run.stepCount} ${words.recorded}`, { bold: true, align: "center" }),
                 ],
-                { gap: 6, align: "center" },
+                { gap: "s", align: "center" },
               ),
               stack(
                 [
@@ -60,13 +60,13 @@ function hero(run: RunDetail): Node {
                     { wrap: true },
                   ),
                 ],
-                { gap: 8 },
+                { gap: "s" },
               ),
             ],
-            { gap: 28, wrap: true },
+            { gap: "xxl", wrap: true },
           ),
         ],
-        { gap: 0 },
+        { gap: "none" },
       ),
     },
   };
@@ -105,10 +105,10 @@ function timeline(run: RunDetail): Node {
   return glass(
     stack(
       [
-        row([text("h3", words.timeline), row([text("xs", formatMs(0), { tone: "tertiary" }), text("xs", formatMs(end), { tone: "tertiary" })], { gap: 12 })], { justify: "space-between" }),
+        row([text("h3", words.timeline), row([text("xs", formatMs(0), { tone: "tertiary" }), text("xs", formatMs(end), { tone: "tertiary" })], { gap: "m" })], { justify: "space-between" }),
         { tag: "xwui-run-waterfall", data: { rows, label: words.timeline } },
       ],
-      { gap: 16 },
+      { gap: "l" },
     ),
     { pad: "m" },
   );
@@ -213,7 +213,7 @@ function detail(run: RunDetail, attempt: Attempt, context: ViewContext): Node {
         { wrap: true },
       ),
     ],
-    { gap: 16 },
+    { gap: "l" },
   );
 }
 
@@ -244,16 +244,16 @@ export async function view(context: ViewContext<RunRoute>): Promise<PageResult> 
         {
           tag: "xwui-grid",
           data: { spans: [2, 1] },
-          config: { columns: 3, gap: "24px", alignItems: "start" },
+          config: { columns: 3, gap: space("xl"), alignItems: "start" },
           slots: {
             children: [
-              stack([text("h3", words.ledger), glass(ledger(run, pick), { pad: "none", scroll: true })], { gap: 12 }),
-              glass({ tag: "xwui-composer", key: "receipt-detail", data: { tree: attempt ? detail(run, attempt, context) : stack([], { gap: 0 }) } }, { pad: "m", gradientBorder: true }),
+              stack([text("h3", words.ledger), glass(ledger(run, pick), { pad: "none", scroll: true })], { gap: "m" }),
+              glass({ tag: "xwui-composer", key: "receipt-detail", data: { tree: attempt ? detail(run, attempt, context) : stack([], { gap: "none" }) } }, { pad: "m", gradientBorder: true }),
             ],
           },
         },
       ],
-      { gap: 24 },
+      { gap: "xl" },
     );
   };
 

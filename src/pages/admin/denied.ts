@@ -31,13 +31,13 @@ export async function view(context: ViewContext): Promise<PageResult> {
   const lock: Node = {
     tag: "xwui-box",
     config: { position: "relative", width: 180, height: 180 },
-    slots: { children: stack([shape("ring", "pink", 180, { left: "0", top: "0" }, 5), shape("orb", "pink", 110, { left: "35px", top: "35px" })], { gap: 0 }) },
+    slots: { children: stack([shape("ring", "pink", 180, { left: "0", top: "0" }, 5), shape("orb", "pink", 110, { left: "35px", top: "35px" })], { gap: "none" }) },
   };
 
   const panel = glass(
     stack(
       [
-        centred(row([text("h2", words.titleBefore), text("h2", denial.page, { tone: "gradient" })], { gap: 12, wrap: true, justify: "center" })),
+        centred(row([text("h2", words.titleBefore), text("h2", denial.page, { tone: "gradient" })], { gap: "m", wrap: true, justify: "center" })),
         text("body", words.lead, { tone: "secondary", align: "center" }),
         grid(
           (
@@ -46,20 +46,20 @@ export async function view(context: ViewContext): Promise<PageResult> {
               [words.yours, denial.yourRole],
               [words.grants, denial.grantedBy],
             ] as const
-          ).map(([label, value]) => glass(stack([text("xs", label, { caps: true, bold: true, tone: "tertiary" }), text("body", value, { bold: true })], { gap: 4 }), { pad: "s" })),
+          ).map(([label, value]) => glass(stack([text("xs", label, { caps: true, bold: true, tone: "tertiary" }), text("body", value, { bold: true })], { gap: "xs" }), { pad: "s" })),
           160,
-          12,
+          "m",
         ),
         stack(
-          words.steps.map((step, index) => row([tag(String(index + 1), stepHues[index % stepHues.length]), text("small", fill(step, { role: denial.missingRole }))], { gap: 12 })),
-          { gap: 12 },
+          words.steps.map((step, index) => row([tag(String(index + 1), stepHues[index % stepHues.length]), text("small", fill(step, { role: denial.missingRole }))], { gap: "m" })),
+          { gap: "m" },
         ),
         row(
           [{ ...button("primary", words.request, { size: "lg", onClick: () => void request() }), key: "denied-request" }, button("glass", words.back, { size: "lg", href: href(paths.admin) })],
-          { gap: 12, wrap: true },
+          { gap: "m", wrap: true },
         ),
       ],
-      { gap: 24 },
+      { gap: "xl" },
     ),
     { pad: "l", gradientBorder: true },
   );
@@ -74,7 +74,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
         slots: {
           children: stack(
             [shape("halo", "violet", 420, { left: "10%", top: "-40px" }), shape("halo", "pink", 360, { right: "8%", top: "120px" }), centred(lock), measure(panel, 760)],
-            { gap: 28 },
+            { gap: "xxl" },
           ),
         },
       },

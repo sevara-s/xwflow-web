@@ -5,7 +5,7 @@ import { href, paths, replaceQuery, type Route } from "../../app/router";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { DataColumn, DataTable, DataTableSummary } from "../../types/domain";
-import { button, cell, glass, iconTile, row, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { button, cell, glass, iconTile, row, space, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer } from "../../xwui";
 import { projectHead } from "./common-view";
 
@@ -32,20 +32,20 @@ function picker(tables: DataTableSummary[], selected: string, pick: (id: string)
   return stack(
     tables.map((table) => ({
       tag: "xwui-box",
-      config: { surface: "glass", padding: 16, gradientBorder: table.id === selected, hoverLift: table.id !== selected, role: "button", ariaLabel: table.name },
+      config: { surface: "glass", padding: space("l"), gradientBorder: table.id === selected, hoverLift: table.id !== selected, role: "button", ariaLabel: table.name },
       on: { click: () => pick(table.id) },
       slots: {
         children: stack(
           [
-            row([iconTile("table", table.hue, "sm"), text("body", table.name, { bold: true })], { gap: 10 }),
+            row([iconTile("table", table.hue, "sm"), text("body", table.name, { bold: true })], { gap: "m" }),
             text("xs", table.description, { tone: "secondary" }),
-            row([tag(fill(words.rows, { n: formatNumber(table.rowCount) })), tag(fill(words.columns, { n: table.columnCount }))], { gap: 6 }),
+            row([tag(fill(words.rows, { n: formatNumber(table.rowCount) })), tag(fill(words.columns, { n: table.columnCount }))], { gap: "s" }),
           ],
-          { gap: 8 },
+          { gap: "s" },
         ),
       },
     })),
-    { gap: 12 },
+    { gap: "m" },
   );
 }
 
@@ -67,7 +67,7 @@ function detail(table: DataTable): Node {
               text("h3", table.name),
               text("small", table.usedBy.length ? fill(words.usedBy, { flows: formatList(table.usedBy) }) : words.unused, { tone: "secondary" }),
             ],
-            { gap: 4 },
+            { gap: "xs" },
           ),
           button("glass", words.export, { size: "sm", icon: "download", onClick: () => void exportCsv() }),
         ],
@@ -75,7 +75,7 @@ function detail(table: DataTable): Node {
       ),
       row(
         table.columns.map((column) => tag(column.label, typeHues[column.type], words.columnTypes[column.type])),
-        { gap: 6, wrap: true },
+        { gap: "s", wrap: true },
       ),
       glass(
         {
@@ -101,7 +101,7 @@ function detail(table: DataTable): Node {
         { justify: "space-between", wrap: true },
       ),
     ],
-    { gap: 14 },
+    { gap: "l" },
   );
 }
 
@@ -131,11 +131,11 @@ export async function view(context: ViewContext<TablesRoute>): Promise<PageResul
         tag: "xwui-grid",
         // One column on a phone, then the picker beside a twice-as-wide table.
         // minmax(0, ...) lets the rows scroll inside their panel instead of widening the page.
-        config: { columns: "minmax(0, 1fr)", gap: "24px", alignItems: "start", responsive: { lg: { columns: "minmax(0, 1fr) minmax(0, 2fr)" } } },
+        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 1fr) minmax(0, 2fr)" } } },
         slots: {
           children: [
             { tag: "xwui-composer", key: "tables-picker", data: { tree: picker(tables, selected, (id) => void pick(id)) } },
-            glass({ tag: "xwui-composer", key: "tables-detail", data: { tree: first ? detail(first) : stack([], { gap: 0 }) } }, { pad: "m", scroll: true }),
+            glass({ tag: "xwui-composer", key: "tables-detail", data: { tree: first ? detail(first) : stack([], { gap: "none" }) } }, { pad: "m", scroll: true }),
           ],
         },
       },

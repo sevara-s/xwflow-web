@@ -20,7 +20,7 @@ function kpis(forms: ProjectForm[]): Node {
   return grid(
     [kpi(words.kpis.submissions, formatNumber(submissions), "lime"), kpi(words.kpis.views, formatNumber(views), "cyan"), kpi(words.kpis.conversion, `${percent(submissions, views)}%`, "violet")],
     210,
-    16,
+    "l",
   );
 }
 
@@ -49,7 +49,7 @@ function card(form: ProjectForm, reload: () => Promise<void>): Node {
       [
         row(
           [
-            row([iconTile("file-text", form.hue), stack([text("body", form.name, { bold: true }), text("xs", form.path, { mono: true, tone: "tertiary" })], { gap: 2 })], { gap: 12 }),
+            row([iconTile("file-text", form.hue), stack([text("body", form.name, { bold: true }), text("xs", form.path, { mono: true, tone: "tertiary" })], { gap: "xs" })], { gap: "m" }),
             status(live ? "success" : "neutral", words.status[form.status]),
           ],
           { justify: "space-between", wrap: true },
@@ -61,7 +61,7 @@ function card(form: ProjectForm, reload: () => Promise<void>): Node {
               ? { ...button("ghost", fill(words.starts, { flow: form.flow.name }), { size: "sm", icon: "zap", onClick: () => navigate(paths.flow(form.flow!.id)) }) }
               : tag(words.noFlow, "amber"),
           ],
-          { gap: 8, wrap: true },
+          { gap: "s", wrap: true },
         ),
         stack(
           [
@@ -70,23 +70,23 @@ function card(form: ProjectForm, reload: () => Promise<void>): Node {
                 text("disp", formatNumber(form.submissions7d)),
                 text("xs", fill(words.conversion, { n: percent(form.submissions7d, form.views7d) }), { tone: "secondary" }),
               ],
-              { gap: 10, align: "flex-end" },
+              { gap: "m", align: "flex-end" },
             ),
             { tag: "xwui-spark-bars", data: { bars: form.daily.map((value) => ({ value })), label: words.perDay }, config: { height: 48 } },
             text("xs", words.perDay, { tone: "tertiary" }),
           ],
-          { gap: 8 },
+          { gap: "s" },
         ),
         row(
           [
             button(live ? "glass" : "primary", live ? words.unpublish : words.publish, { size: "sm", onClick: () => void toggle() }),
             button("ghost", words.copyLink, { size: "sm", icon: "link", onClick: () => void copy() }),
           ],
-          { gap: 8, wrap: true },
+          { gap: "s", wrap: true },
         ),
         text("xs", formatAgo(form.updatedAt), { tone: "tertiary" }),
       ],
-      { gap: 14 },
+      { gap: "l" },
     ),
     { pad: "m", glow: live ? "lime" : undefined },
   );

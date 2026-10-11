@@ -8,27 +8,7 @@ import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { AssistantDraft, Attempt, Landing, StepGroup } from "../../types/domain";
 import { canvasData, hueOf, stepType, toneOf } from "../../ui/flow";
-import {
-  band,
-  button,
-  eyebrow,
-  glass,
-  grid,
-  headline,
-  icon,
-  iconTile,
-  keys,
-  measure,
-  row,
-  shape,
-  stack,
-  status,
-  tag,
-  text,
-  type Hue,
-  type Node,
-  type StatusTone,
-} from "../../ui/kit";
+import { band, button, eyebrow, glass, grid, headline, icon, iconTile, inset, keys, measure, row, shape, sides, space, stack, status, tag, text, type Hue, type Node, type StatusTone } from "../../ui/kit";
 import type { XWUIComposer, XWUIFlowScene } from "../../xwui";
 
 const words = catalog.site.landing;
@@ -103,8 +83,8 @@ function hero(context: ViewContext, landing: Landing): Node {
       );
     }
     const receipt = stack(
-      [row([text("small", text_.receipt, { bold: true }), tag(text_.sample, "plan")], { justify: "space-between" }), stack(receiptLines(visible, runningNext), { gap: 8 })],
-      { gap: 8 },
+      [row([text("small", text_.receipt, { bold: true }), tag(text_.sample, "plan")], { justify: "space-between" }), stack(receiptLines(visible, runningNext), { gap: "s" })],
+      { gap: "s" },
     );
     return { scene, receipt };
   };
@@ -123,7 +103,7 @@ function hero(context: ViewContext, landing: Landing): Node {
   const first = frame(resting);
 
   const asked = glass(
-    stack([text("xs", text_.youAsked, { tone: "tertiary", bold: true, caps: true }), text("small", text_.request), row([tag(fill(text_.built, { n: graph.nodes.length }), "lime")])], { gap: 8 }),
+    stack([text("xs", text_.youAsked, { tone: "tertiary", bold: true, caps: true }), text("small", text_.request), row([tag(fill(text_.built, { n: graph.nodes.length }), "lime")])], { gap: "s" }),
     { pad: "s" },
   );
   const receipt = glass({ tag: "xwui-composer", key: "sandbox-receipt", data: { tree: first.receipt } }, { pad: "s" });
@@ -139,7 +119,7 @@ function hero(context: ViewContext, landing: Landing): Node {
         button("ghost", "", { icon: "zoom-in", label: text_.zoomIn, size: "sm", onClick: () => context.instance<XWUIFlowScene>("sandbox-scene")?.zoom(1.15) }),
         button("primary", text_.run, { icon: "play", size: "sm", key: "sandbox-run", onClick: play }),
       ],
-      { gap: 4 },
+      { gap: "xs" },
     ),
     { pad: "none" },
   );
@@ -161,28 +141,28 @@ function hero(context: ViewContext, landing: Landing): Node {
       headline("mega", words.title, words.titleHighlight, "center"),
       measure(text("lead", words.lead, { align: "center" })),
       row([button("primary", words.primary, { size: "lg", href: siteHref("landing", "sandbox"), icon: "arrow-right", iconAfter: true }), button("gradient", words.secondary, { size: "lg", href: siteHref("selfHost") })], {
-        gap: 12,
+        gap: "m",
         wrap: true,
         justify: "center",
       }),
       row(
         words.proof.map((item) => row([icon("check", 16, "var(--accent-primary)"), text("small", item, { tone: "secondary" })])),
-        { gap: 16, wrap: true, justify: "center" },
+        { gap: "l", wrap: true, justify: "center" },
       ),
     ],
-    { gap: 24, align: "center" },
+    { gap: "xl", align: "center" },
   );
 
   return {
     tag: "xwui-box",
     key: "band-how",
-    config: { as: "section", position: "relative", padding: "40px 0 0" },
+    config: { as: "section", position: "relative", padding: inset("xxxl", "none") },
     slots: {
       children: stack(
         [
           shape("halo", "violet", 520, { left: "-120px", top: "-60px" }),
           shape("halo", "cyan", 460, { right: "-80px", top: "60px" }),
-          { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: "0 24px" }, slots: { children: intro } },
+          { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: sides("xl") }, slots: { children: intro } },
           {
             tag: "xwui-box",
             key: "band-sandbox",
@@ -195,12 +175,12 @@ function hero(context: ViewContext, landing: Landing): Node {
                   shape("orb", "pink", 54, { left: "18%", bottom: "120px" }),
                   scene,
                 ],
-                { gap: 0 },
+                { gap: "none" },
               ),
             },
           },
         ],
-        { gap: 0 },
+        { gap: "none" },
       ),
     },
   };
@@ -215,7 +195,7 @@ function stats(landing: Landing): Node {
       stat.id === "connectors"
         ? tag("N", "lime")
         : text("disp", "unit" in stat ? fill(stat.unit, { n: value }) : formatNumber(value), { tone: stat.id === "dialects" ? "gradient" : undefined });
-    return stack([number, text("body", stat.label, { bold: true }), text("small", stat.note, { tone: "secondary" })], { gap: 4 });
+    return stack([number, text("body", stat.label, { bold: true }), text("small", stat.note, { tone: "secondary" })], { gap: "xs" });
   });
   return band("stats", [glass(grid(cells, 230), { pad: "l" })], { tight: true });
 }
@@ -227,7 +207,8 @@ function marquee(landing: Landing): Node {
     tag: "xwui-display-marquee",
     key: "band-marquee",
     data: { items: landing.marquee.map((item) => ({ label: item.label, hue: tagHue[item.group] })) },
-    config: { speed: 40, gap: 14, fade: true, pauseOnHover: true },
+    // The marquee takes its item gap as a number (it sizes its loop from it): the scale's 16.
+    config: { speed: 40, gap: 16, fade: true, pauseOnHover: true },
   };
 }
 
@@ -240,7 +221,7 @@ function draftPanel(title: string, steps: Array<{ name: string; type: string; gr
     const needs = step.type === "needsConnection";
     const tone: StatusTone = index < streamed ? (needs ? "warning" : "success") : index === streamed ? "running" : "neutral";
     return glass(
-      row([row([iconTile(type.icon, tagHue[step.group], "sm"), stack([text("small", step.name, { bold: true }), text("xs", type.label, { tone: "secondary" })], { gap: 0 })], { gap: 12 }), status(tone, "", type.label)], {
+      row([row([iconTile(type.icon, tagHue[step.group], "sm"), stack([text("small", step.name, { bold: true }), text("xs", type.label, { tone: "secondary" })], { gap: "none" })], { gap: "m" }), status(tone, "", type.label)], {
         justify: "space-between",
       }),
       { pad: "s" },
@@ -250,10 +231,10 @@ function draftPanel(title: string, steps: Array<{ name: string; type: string; gr
   return stack(
     [
       row([row([text("body", t.draft, { bold: true }), tag(t.streaming, "violet")]), text("xs", fill(t.steps, { n: steps.length }), { tone: "tertiary" })], { justify: "space-between" }),
-      stack(items, { gap: 12 }),
+      stack(items, { gap: "m" }),
       ...(done ? [{ tag: "xwui-alert", data: { message: t.connect }, config: { variant: "success", size: "small" } }] : []),
     ],
-    { gap: 16, key: title },
+    { gap: "l", key: title },
   );
 }
 
@@ -290,7 +271,7 @@ function prompt(context: ViewContext): Node {
             { ...text("small", t.example), key: "prompt-request" },
             row([tag(t.project), button("primary", t.build, { size: "sm", onClick: () => void draft(request) })], { justify: "space-between" }),
           ],
-          { gap: 12 },
+          { gap: "m" },
         ),
         { pad: "s" },
       ),
@@ -299,16 +280,16 @@ function prompt(context: ViewContext): Node {
         { wrap: true },
       ),
     ],
-    { gap: 24 },
+    { gap: "xl" },
   );
   const right: Node = {
     tag: "xwui-box",
     config: { position: "relative" },
     slots: {
-      children: stack([shape("halo", "violet", 360, { left: "10%", top: "10%" }), glass({ tag: "xwui-composer", key: "prompt-draft", data: { tree: draftPanel(t.draft, [], 0) } }, { glow: "violet" })], { gap: 0 }),
+      children: stack([shape("halo", "violet", 360, { left: "10%", top: "10%" }), glass({ tag: "xwui-composer", key: "prompt-draft", data: { tree: draftPanel(t.draft, [], 0) } }, { glow: "violet" })], { gap: "none" }),
     },
   };
-  return band("prompt", [grid([left, right], 440, 48)]);
+  return band("prompt", [grid([left, right], 440, "xxxl")]);
 }
 
 /* ── built different (bento) ───────────────────────────────────────── */
@@ -316,10 +297,10 @@ function prompt(context: ViewContext): Node {
 function truth(landing: Landing): Node {
   const t = words.truth;
   const attempts = landing.receipt?.attempts.filter((item) => item.result.kind !== "notRun") ?? [];
-  const tile = (label: string, hue: Hue, items: Node[]): Node => glass(stack([row([tag(label, hue)]), ...items], { gap: 16 }), { pad: "l" });
+  const tile = (label: string, hue: Hue, items: Node[]): Node => glass(stack([row([tag(label, hue)]), ...items], { gap: "l" }), { pad: "l" });
 
   const receipt = tile(t.receiptTag, "cyan", [
-    stack([text("h3", t.receiptTitle), text("body", t.receiptBody, { tone: "secondary" })], { gap: 8 }),
+    stack([text("h3", t.receiptTitle), text("body", t.receiptBody, { tone: "secondary" })], { gap: "s" }),
     {
       tag: "xwui-run-waterfall",
       data: {
@@ -340,7 +321,7 @@ function truth(landing: Landing): Node {
   ]);
   const states = tile(t.statesTag, "violet", [
     text("h3", t.statesTitle),
-    stack(t.states.map((state) => glass(status(toneOf[state.tone as keyof typeof toneOf], state.label), { pad: "s" })), { gap: 8 }),
+    stack(t.states.map((state) => glass(status(toneOf[state.tone as keyof typeof toneOf], state.label), { pad: "s" })), { gap: "s" }),
   ]);
   const keyboard = tile(t.keysTag, "lime", [text("h3", t.keysTitle), row(t.keys.map((key) => keys([key])), { wrap: true }), text("small", t.keysBody, { tone: "secondary" })]);
   const languageWord = text("disp", t.languageWord, { tone: "gradient" });
@@ -356,8 +337,8 @@ function truth(landing: Landing): Node {
   ]);
 
   return band("truth", [
-    stack([eyebrow(t.eyebrow), headline("h2", t.title, t.titleHighlight, "center")], { gap: 16, align: "center" }),
-    { tag: "xwui-grid", data: { spans: [4, 2, 2, 2, 2] }, config: { columns: 6, gap: "20px", equalRowHeights: true }, slots: { children: [receipt, states, keyboard, language, host] } },
+    stack([eyebrow(t.eyebrow), headline("h2", t.title, t.titleHighlight, "center")], { gap: "l", align: "center" }),
+    { tag: "xwui-grid", data: { spans: [4, 2, 2, 2, 2] }, config: { columns: 6, gap: space("xl"), equalRowHeights: true }, slots: { children: [receipt, states, keyboard, language, host] } },
   ]);
 }
 
@@ -372,12 +353,12 @@ function brand(landing: Landing): Node {
       headline("h2", t.title, t.titleHighlight),
       text("lead", t.lead),
       stack(
-        t.items.map((item, index) => row([row([iconTile(item.icon, hues[index % hues.length], "sm", true), text("body", item.label)], { gap: 12 }), tag(t.planned, "plan")], { justify: "space-between" })),
-        { gap: 12 },
+        t.items.map((item, index) => row([row([iconTile(item.icon, hues[index % hues.length], "sm", true), text("body", item.label)], { gap: "m" }), tag(t.planned, "plan")], { justify: "space-between" })),
+        { gap: "m" },
       ),
       row([button("gradient", t.cta, { href: siteHref("pricing") })]),
     ],
-    { gap: 24 },
+    { gap: "xl" },
   );
   const cards = landing.tenants.map((tenant, index) =>
     glass(
@@ -388,12 +369,12 @@ function brand(landing: Landing): Node {
           { tag: "xwui-progress", data: { value: 72 - index * 18 }, config: { size: "sm" } },
           ...(index === 1 ? [text("xs", t.noMark, { tone: "secondary" })] : []),
         ],
-        { gap: 16 },
+        { gap: "l" },
       ),
       { pad: "m", glow: index === 1 ? "violet" : undefined },
     ),
   );
-  return band("brand", [grid([left, stack(cards, { gap: 16 })], 440, 48)]);
+  return band("brand", [grid([left, stack(cards, { gap: "l" })], 440, "xxxl")]);
 }
 
 /* ── notations, migrate, start ─────────────────────────────────────── */
@@ -416,15 +397,15 @@ function notations(landing: Landing): Node {
       eyebrow(t.eyebrow),
       headline("h2", t.title, fill(t.titleHighlight, { n: landing.notations.length })),
       text("lead", t.lead),
-      row([button("primary", t.gallery, { href: siteHref("notations") }), button("gradient", t.open3d, { href: href(paths.flowView(landing.flow.id, "3d")) })], { gap: 12, wrap: true }),
+      row([button("primary", t.gallery, { href: siteHref("notations") }), button("gradient", t.open3d, { href: href(paths.flowView(landing.flow.id, "3d")) })], { gap: "m", wrap: true }),
     ],
-    { gap: 16 },
+    { gap: "l" },
   );
   return band("notations", [
     {
       tag: "xwui-box",
-      config: { surface: "glass", padding: 36, overflow: "clip" },
-      slots: { children: stack([shape("halo", "pink", 420, { right: "-80px", bottom: "-160px" }), grid([left, row(tags, { wrap: true })], 440, 48)], { gap: 0 }) },
+      config: { surface: "glass", padding: space("xxl"), overflow: "clip" },
+      slots: { children: stack([shape("halo", "pink", 420, { right: "-80px", bottom: "-160px" }), grid([left, row(tags, { wrap: true })], 440, "xxxl")], { gap: "none" }) },
     },
   ]);
 }
@@ -436,16 +417,16 @@ function migrate(landing: Landing): Node {
     glass(
       stack(
         [
-          row([{ tag: "xwui-icon-tile", data: { icon: "git-merge", label: dialect.code }, config: { hue: hues[index % hues.length], size: "sm" } }, text("body", dialect.name, { bold: true })], { gap: 12 }),
+          row([{ tag: "xwui-icon-tile", data: { icon: "git-merge", label: dialect.code }, config: { hue: hues[index % hues.length], size: "sm" } }, text("body", dialect.name, { bold: true })], { gap: "m" }),
           row([text("xs", t.depth, { tone: "secondary" }), tag(dialect.depth ?? t.pending, "lime")]),
         ],
-        { gap: 12 },
+        { gap: "m" },
       ),
       { pad: "m" },
     ),
   );
   return band("migrate", [
-    row([stack([eyebrow(t.eyebrow), headline("h2", t.title, t.titleHighlight)], { gap: 16 }), text("body", t.body, { tone: "secondary" })], { gap: 24, wrap: true, align: "flex-end", justify: "space-between" }),
+    row([stack([eyebrow(t.eyebrow), headline("h2", t.title, t.titleHighlight)], { gap: "l" }), text("body", t.body, { tone: "secondary" })], { gap: "xl", wrap: true, align: "flex-end", justify: "space-between" }),
     grid(tiles, 220),
   ]);
 }
@@ -468,16 +449,16 @@ function start(context: ViewContext): Node {
           }),
           button("glass", t.secondary, { size: "lg", href: siteHref("selfHost") }),
         ],
-        { gap: 12, wrap: true },
+        { gap: "m", wrap: true },
       ),
     ],
-    { gap: 24 },
+    { gap: "xl" },
   );
   return band("start", [
     {
       tag: "xwui-box",
-      config: { surface: "glass", gradientBorder: true, padding: 48, overflow: "clip" },
-      slots: { children: stack([shape("ring", "violet", 260, { right: "6%", top: "-40px" }, 10), shape("orb", "lime", 70, { right: "18%", bottom: "40px" }), content], { gap: 0 }) },
+      config: { surface: "glass", gradientBorder: true, padding: space("xxxl"), overflow: "clip" },
+      slots: { children: stack([shape("ring", "violet", 260, { right: "6%", top: "-40px" }, 10), shape("orb", "lime", 70, { right: "18%", bottom: "40px" }), content], { gap: "none" }) },
     },
   ]);
 }

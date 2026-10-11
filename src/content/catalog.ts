@@ -1,5 +1,6 @@
 import { admin } from "./admin";
 import { project } from "./project";
+import { workspace } from "./workspace";
 import { site } from "./site";
 import { views } from "./views";
 import { studio } from "./studio";
@@ -21,6 +22,7 @@ export const catalog = {
   },
   studio,
   project,
+  workspace,
   site,
   admin,
   views,

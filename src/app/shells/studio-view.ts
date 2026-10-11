@@ -10,6 +10,7 @@ const words = catalog.studio.rail;
 
 function railSelection(route: Route): string {
   if (route.zone === "studio" && route.page === "assistant") return "assistant";
+  if (route.zone === "studio" && ["overview", "templates", "insights", "settings"].includes(route.page)) return route.page;
   if (route.zone === "admin") return "admin";
   return "project";
 }
@@ -43,7 +44,7 @@ function rail(workspace: Workspace, route: Route): Node {
             {
               id: "overview",
               label: words.overview,
-              href: href(paths.runs),
+              href: href(paths.overview),
               icon: "layout-grid",
             },
           ],
@@ -85,19 +86,19 @@ function rail(workspace: Workspace, route: Route): Node {
         {
           id: "templates",
           label: words.templates,
-          href: href(paths.studio, { section: "templates" }),
+          href: href(paths.templates),
           icon: "layers",
         },
         {
           id: "insights",
           label: words.insights,
-          href: href(paths.runs),
+          href: href(paths.insights),
           icon: "bar-chart-2",
         },
         {
           id: "settings",
           label: words.settings,
-          href: href(paths.connections),
+          href: href(paths.settings),
           icon: "sliders",
         },
       ],

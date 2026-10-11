@@ -16,6 +16,11 @@ export type Route =
   | { zone: "studio"; page: "forms" }
   | { zone: "studio"; page: "variables"; scope: VariableScope | ""; q: string }
   | { zone: "studio"; page: "mcp" }
+  | { zone: "studio"; page: "overview" }
+  | { zone: "studio"; page: "templates"; q: string; category: string }
+  | { zone: "studio"; page: "insights"; days: 7 | 14 }
+  | { zone: "studio"; page: "settings"; tab: "general" | "members" | "keys" | "notifications" }
+  | { zone: "studio"; page: "versions"; flowId: string }
   | { zone: "editor"; page: "editor"; flowId: string; node: string | null }
   | { zone: "editor"; page: "view"; flowId: string; view: NotationView }
   | { zone: "admin"; page: "overview" | "branding" | "audit" }
@@ -38,6 +43,10 @@ export const paths = {
   forms: "/studio/forms",
   variables: "/studio/variables",
   mcp: "/studio/mcp",
+  overview: "/studio/overview",
+  templates: "/studio/templates",
+  insights: "/studio/insights",
+  settings: "/studio/settings",
   admin: "/admin",
   branding: "/admin/branding",
   audit: "/admin/audit",
@@ -45,6 +54,7 @@ export const paths = {
   denied: "/denied",
   flow: (flowId: string) => `/studio/flows/${encodeURIComponent(flowId)}`,
   flowView: (flowId: string, view: NotationView) => `/studio/flows/${encodeURIComponent(flowId)}/${view}`,
+  versions: (flowId: string) => `/studio/flows/${encodeURIComponent(flowId)}/versions`,
   run: (runId: string) => `/studio/runs/${encodeURIComponent(runId)}`,
 };
 
@@ -104,6 +114,7 @@ export function parseLocation(hash = window.location.hash): Route {
     if (second === "flows" && third && parts.length === 3) {
       return { zone: "editor", page: "editor", flowId: third, node: query.get("node") };
     }
+    if (second === "flows" && third && parts.length === 4 && parts[3] === "versions") return { zone: "studio", page: "versions", flowId: third };
     if (second === "flows" && third && parts.length === 4) {
       const view = oneOf(parts[3], notationViews);
       if (view) return { zone: "editor", page: "view", flowId: third, view };
@@ -134,6 +145,12 @@ export function parseLocation(hash = window.location.hash): Route {
     if (second === "forms") return { zone: "studio", page: "forms" };
     if (second === "variables") return { zone: "studio", page: "variables", scope: oneOf(query.get("scope"), ["all", "production", "test"] as const), q: query.get("q") ?? "" };
     if (second === "mcp") return { zone: "studio", page: "mcp" };
+    if (second === "overview") return { zone: "studio", page: "overview" };
+    if (second === "templates") return { zone: "studio", page: "templates", q: query.get("q") ?? "", category: query.get("category") ?? "" };
+    if (second === "insights") return { zone: "studio", page: "insights", days: query.get("days") === "7" ? 7 : 14 };
+    if (second === "settings") {
+      return { zone: "studio", page: "settings", tab: oneOf(query.get("tab"), ["general", "members", "keys", "notifications"] as const) || "general" };
+    }
   }
   if (first === "admin" && parts.length <= 2) {
     if (!second) return { zone: "admin", page: "overview" };

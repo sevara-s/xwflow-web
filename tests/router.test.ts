@@ -37,6 +37,16 @@ describe("router", () => {
     expect(parseLocation("#/studio/agents/extra")).toMatchObject({ zone: "notFound" });
   });
 
+  it("routes the workspace pages and a flow's versions", () => {
+    expect(parseLocation("#/studio/overview")).toEqual({ zone: "studio", page: "overview" });
+    expect(parseLocation("#/studio/templates?category=Sales&q=lead")).toEqual({ zone: "studio", page: "templates", q: "lead", category: "Sales" });
+    expect(parseLocation("#/studio/insights?days=7")).toEqual({ zone: "studio", page: "insights", days: 7 });
+    expect(parseLocation("#/studio/insights?days=3")).toMatchObject({ days: 14 });
+    expect(parseLocation("#/studio/settings?tab=keys")).toEqual({ zone: "studio", page: "settings", tab: "keys" });
+    expect(parseLocation("#/studio/settings?tab=nope")).toMatchObject({ tab: "general" });
+    expect(parseLocation("#/studio/flows/f_1/versions")).toEqual({ zone: "studio", page: "versions", flowId: "f_1" });
+  });
+
   it("routes admin, system and the denied state", () => {
     expect(parseLocation("#/admin")).toEqual({ zone: "admin", page: "overview" });
     expect(parseLocation("#/admin/audit")).toEqual({ zone: "admin", page: "audit" });

@@ -44,6 +44,7 @@ XWUI components in use include Button, ButtonCopy, InputText, InputTextarea, Sel
 - No sign-in. The current user is "You" with the Builder role, so Quotas shows the denied state.
 - Data that the prototype shows as a placeholder (prices, start commands, dialect depth) stays a visible placeholder.
 - Admin rail items with no board open the closest real screen.
+- The website header follows the prototype's Main board on every page (Product, Notations, Integrations, Migrate, Pricing, Self-host, Docs, العربية). The Notations and Pricing boards each leave a link out; the header stays the same everywhere. Docs opens the Self-host quickstart, because the prototype has no documentation site.
 - The runs engine, simulation and health checks are simulated in the browser.
 
 ## Incomplete
@@ -51,4 +52,5 @@ XWUI components in use include Button, ButtonCopy, InputText, InputTextarea, Sel
 - Agents, Tables, Forms, Variables, MCP servers, Templates and Versions are not part of the prototype and show a notice.
 - Uploads, saving the brand kit and SIEM streaming are gated to the Commercial plan, as the prototype shows.
 - `XWUIUptimeBar` draws at most 14 days, so health shows the last 14 days rather than 30.
+- The Arabic interface. العربية in the header says it comes in the next release; the app does not switch to Arabic or right to left yet.
 - Dialogs open on an animation frame. They were verified with a scripted click, because the automation tab reported itself hidden.

@@ -1,0 +1,12 @@
+/* public/theme/xwflow/components.css - xwflow overrides of published XWUI components, loaded last (index.html) */
+
+/*
+ * XWUIRunWaterfall, columns layout (the run receipt on a phone): the caption
+ * column is 70px and the published sheet keeps captions on one line, so
+ * "disabled, skipped" was cut at the card edge. Let captions wrap at words.
+ */
+/* Scoped to the layout: XWUI loads the component's own sheet after this one. */
+.xwui-run-waterfall--columns .xwui-run-waterfall__value {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}

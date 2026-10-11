@@ -1,92 +1,234 @@
 import { api } from "../../api/client";
-import { el, slot } from "../../app/dom";
 import { fill } from "../../app/format";
-import type { Tracker } from "../../app/mount";
-import type { PageContext } from "../../app/page";
-import { href, navigate, paths, type NotationView, type Route } from "../../app/router";
-import { XWFlowBrand } from "../../components/XWFlowBrand/XWFlowBrand";
+import {
+  href,
+  navigate,
+  paths,
+  type NotationView,
+  type Route,
+} from "../../app/router";
+import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { FlowView } from "../../types/domain";
-import { XWUIButton, XWUINavTabs, XWUISegmentedControl } from "../../xwui";
-import { mountTag } from "../studio/common";
-import "./views.css";
+import {
+  button,
+  glass,
+  row,
+  shape,
+  stack,
+  tag,
+  text,
+  type Node,
+} from "../../ui/kit";
 
 type ViewRoute = Extract<Route, { page: "view" }>;
 
 const words = catalog.views;
 
-/** What every view module gets: the stage, a bottom bar and the export hook. */
-export interface ViewContext {
-  view: FlowView;
-  stage: HTMLElement;
-  footer: HTMLElement;
-  scope: Tracker;
-  setExport: (handler: () => void) => void;
+/** What one notation view adds to the shared page: its stage, its footer controls and its export. */
+export interface ViewPart {
+  stage: Node;
+  footer: Node[];
+  export: () => void;
+  /** Set when the stage needs no glass panel around it (the 3D scene). */
+  bare?: boolean;
 }
 
-const modules: Record<NotationView, () => Promise<{ mount: (context: ViewContext, mode: NotationView) => void }>> = {
-  flowchart: () => import("./diagram-views"),
-  swimlane: () => import("./diagram-views"),
-  bpmn: () => import("./diagram-views"),
-  sequence: () => import("./diagram-views"),
-  sim: () => import("./simulation"),
-  "3d": () => import("./space"),
-};
+export interface ViewPartContext {
+  instance: ViewContext["instance"];
+  onLeave: ViewContext["onLeave"];
+}
 
-export async function render(context: PageContext<ViewRoute>): Promise<void> {
-  const { route, scope, body } = context;
-  const view = await api.getFlowView(route.flowId);
-  const flowName = view.flow.name;
+async function part(
+  view: FlowView,
+  mode: NotationView,
+  context: ViewPartContext,
+): Promise<ViewPart> {
+  if (mode === "sim")
+    return (await import("./simulation")).simulationPart(view, context);
+  if (mode === "3d") return (await import("./space")).spacePart(view, context);
+  return (await import("./diagram-views")).diagramPart(view, mode, context);
+}
+
+export async function view(
+  context: ViewContext<ViewRoute>,
+): Promise<PageResult> {
+  const { route, workspace } = context;
+  const flowView = await api.getFlowView(route.flowId);
+  const flowName = flowView.flow.name;
   document.title = fill(words.titles[route.view], { flow: flowName });
-  scope.track({ destroy: () => (document.title = catalog.brand) });
-
-  const page = el("div", "xwflow-views");
-  page.dataset.view = route.view;
-  body.append(page);
-
-  const header = el("header", "xwflow-views__header");
-  page.append(header);
-  const back = scope.track(new XWUIButton(slot(header), { text: "" }, { variant: "ghost", size: "sm", icon: "arrow-left", ariaLabel: words.back, title: words.back }));
-  back.onClick(() => navigate(paths.flows));
-  scope.track(new XWFlowBrand(slot(header), { label: catalog.brand, href: href(paths.home) }, { markOnly: true }));
-  const crumbs = el("nav", "xwflow-editor__crumbs");
-  crumbs.setAttribute("aria-label", "Breadcrumb");
-  const project = el("a", undefined, context.workspace.project.name);
-  project.href = href(paths.flows);
-  const flowLink = el("b", undefined, flowName);
-  crumbs.append(project, el("span", undefined, "/"), flowLink);
-  header.append(crumbs);
-  if (view.flow.status !== "draft") mountTag(slot(header), scope, { label: catalog.studio.flowStatus.published, color: "lime" });
-
-  const tabsHost = slot(header, "xwflow-tabs xwflow-views__tabs");
-  const tabs = scope.track(
-    new XWUINavTabs(tabsHost, { tabs: words.tabs.map((tab) => ({ ...tab })), activeTab: route.view }, { variant: "button", size: "sm", ariaLabel: words.tabsLabel, hideContent: "true" }),
-  );
-  tabs.onChange((id) => {
-    if (id === "editor") navigate(paths.flow(view.flow.id));
-    else if (id === "all") navigate(paths.notations);
-    else navigate(paths.flowView(view.flow.id, id as NotationView));
+  context.onLeave(() => (document.title = catalog.brand));
+  const current = await part(flowView, route.view, {
+    instance: context.instance,
+    onLeave: context.onLeave,
   });
 
-  const end = el("div", "xwflow-row xwflow-gap-8 xwflow-push");
-  header.append(end);
-  const dimension = scope.track(
-    new XWUISegmentedControl(slot(end, "xwflow-segmented"), { value: route.view === "3d" ? "3d" : "2d" }, { options: words.dimensions.map((item) => ({ ...item })), ariaLabel: words.dimensionLabel }),
+  // One row on a wide screen (the tabs shrink and scroll between crumbs and
+  // controls); on a phone the three parts stack and the tabs scroll sideways.
+  const header = glass(
+    {
+      tag: "xwui-grid",
+      config: {
+        columns: "minmax(0, 1fr)",
+        gap: "10px",
+        alignItems: "center",
+        responsive: { xl: { columns: "auto minmax(0, 1fr) auto" } },
+      },
+      slots: {
+        children: [
+          row(
+            [
+              button("ghost", "", {
+                icon: "arrow-left",
+                size: "sm",
+                label: words.back,
+                onClick: () => navigate(paths.flows),
+              }),
+              {
+                tag: "xwui-logo",
+                data: {},
+                config: {
+                  svgPath: "styles/brand/xwflow/logo/xwflow-logo.svg",
+                  logoConfig: "logo",
+                  title: catalog.brand,
+                  size: "xs",
+                  href: href(paths.home),
+                },
+              },
+              button("ghost", workspace.project.name, {
+                size: "sm",
+                href: href(paths.flows),
+              }),
+              text("small", "/", { tone: "tertiary" }),
+              button("ghost", flowName, {
+                size: "sm",
+                href: href(paths.flow(flowView.flow.id)),
+              }),
+              ...(flowView.flow.status !== "draft"
+                ? [tag(catalog.studio.flowStatus.published, "lime")]
+                : []),
+            ],
+            { gap: 6, wrap: true },
+          ),
+          {
+            tag: "xwui-box",
+            config: { overflow: "auto", width: "100%" },
+            slots: {
+              children: {
+                tag: "xwui-tabs",
+                data: {
+                  tabs: words.tabs.map((tab) => ({ ...tab })),
+                  activeTab: route.view,
+                },
+                config: {
+                  variant: "button",
+                  size: "sm",
+                  ariaLabel: words.tabsLabel,
+                  hideContent: "true",
+                },
+                ref: (instance) =>
+                  (
+                    instance as {
+                      onChange(handler: (id: string) => void): void;
+                    }
+                  ).onChange((id) => {
+                    if (id === "editor") navigate(paths.flow(flowView.flow.id));
+                    else if (id === "all") navigate(paths.notations);
+                    else
+                      navigate(
+                        paths.flowView(flowView.flow.id, id as NotationView),
+                      );
+                  }),
+              },
+            },
+          },
+          row(
+            [
+              {
+                tag: "xwui-segmented-control",
+                data: { value: route.view === "3d" ? "3d" : "2d" },
+                config: {
+                  options: words.dimensions.map((item) => ({ ...item })),
+                  ariaLabel: words.dimensionLabel,
+                },
+                ref: (instance) =>
+                  (
+                    instance as {
+                      onChange?(handler: (value: string) => void): void;
+                    }
+                  ).onChange?.((value) => {
+                    if (value === "3d" && route.view !== "3d")
+                      navigate(paths.flowView(flowView.flow.id, "3d"));
+                    if (value === "2d" && route.view === "3d")
+                      navigate(paths.flowView(flowView.flow.id, "flowchart"));
+                  }),
+              },
+              button("glass", words.export, {
+                size: "sm",
+                icon: "download",
+                onClick: current.export,
+              }),
+            ],
+            { gap: 8 },
+          ),
+        ],
+      },
+    },
+    { pad: "s" },
   );
-  dimension.onChange?.((value: string) => {
-    if (value === "3d" && route.view !== "3d") navigate(paths.flowView(view.flow.id, "3d"));
-    if (value === "2d" && route.view === "3d") navigate(paths.flowView(view.flow.id, "flowchart"));
-  });
-  const exporter = scope.track(new XWUIButton(slot(end), { text: words.export }, { variant: "ghost", size: "sm", icon: "download", className: "xwflow-btn-glass" }));
-  let exportHandler: (() => void) | null = null;
-  exporter.onClick(() => exportHandler?.());
 
-  const stage = el("section", "xwflow-views__stage");
-  stage.setAttribute("aria-label", fill(words.titles[route.view], { flow: flowName }));
-  page.append(stage);
-  const footer = el("div", "xwflow-views__footer");
-  page.append(footer);
+  const stage: Node = current.bare
+    ? current.stage
+    : {
+        tag: "xwui-box",
+        config: {
+          surface: "glass",
+          padding: 20,
+          overflow: "clip",
+          position: "relative",
+          ariaLabel: fill(words.titles[route.view], { flow: flowName }),
+        },
+        slots: {
+          children: stack(
+            [
+              shape("halo", "violet", 420, { left: "30%", top: "30%" }),
+              current.stage,
+            ],
+            { gap: 0 },
+          ),
+        },
+      };
 
-  const module = await modules[route.view]();
-  module.mount({ view, stage, footer, scope, setExport: (handler) => (exportHandler = handler) }, route.view);
+  return {
+    body: [
+      {
+        tag: "xwui-box",
+        config: { padding: 16 },
+        slots: {
+          children: stack(
+            [
+              header,
+              stage,
+              ...(current.footer.length
+                ? [
+                    glass(
+                      // A single footer node (the simulation's grid) fills the panel itself.
+                      current.footer.length === 1
+                        ? current.footer[0]
+                        : row(current.footer, {
+                            gap: 14,
+                            wrap: true,
+                            align: "center",
+                          }),
+                      { pad: "s" },
+                    ),
+                  ]
+                : []),
+            ],
+            { gap: 16 },
+          ),
+        },
+      },
+    ],
+  };
 }

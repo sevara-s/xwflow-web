@@ -1,31 +1,28 @@
-import { el, slot } from "../../app/dom";
 import { downloadText } from "../../app/exporters";
 import { fill } from "../../app/format";
 import { notify } from "../../app/notify";
-import { resultView } from "../../app/status";
-import { XWFlowScene3D } from "../../components/XWFlowScene3D/XWFlowScene3D";
-import { XWFlowShape } from "../../components/XWFlowShape/XWFlowShape";
 import { catalog } from "../../content/catalog";
-import type { Attempt, FlowGraph, SystemId } from "../../types/domain";
-import { XWUIButton, XWUIInputSlider, XWUIInputSwitch, XWUISelect } from "../../xwui";
-import { canvasData } from "../studio/canvas";
-import { glass } from "../studio/common";
-import type { ViewContext } from "./view";
+import type { Attempt, FlowGraph, FlowView, SystemId } from "../../types/domain";
+import { canvasData, hueOf, nodeStatuses } from "../../ui/flow";
+import { button, glass, row, stack, text, type Hue, type Node } from "../../ui/kit";
+import type { ViewPart, ViewPartContext } from "./view";
 
 const words = catalog.views.space;
-const laneColors: Record<SystemId, "lime" | "cyan" | "violet" | "pink" | "orange"> = { source: "cyan", engine: "lime", api: "orange", chat: "pink", table: "violet" };
+const laneHues: Record<SystemId, Hue> = { source: "cyan", engine: "lime", api: "orange", chat: "pink", table: "violet" };
 const STEP_MS = 650;
 
-export function mount(context: ViewContext): void {
-  const { view, stage, scope } = context;
+type Scene = { zoom(factor: number): void; reset(): void; setData(data: object): void; updateConfig(patch: object): void };
+type Changeable<T> = { onChange(handler: (value: T) => void): void };
+
+export function spacePart(view: FlowView, { instance, onLeave }: ViewPartContext): ViewPart {
   const run = view.runs.find((item) => item.attempts.some((attempt) => attempt.result.kind === "failed")) ?? view.runs[0];
   const attempts: Attempt[] = run?.attempts ?? [];
   const options = { lanes: true, height: true, failedOnly: false, laneBy: "system" as "system" | "group" };
+  let tilt = 56;
+  let spin = -24;
+  const scene = (): Scene | undefined => instance<Scene>("space-scene");
 
-  scope.track(new XWFlowShape(slot(stage), { kind: "orb" }, { size: 70, color: "violet", place: { left: "6%", top: "40px" } }));
-  const sceneHost = slot(stage, "xwflow-views__scene");
-
-  /** Lay steps out by column, one lane per system (or per step type). */
+  /** Steps by column, one floor band per system (or per step type). */
   const graph = (): FlowGraph => {
     const lanes = options.laneBy === "system" ? view.systems.map((system) => system.id as string) : [...new Set(view.steps.map((step) => step.group as string))];
     const laneHeight = 560 / Math.max(1, lanes.length);
@@ -41,106 +38,126 @@ export function mount(context: ViewContext): void {
     return { nodes, edges: view.graph.edges.filter((edge) => ids.has(edge.from) && ids.has(edge.to)), notes: [], frames: [] };
   };
 
+  /** Higher steps took longer. */
   const depths = (): Record<string, number> | undefined => {
     if (!options.height) return undefined;
     const longest = Math.max(1, ...attempts.map((attempt) => attempt.durationMs ?? 0));
-    const result: Record<string, number> = {};
-    for (const attempt of attempts) result[attempt.nodeId] = 30 + Math.round(((attempt.durationMs ?? 0) / longest) * 110);
-    return result;
+    return Object.fromEntries(attempts.map((attempt) => [attempt.nodeId, 30 + Math.round(((attempt.durationMs ?? 0) / longest) * 110)]));
   };
 
-  const lanes = () =>
-    options.lanes
-      ? options.laneBy === "system"
-        ? view.systems.map((system) => ({ label: system.name.toUpperCase(), color: laneColors[system.id] }))
-        : [...new Set(view.steps.map((step) => step.group))].map((group) => ({ label: catalog.studio.groupLabels[group].toUpperCase(), color: laneColors.engine }))
-      : [];
+  const lanes = (): Array<{ label: string; hue: Hue }> =>
+    !options.lanes
+      ? []
+      : options.laneBy === "system"
+        ? view.systems.map((system) => ({ label: system.name.toUpperCase(), hue: laneHues[system.id] }))
+        : [...new Set(view.steps.map((step) => step.group))].map((group) => ({ label: catalog.studio.groupLabels[group].toUpperCase(), hue: hueOf[group] }));
 
-  let scene: XWFlowScene3D | null = null;
-  let tilt = 56;
-  const build = (played = attempts.length): void => {
-    scene?.destroy();
-    sceneHost.replaceChildren();
+  /** The scene data after `played` attempts: what ran so far, and the next step marked running. */
+  const sceneData = (played = attempts.length): Record<string, unknown> => {
+    const current = graph();
     const live = attempts.slice(0, played);
-    const data = { ...canvasData(graph(), null, live), depths: depths() };
-    if (played < attempts.length && attempts[played]) {
-      const next = attempts[played];
-      if (data.views[next.nodeId]) data.views[next.nodeId] = { ...data.views[next.nodeId], status: { tone: "run", label: catalog.site.landing.scene.running } };
-    }
-    for (const attempt of live) {
-      if (data.views[attempt.nodeId] && attempt.result.kind === "failed") data.views[attempt.nodeId].status = resultView(attempt.result);
-    }
-    scene = new XWFlowScene3D(sceneHost, data, { width: 1100, height: 560, nodeWidth: 170, orbit: true, ring: false, lanes: lanes(), tilt: { x: tilt, z: -24 } });
+    const statuses = nodeStatuses(current, live);
+    const next = attempts[played];
+    if (played < attempts.length && next) statuses[next.nodeId] = { tone: "run", label: catalog.site.landing.scene.running };
+    return { ...canvasData(current, { statuses, attempts: live, frames: false }), depths: depths(), lanes: lanes() };
   };
-  scope.track({ destroy: () => scene?.destroy() });
-  build();
+  const rebuild = (played?: number): void => scene()?.setData(sceneData(played));
 
-  /* Camera and layout panel. */
-  const panel = glass(stage, { pad: "m", className: "xwflow-stack xwflow-gap-12 xwflow-views__camera", label: words.camera });
-  panel.append(el("b", undefined, words.camera));
-  const cameraRow = el("div", "xwflow-row xwflow-gap-8");
-  panel.append(cameraRow);
-  const cameraButton = (icon: string, label: string, action: () => void): void => {
-    const button = scope.track(new XWUIButton(slot(cameraRow), { text: "" }, { variant: "ghost", size: "sm", icon, ariaLabel: label, title: label, className: "xwflow-btn-glass" }));
-    button.onClick(action);
-  };
-  cameraButton("rotate-ccw", words.rotateLeft, () => rotate(-15));
-  cameraButton("rotate-cw", words.rotateRight, () => rotate(15));
-  cameraButton("zoom-in", words.zoomIn, () => scene?.zoom(1.15));
-  cameraButton("zoom-out", words.zoomOut, () => scene?.zoom(1 / 1.15));
-  cameraButton("maximize", words.reset, () => scene?.reset());
-  let spin = -24;
-  function rotate(by: number): void {
-    spin = Math.max(-80, Math.min(80, spin + by));
-    sceneHost.querySelector<HTMLElement>(".xwflow-scene")?.style.setProperty("--xwflow-scene-z", `${spin}deg`);
-  }
-
-  const tiltRow = el("div", "xwflow-row xwflow-gap-12");
-  panel.append(tiltRow);
-  tiltRow.append(el("span", "xwflow-label", words.tilt));
-  const tiltSlider = scope.track(new XWUIInputSlider(slot(tiltRow, "xwflow-grow"), { value: tilt }, { min: 20, max: 70, step: 1, ariaLabel: words.tilt }));
-  const tiltValue = el("span", "xwflow-mono xwflow-xs", fill(words.tiltValue, { n: tilt }));
-  tiltRow.append(tiltValue);
-  tiltSlider.onChange((value) => {
-    tilt = Math.round(Number(value));
-    tiltValue.textContent = fill(words.tiltValue, { n: tilt });
-    sceneHost.querySelector<HTMLElement>(".xwflow-scene")?.style.setProperty("--xwflow-scene-x", `${tilt}deg`);
-  });
-
-  panel.append(el("b", undefined, words.layout));
-  const toggle = (label: string, key: "lanes" | "height" | "failedOnly"): void => {
-    const row = el("div", "xwflow-row xwflow-gap-12");
-    panel.append(row);
-    const control = scope.track(new XWUIInputSwitch(slot(row), { checked: options[key], label: "" }, { size: "sm", ariaLabel: label }));
-    row.append(el("span", "xwflow-small", label));
-    control.onChange((checked) => {
-      options[key] = checked;
-      build();
-    });
-  };
-  toggle(words.lanesAsFloors, "lanes");
-  toggle(words.heightDuration, "height");
-  toggle(words.failedOnly, "failedOnly");
-  const laneSelect = scope.track(
-    new XWUISelect(slot(panel), { label: words.laneBy, value: options.laneBy, options: catalog.views.swimlane.laneOptions.map((item) => ({ ...item })) }, { fullWidth: true }),
-  );
-  laneSelect.onChange((value) => {
-    options.laneBy = String(value) === "group" ? "group" : "system";
-    build();
-  });
-
-  const replay = scope.track(new XWUIButton(slot(panel), { text: words.replay }, { variant: "primary", icon: "play", fullWidth: true }));
   const timers: number[] = [];
-  scope.track({ destroy: () => timers.splice(0).forEach((id) => clearTimeout(id)) });
-  replay.onClick(() => {
+  onLeave(() => timers.splice(0).forEach((id) => clearTimeout(id)));
+  const replay = (): void => {
     timers.splice(0).forEach((id) => clearTimeout(id));
-    for (let played = 0; played <= attempts.length; played += 1) timers.push(window.setTimeout(() => build(played), played * STEP_MS));
-  });
-  stage.append(el("p", "xwflow-xs xwflow-sec xwflow-views__legend-note", words.legend));
+    for (let played = 0; played <= attempts.length; played += 1) timers.push(window.setTimeout(() => rebuild(played), played * STEP_MS));
+  };
 
-  context.setExport(() => {
-    const layout = graph().nodes.map(({ id, name, x, y }) => ({ id, name, x, y, height: depths()?.[id] ?? null }));
-    downloadText("flow-3d.json", JSON.stringify(layout, null, 2), "application/json");
-    notify(fill(catalog.views.exported, { name: "flow-3d.json" }), "success");
-  });
+  const toggle = (label: string, key: "lanes" | "height" | "failedOnly"): Node =>
+    row(
+      [
+        {
+          tag: "xwui-switch",
+          data: { checked: options[key], label: "" },
+          config: { size: "sm", ariaLabel: label },
+          ref: (control) =>
+            (control as Changeable<boolean>).onChange((checked) => {
+              options[key] = checked;
+              rebuild();
+            }),
+        },
+        text("small", label),
+      ],
+      { gap: 12 },
+    );
+  const turn = (by: number): void => {
+    spin = Math.max(-80, Math.min(80, spin + by));
+    scene()?.updateConfig({ tilt: { x: tilt, z: spin } });
+  };
+
+  const camera = glass(
+    stack(
+      [
+        text("small", words.camera, { bold: true }),
+        row(
+          [
+            button("glass", "", { size: "sm", icon: "rotate-ccw", label: words.rotateLeft, onClick: () => turn(-15) }),
+            button("glass", "", { size: "sm", icon: "rotate-cw", label: words.rotateRight, onClick: () => turn(15) }),
+            button("glass", "", { size: "sm", icon: "zoom-in", label: words.zoomIn, onClick: () => scene()?.zoom(1.15) }),
+            button("glass", "", { size: "sm", icon: "zoom-out", label: words.zoomOut, onClick: () => scene()?.zoom(1 / 1.15) }),
+            button("glass", "", { size: "sm", icon: "maximize", label: words.reset, onClick: () => scene()?.reset() }),
+          ],
+          { gap: 6, wrap: true },
+        ),
+        stack(
+          [
+            row([text("small", words.tilt), { tag: "xwui-composer", key: "space-tilt", data: { tree: text("xs", fill(words.tiltValue, { n: tilt }), { mono: true }) } }], { justify: "space-between" }),
+            {
+              tag: "xwui-slider",
+              data: { value: tilt },
+              config: { min: 20, max: 70, step: 1, ariaLabel: words.tilt },
+              ref: (slider) =>
+                (slider as Changeable<number>).onChange((value) => {
+                  tilt = Math.round(Number(value));
+                  instance<{ setTree(tree: Node): void }>("space-tilt")?.setTree(text("xs", fill(words.tiltValue, { n: tilt }), { mono: true }));
+                  scene()?.updateConfig({ tilt: { x: tilt, z: spin } });
+                }),
+            },
+          ],
+          { gap: 6 },
+        ),
+        text("small", words.layout, { bold: true }),
+        toggle(words.lanesAsFloors, "lanes"),
+        toggle(words.heightDuration, "height"),
+        toggle(words.failedOnly, "failedOnly"),
+        {
+          tag: "xwui-select",
+          data: { label: words.laneBy, value: options.laneBy, options: catalog.views.swimlane.laneOptions.map((item) => ({ ...item })) },
+          config: { fullWidth: true },
+          ref: (select) =>
+            (select as Changeable<unknown>).onChange((value) => {
+              options.laneBy = String(value) === "group" ? "group" : "system";
+              rebuild();
+            }),
+        },
+        button("primary", words.replay, { icon: "play", onClick: replay }),
+      ],
+      { gap: 12 },
+    ),
+    { pad: "m" },
+  );
+
+  return {
+    bare: true,
+    stage: {
+      tag: "xwui-flow-scene",
+      key: "space-scene",
+      data: sceneData(),
+      config: { width: 1100, height: 560, nodeWidth: 170, orbit: true, ring: false, tilt: { x: tilt, z: spin }, sceneHeight: 640 },
+      slots: { overlayEnd: camera },
+    },
+    footer: [text("xs", words.legend, { tone: "secondary" })],
+    export: () => {
+      const layout = graph().nodes.map(({ id, name, x, y }) => ({ id, name, x, y, height: depths()?.[id] ?? null }));
+      downloadText("flow-3d.json", JSON.stringify(layout, null, 2), "application/json");
+      notify(fill(catalog.views.exported, { name: "flow-3d.json" }), "success");
+    },
+  };
 }

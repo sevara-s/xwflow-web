@@ -41,9 +41,12 @@ export function formatDay(at: number, now = Date.now()): string {
   return capitalize(relative.format(-Math.floor(days / 7), "week"));
 }
 
-/** "In 6 days" */
+/** "in 23 minutes", "in 5 hours", "in 6 days". */
 export function formatIn(at: number, now = Date.now()): string {
-  return relative.format(Math.max(1, Math.round((at - now) / DAY)), "day");
+  const ahead = Math.max(0, at - now);
+  if (ahead < HOUR) return relative.format(Math.max(1, Math.round(ahead / MINUTE)), "minute");
+  if (ahead < DAY) return relative.format(Math.round(ahead / HOUR), "hour");
+  return relative.format(Math.round(ahead / DAY), "day");
 }
 
 /** "09 Oct, 12:05" */

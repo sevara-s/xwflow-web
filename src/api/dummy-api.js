@@ -15,7 +15,12 @@ import { linearGraph, seedStudio } from "./data/studio.js";
 
 const STORE_KEY = "xwflow.dummy.v4";
 const GROUP_ORDER = ["trigger", "control", "data", "ai", "integration"];
-const LATENCY_MS = { read: 180, write: 420 };
+/**
+ * A token delay so every call stays asynchronous, as a real API's would. It
+ * was 180 ms per read and 420 ms per write, which made every page change wait
+ * on purpose; the local stand-in has no network to simulate that well.
+ */
+const LATENCY_MS = { read: 15, write: 40 };
 /** How long one step takes when the dummy engine plays a new run. */
 const STEP_MS = 650;
 /** How long the seeded "running now" run keeps running after load. */

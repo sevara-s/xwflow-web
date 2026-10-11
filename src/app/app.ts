@@ -5,9 +5,9 @@ import type { Node } from "../ui/kit";
 import { XWUIComposer, type XWUIToast } from "../xwui";
 import { mountToaster } from "./notify";
 import { href, parseLocation, paths, type Route } from "./router";
-import { adminShell } from "./shells/admin-view";
-import { siteShell } from "./shells/site-view";
-import { studioShell } from "./shells/studio-view";
+import { adminSelection, adminShell } from "./shells/admin-view";
+import { currentNav, siteShell } from "./shells/site-view";
+import { appBarData, railSelection, studioShell } from "./shells/studio-view";
 import type { PageBar, PageResult, PageView, ViewContext } from "./view";
 
 /** Every page composes XWUI nodes: it exports a view(). */
@@ -77,13 +77,49 @@ function notice(icon: string, title: string, description: string): Node {
   };
 }
 
+/** Which frame a route sits in; the frame is built once and kept while this stays the same. */
+function frameKind(route: Route, admin: AdminContext | null): string {
+  if (route.zone === "site") return "site";
+  if (route.zone === "studio") return "studio";
+  if (admin && isAdminZone(route)) return `admin:${admin.health}`;
+  return "bare";
+}
+
+/** Point a kept frame at the new route: the rail's selection, the header's link, the bar. */
+function updateFrame(composer: XWUIComposer, route: Route, workspace: Workspace, bar: PageBar | undefined): void {
+  const at = <T,>(key: string): T | undefined => composer.getInstanceByKey<T>(key);
+  if (route.zone === "site") at<{ setCurrentPath(path: string): void }>("site-header")?.setCurrentPath(currentNav(route).slice(1));
+  if (route.zone === "studio") at<{ select(id: string): void }>("studio-rail")?.select(railSelection(route));
+  if (isAdminZone(route)) at<{ select(id: string): void }>("admin-rail")?.select(adminSelection(route));
+  at<{ setData(data: object): void }>("app-bar")?.setData(appBarData(workspace, bar));
+  at<XWUIComposer>("app-bar-actions")?.setTree(bar?.actions ?? []);
+}
+
+/** How long a page may take before its spinner shows; quicker pages never flash one. */
+const SPINNER_DELAY_MS = 150;
+
 export async function mountApplication(root: HTMLElement): Promise<void> {
   useTheme();
-  // The whole screen is one XWUIComposer tree.
+  // The whole screen is one XWUIComposer tree: the frame (rail, bar, header) and,
+  // inside it, the page area - a nested composer, so a page change swaps only the page.
   const composer = new XWUIComposer(root, { tree: [toastNode] });
   let leave: Array<() => void> = [];
   let workspace: Workspace | null = null;
   let generation = 0;
+  let mountedKind: string | null = null;
+  const pageArea = (): XWUIComposer | undefined => composer.getInstanceByKey<XWUIComposer>("page");
+
+  /** Show `body` in the page area, building the frame first when the route needs another one. */
+  const place = (route: Route, admin: AdminContext | null, body: Node[], bar?: PageBar): void => {
+    const kind = frameKind(route, admin);
+    if (kind !== mountedKind || !pageArea()) {
+      composer.setTree([...shell(route, workspace!, [{ tag: "xwui-composer", key: "page", data: { tree: body } }], bar, admin), toastNode]);
+      mountedKind = kind;
+      return;
+    }
+    updateFrame(composer, route, workspace!, bar);
+    pageArea()?.setTree(body);
+  };
 
   const show = async (): Promise<void> => {
     const route = parseLocation();
@@ -96,13 +132,14 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
     // Admin pages and their rail read the tenant and the health signal, fresh on each visit.
     const admin = loader && isAdminZone(route) ? await api.getAdminContext() : null;
     if (current !== generation) return;
-    const frame = (page: Node[], bar?: PageBar): Node[] => [...shell(route, workspace!, page, bar, admin), toastNode];
 
     if (!loader) {
-      composer.setTree(frame([notice("search", catalog.notFound.title, catalog.notFound.description)]));
+      place(route, admin, [notice("search", catalog.notFound.title, catalog.notFound.description)]);
       return;
     }
-    composer.setTree(frame([{ tag: "xwui-spinner", data: { label: catalog.loading } }]));
+    const spinner = setTimeout(() => {
+      if (current === generation) place(route, admin, [{ tag: "xwui-spinner", data: { label: catalog.loading } }]);
+    }, SPINNER_DELAY_MS);
     const context: ViewContext = {
       route,
       workspace,
@@ -114,19 +151,33 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
     try {
       const module = await loader();
       const page = pageResult(await (module.view as PageView)(context));
+      clearTimeout(spinner);
       if (current !== generation) return;
-      composer.setTree(frame(page.body, page.bar));
+      place(route, admin, page.body, page.bar);
       window.scrollTo({ top: 0 });
       if (route.zone === "site" && route.section) {
         requestAnimationFrame(() => composer.getElementByKey(`band-${route.section}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
       }
     } catch (error) {
+      clearTimeout(spinner);
       if (current !== generation) return;
       const missing = (error as { code?: string }).code === "not_found";
-      composer.setTree(frame([notice(missing ? "search" : "alert-triangle", missing ? catalog.errors.missing : catalog.errors.load, error instanceof Error ? error.message : "")]));
+      place(route, admin, [notice(missing ? "search" : "alert-triangle", missing ? catalog.errors.missing : catalog.errors.load, error instanceof Error ? error.message : "")]);
     }
   };
 
   window.addEventListener("hashchange", () => void show());
   await show();
+  preloadPages();
+}
+
+/** Once the first page is up, fetch every other page's code while the browser is idle. */
+function preloadPages(): void {
+  const idle = (work: () => void): void => {
+    if ("requestIdleCallback" in window) window.requestIdleCallback(work, { timeout: 3000 });
+    else setTimeout(work, 1200);
+  };
+  idle(() => {
+    for (const load of Object.values(pages)) void load().catch(() => undefined);
+  });
 }

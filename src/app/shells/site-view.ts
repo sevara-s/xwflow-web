@@ -5,7 +5,7 @@ import { siteHref } from "../site-links";
 
 const words = catalog.site;
 
-function currentNav(route: Route): string {
+export function currentNav(route: Route): string {
   if (route.zone !== "site") return "";
   const page = route.page === "landing" ? "landing" : route.page;
   const match = words.nav.links.find(
@@ -18,7 +18,7 @@ function currentNav(route: Route): string {
 export function siteShell(route: Route, page: Node[]): Node[] {
   const header: Node = {
     tag: "xwui-bar-site-header",
-    key: `site-header-${currentNav(route)}`,
+    key: "site-header",
     data: {
       brand: {
         href: href(paths.home),

@@ -8,7 +8,7 @@ import type { PageBar } from "../view";
 
 const words = catalog.studio.rail;
 
-function railSelection(route: Route): string {
+export function railSelection(route: Route): string {
   if (route.zone === "studio" && route.page === "assistant") return "assistant";
   if (route.zone === "studio" && ["overview", "templates", "insights", "settings"].includes(route.page)) return route.page;
   if (route.zone === "admin") return "admin";
@@ -167,26 +167,29 @@ function rail(workspace: Workspace, route: Route): Node {
   };
 }
 
-export function appBar(workspace: Workspace, bar: PageBar | undefined): Node {
+/** What the app bar shows for a page: crumbs, meta, the sample tag, context tags and the account. */
+export function appBarData(workspace: Workspace, bar: PageBar | undefined): Record<string, unknown> {
   const topbar = catalog.studio.topbar;
   const sample = bar?.sample === undefined ? "rows" : bar.sample;
   return {
+    crumbs: bar?.crumbs ?? [],
+    meta: bar?.meta,
+    sampleTag: sample === "rows" ? topbar.sampleRows : sample === "data" ? topbar.sampleData : undefined,
+    tags: bar?.tags,
+    account: bar?.hideAccount ? null : { name: workspace.you.name, label: topbar.account },
+  };
+}
+
+/**
+ * The app bar. Its actions sit in their own composer (key "app-bar-actions"),
+ * so a page change swaps them, keys and refs included, without rebuilding the bar.
+ */
+export function appBar(workspace: Workspace, bar: PageBar | undefined): Node {
+  return {
     tag: "xwui-app-bar",
-    data: {
-      crumbs: bar?.crumbs ?? [],
-      meta: bar?.meta,
-      sampleTag:
-        sample === "rows"
-          ? topbar.sampleRows
-          : sample === "data"
-            ? topbar.sampleData
-            : undefined,
-      tags: bar?.tags,
-      account: bar?.hideAccount
-        ? null
-        : { name: workspace.you.name, label: topbar.account },
-    },
-    slots: bar?.actions?.length ? { actions: bar.actions } : undefined,
+    key: "app-bar",
+    data: appBarData(workspace, bar),
+    slots: { actions: [{ tag: "xwui-composer", key: "app-bar-actions", data: { tree: bar?.actions ?? [] } }] },
   };
 }
 

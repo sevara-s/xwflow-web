@@ -24,7 +24,7 @@ const targets: Record<Target, string> = {
   migrate: siteHref("landing", "migrate"),
 };
 
-function selection(route: Route): string {
+export function adminSelection(route: Route): string {
   if (route.zone === "admin") return route.page;
   if (route.zone === "system") return "health";
   if (route.zone === "denied") return "quotas";
@@ -48,7 +48,7 @@ function rail(admin: AdminContext, route: Route): Node {
     // On a phone the rail starts closed: only its head bar shows until the toggle opens it.
     config: { slim: true, collapsed: window.matchMedia("(max-width: 860px)").matches },
     data: {
-      selected: selection(route),
+      selected: adminSelection(route),
       headTag: { label: words.tag, hue: "violet" },
       labels: { nav: words.label, collapse: catalog.studio.rail.collapse, expand: catalog.studio.rail.expand },
       sections: [

@@ -1,12 +1,12 @@
 import { catalog } from "../content/catalog";
-import { XWUIToast } from "../xwui";
+import type { XWUIToast } from "../xwui";
 
 type Toaster = Pick<XWUIToast, "show">;
 let toaster: Toaster | null = null;
 
-/** Use the toaster a composed shell mounted (any XWUI toast with show()), or mount one into a legacy host. */
-export function mountToaster(target: HTMLElement | Toaster): void {
-  toaster = target instanceof HTMLElement ? new XWUIToast(target) : target;
+/** Use the toaster the app's composer mounted (any XWUI toast with show()). */
+export function mountToaster(target: Toaster): void {
+  toaster = target;
 }
 
 export function notify(message: string, variant: "success" | "warning" | "danger" | "info" = "info"): void {

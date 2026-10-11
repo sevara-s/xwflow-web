@@ -1,4 +1,0 @@
-.xwflow-diagram { overflow: auto; }
-.xwflow-diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
-.xwflow-diagram__dot { cursor: pointer; }
-.xwflow-diagram__dot:focus-visible { outline: 2px solid var(--xwflow-cyan); }

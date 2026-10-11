@@ -4,7 +4,7 @@ import { notify } from "../../app/notify";
 import { navigate, paths } from "../../app/router";
 import { catalog } from "../../content/catalog";
 import type { Attempt, FlowView, RunDetail, SystemId, ViewStep } from "../../types/domain";
-import { hueOf } from "../../ui/flow";
+import { hueOf, stepType } from "../../ui/flow";
 import { button, row, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUISelect } from "../../xwui";
 import type { ViewPart, ViewPartContext } from "./view";
@@ -85,10 +85,29 @@ function diagram(view: FlowView, mode: DiagramMode, laneBy: "system" | "group", 
     hue: hueOf[step.group],
     lane: mode === "bpmn" ? (step.system === "chat" ? "people" : "automation") : laneBy === "group" ? step.group : step.system,
     disabled: step.state === "disabled",
+    subtitle: mode === "flowchart" ? stepType(step.type, step.group).label : undefined,
     error: mode === "bpmn" && step.type === "http" ? labels.notFound : undefined,
     store: mode === "bpmn" && step.type === "appendRow" ? view.systems.find((system) => system.id === "table")?.name : undefined,
   }));
   const data: Record<string, unknown> = { title, steps, ...edges(view) };
+  if (mode === "flowchart") {
+    // ISO 5807 as the prototype draws it: a Start terminal, the trigger as input, an End
+    // terminal after every last step, and a loop on each step the run had to retry.
+    const sinks = view.steps.filter((step) => !view.edges.some((edge) => edge.from === step.id));
+    const retried = new Set((run?.attempts ?? []).filter((attempt) => (attempt.tryIndex ?? 1) > 1).map((attempt) => attempt.nodeId));
+    const first = view.steps[0];
+    data.steps = [
+      { id: "__start", name: labels.start, shape: "terminal", hue: "lime" },
+      ...steps.map((step) => (step.id === first?.id ? { ...step, shape: "io" } : step)),
+      { id: "__end", name: labels.end, shape: "terminal", hue: "lime" },
+    ];
+    data.edges = [
+      ...(first ? [{ from: "__start", to: first.id }] : []),
+      ...(data.edges as unknown[]),
+      ...[...retried].map((id) => ({ from: id, to: id, label: labels.retryLoop })),
+      ...sinks.map((step) => ({ from: step.id, to: "__end" })),
+    ];
+  }
   if (mode === "swimlane") data.lanes = swimLanes;
   if (mode === "bpmn") {
     data.lanes = [

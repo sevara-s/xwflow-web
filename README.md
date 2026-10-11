@@ -4,38 +4,62 @@ A working front end for the xwflow prototype (22 boards). An organization define
 
 The same flow can be drawn as a node graph, a flowchart, a swimlane, BPMN, a sequence diagram, a simulation, or a 3D scene. The assistant turns a sentence into a draft. Nothing goes live until it is published.
 
-The whole UI is built from XWUI components. Components the prototype needed and XWUI did not have were created in `xwui-lib` first and then used here. All data comes from a local JavaScript dummy API.
+The UI is built from XWUI basic components loaded from xwui.dev, as published. Components XWUI basic does not offer are XWFlow components in this repo, built on the XWUI component base. The xwflow theme and logo are also in this repo. All data comes from a local JavaScript dummy API.
+
+The app was built with AI assistance (Claude Code) for implementation, review and headless browser checks, as the brief requires; every change was verified before it was committed.
 
 ## Requirements
 
 - Node.js 18 or newer (developed on Node 26) and npm.
-- A current Chrome, Edge, Firefox or Safari.
-- For local XWUI mode only: a checkout of `xwui-lib` (see below).
+- A current Chrome, Edge, Firefox or Safari, online (XWUI loads from xwui.dev).
 
 ## Setup
 
 ```bash
 npm install
 npm run dev         # http://127.0.0.1:4173
-npm test            # Vitest: 98 tests in 11 files
+npm test            # Vitest: 100 tests in 11 files
 npm run typecheck   # tsc --noEmit
 npm run build       # typecheck, then dist/
 npm run preview     # serve dist/
 ```
 
-The only npm packages are TypeScript, Vite, Vitest and esbuild (esbuild bundles XWUI in local mode). There is no second component library and no CSS framework.
+The only npm packages are TypeScript, Vite and Vitest. There is no other component library and no CSS framework.
 
-## XWUI: published or local
+## How XWUI is used
 
-The app imports XWUI from the published basic tier, `https://xwui.dev/esm/basic.bundle.js`, and its theme from `https://xwui.dev/styles/presets/xwflow-neon.css`.
+- **Components:** `src/xwui.ts` imports the XWUI classes the app uses from `https://xwui.dev/esm/basic.bundle.js`. Pages describe the UI as XWUI composer nodes (`{ tag, data, config, slots }`) and one `XWUIComposer` mounts them.
+- **Theme:** `index.html` links the generic XWUI style parts from `https://xwui.dev/styles/` (reset, typography, utilities, the modern style, pill roundness, lines, glow, icons) in the order XWUI composes its presets. The four xwflow parts in between come from this repo: `public/theme/xwflow/brand.css`, `colors.css`, `accent.css` and `typography.css`. `components.css` (loaded last) holds overrides of published components.
+- **Logo:** `public/brand/xwflow-logo.svg`, named once in `src/config.ts` (`logoPath`) and also used as the favicon.
+- Nothing in this repo is a modified copy of the XWUI library, and nothing swaps xwui.dev for a local build.
 
-The components, tokens and fixes made for this product live in `xwui-lib` on `main`. **Until xwui.dev is republished from `main`, the published bundle and theme do not have them.** In that state `npm run dev` shows the pages without the xwflow type scale, spacing and new components. To see the product as built, run against a checkout of `xwui-lib`:
+## XWFlow components
 
-```bash
-XWUI_LOCAL=/path/to/xwui-lib npm run dev
-```
+XWUI basic has no layer stack, and ships an earlier notation diagram than the prototype needs. These two are app components in `src/components`, named XWFlow so they are never mistaken for library components:
 
-In local mode, Vite bundles the checkout's basic tier into one module with esbuild, rebuilds it when the checkout changes, and serves the checkout's theme. After a style change in `xwui-lib`, run `npm run build:styles` there. Local mode is for development only: `npm run build` always keeps the xwui.dev URLs.
+| Component | Used on | What it adds |
+| --- | --- | --- |
+| `XWFlowLayerStack` | `#/notations` hero | Three notations of one flow on glowing planes, stacked in 3D, with labels |
+| `XWFlowNotationDiagram` | Flowchart, swimlane, BPMN, sequence and simulation views | Start and end terminators, retry loops, fixed columns and rows, the filled block notation with live counts for the simulation, sequence row selection, SVG export |
+
+Each follows XWUI's structure: `*.types.ts` (data and config), `*.json` (schema), `*.logic.ts` (headless logic on the published `XWUIComponentLogic`), `*.view.ts` (a pure projector of view nodes), `*.css`, and an adapter extending the published `XWUIComponent`. The bundle does not export its engine's view mount, so `src/components/view.ts` provides `h()` and a small renderer for those view nodes.
+
+The published `XWUIComposer` only mounts `xwui-` tags. Rather than register an `xwui-` tag of its own, the app places a component with the kit's `xwflow(name, { data, config, slots, key })`: a published `xwui-box` is mounted and the component is built in its element, as every XWUI component takes its container. `xwflowInstance(key)` reaches it (for example for the SVG export).
+
+## Issues found in the published XWUI bundle
+
+Each was reproduced on the published bundle and has a workaround in this repo.
+
+| Page | What happens | Expected | Workaround |
+| --- | --- | --- | --- |
+| Website header (any page change) | `XWUIBarSiteHeader.setCurrentPath()` adds another copy of every JSON action: after three pages the bar holds four "Sign in" and four "العربية" buttons over the nav, and Self-host and Docs cannot be clicked | One set of actions | The site frame is keyed by nav section and the header is built fresh per section (`frameKind` in `src/app/app.ts`); `setCurrentPath()` is not called |
+| Flows, row Actions menu | `XWUIComposer.element()` (used for table cells) drops a node's `ref`, so the row's dropdown never gets its item handler: Run now, Open in the editor and Show runs do nothing | The picked action runs | `cell()` in `src/ui/kit.ts` hands the ref its instance on the first pointerdown or focusin, before a click reaches the menu |
+| Editor, canvas | `XWUIFlowCanvas` captures the pointer on its viewport at pointerdown, so Chrome sends the click to the viewport and a mouse click on a step selects nothing | The clicked step opens in the inspector | The editor keeps the step under the press and calls the canvas's public `select()` when the click lands on the viewport without moving (`src/pages/studio/editor.ts`) |
+| Run receipt on a phone | `XWUIRunWaterfall` in its columns layout keeps captions on one line in a 70px column, so "840 ms, 503" and "disabled, skipped" are cut at the card edge | Captions wrap | `public/theme/xwflow/components.css` lets them wrap |
+| Admin › Branding | `XWUIInputColor` names its hex field by the placeholder and ignores `ariaLabel`: a screen reader reads the primary colour field as "#000000" | "Primary color hex" | The field's placeholder is set to the name; it is never visible because the field always holds a colour |
+| Notations, views | No layer stack in the basic tier; the published notation diagram lacks start and end terminators, retry loops, fixed columns and rows and the block notation, so the flowchart drew crossing lines without its end node | The prototype's drawings | `XWFlowLayerStack` and `XWFlowNotationDiagram` (above) |
+
+`XWUIComponent` also fetches a stylesheet for every component class from xwui.dev; the two XWFlow components bundle their own and skip that request (`loadComponentCSS()`).
 
 ## Walk the product
 
@@ -59,7 +83,7 @@ A typical journey: the assistant drafts "alert sales on chat when an order over 
 
 ## How it is built
 
-Pages do not touch the DOM and do not hold copy or sample rows. A page returns XWUI composer nodes (`{ tag, data, config, slots }`). One `XWUIComposer` mounts the tree. The frame (rail, bar, header) is built once and kept; a page change swaps only the page area.
+Pages do not touch the DOM and do not hold copy or sample rows. A page returns XWUI composer nodes. The frame (rail, bar, header) is built once and kept; a page change swaps only the page area.
 
 | Piece | Role |
 | --- | --- |
@@ -67,49 +91,48 @@ Pages do not touch the DOM and do not hold copy or sample rows. A page returns X
 | `src/api/data/*.js` | Sample data. Times are offsets from the moment the page loads |
 | `src/api/client.ts` | The only data import a page is allowed |
 | `src/content/*.ts` | Every visible string |
-| `src/ui/kit.ts` | The shared node vocabulary: stack, row, grid, glass, band, text, button, tag. Each function returns an XWUI node |
+| `src/ui/kit.ts` | The shared node vocabulary: stack, row, grid, glass, band, text, button, tag, and `xwflow()` for app components |
 | `src/pages/**` | One module per screen. Each exports `view()` |
+| `src/components/**` | The XWFlow components |
 | `src/app/router.ts` | Hash routes for the website, studio, editor, views, admin and system |
 | `src/app/shells/` | The site header, the studio rail and bar, and the admin rail, composed from XWUI |
-| `src/xwui.ts` | The XWUI classes the app uses, from the basic tier |
+| `src/xwui.ts`, `src/xwui-cdn.d.ts` | The XWUI classes the app uses, from xwui.dev, and their types |
+| `public/theme/xwflow/`, `public/brand/` | The xwflow theme parts and the logo |
 
 ### Design tokens, not literals
 
-Colours, type and spacing come from the xwflow brand in `xwui-lib` (`xwui-lib-style/src/brand/xwflow/brand.css`). The app names a token, never a value:
+Colours, type and spacing come from the xwflow theme (`public/theme/xwflow/brand.css`). The app names a token, never a value:
 
 - Type: `--type-<step>-size`, `-leading` and `-tracking` for mega, hero, h1 to h4, display, lead, body, small and xs.
 - Gradients: `--brand-text-gradient` and `--brand-wordmark-fade`.
 - Spacing: one scale on a 4 px grid, `--space-xs` 4 to `--space-xxxl` 48, plus `--space-page` (32 px, 16 px on a phone) and the section rhythm (`--space-hero`, `--space-section-s`, `--space-section`). The kit's `stack`, `row`, `grid`, `glass` and `band` take only these step names.
 
-## XWUI only
+## Guard test
 
-`tests/xwui-only.test.ts` reads every page, shell, kit and app module and fails the suite on:
+`tests/xwui-only.test.ts` reads every page, shell, kit module and component, and fails the suite on:
 
-- building elements by hand (`createElement`, `innerHTML`, `append`, class or style writes),
-- constructing an XWUI class directly (the one root composer in `app.ts` excepted),
-- app components or CSS files and imports,
-- colour literals (hex, rgba), type literals (clamp, rem, em) and spacing literals (px gaps, paddings, margins).
+- building elements by hand in pages, shells or the kit (`createElement`, `innerHTML`, `append`, class or style writes), or constructing an XWUI class directly (the one root composer in `app.ts` excepted);
+- page stylesheets or CSS imports;
+- colour literals (hex, rgba), type literals (clamp, rem, em) and spacing literals (px gaps, paddings, margins);
+- an app component without XWUI's split (types, schema, logic, view, stylesheet, adapter), not extending the published `XWUIComponent`, named XWUI, or registering a tag of its own.
 
-Two places hold pixel numbers because their component takes a number: the marquee's item gap and the editor canvas insets, both values on the scale. The branding page's WCAG check names its two reference inks in `src/app/contrast.ts`.
-
-The only direct DOM use left is browser plumbing, not UI: finding `#app` to mount, the theme attributes on `<html>`, the page title, keyboard shortcuts, and, in `src/app/exporters.ts`, the link that saves an exported file. That last one moves to `XWUIButtonDownload.saveText()` once xwui.dev is republished (it is in `xwui-lib` `main`).
-
-The app uses 56 XWUI components. These 20 were created in `xwui-lib` for this product: AppBar, AppRail, BrandPreview, Composer, FlowCanvas, FlowScene, GlowShape, IconTile, IsoStack, IsoTiles, KpiCard, LayerStack, NotationDiagram, NotationThumb, RunWaterfall, SparkBars, StackedBars, StatusGlyph, StepChain and Workbench. Existing components were extended where the prototype needed it (for example Button, Box, BarSiteHeader, UptimeBar, InputColor, Logo, Typography, ButtonDownload).
+Two places hold pixel numbers because their component takes a number: the marquee's item gap and the editor canvas insets, both on the scale. The branding page's WCAG check names its two reference inks in `src/app/contrast.ts`. The only other direct DOM use is browser plumbing: finding `#app` to mount, the theme attributes on `<html>`, the page title, keyboard shortcuts, the editor reading which step a press started on (see the issues above), and the link in `src/app/exporters.ts` that saves an exported file.
 
 ## Tests and checks
 
-- `npm test`: 98 unit tests over the dummy API, router, status, simulation, exporters, contrast and the XWUI-only guard.
-- The components created in `xwui-lib` carry their own tests there, each run under the native, React, Vue and Preact engines.
-- Every route loads headless without errors at 1440 px, and at 390 px nothing reaches past the screen edge.
-- A scripted walkthrough clicks through the website, assistant, flows, editor, receipts, runs, connections, views, settings and admin (89 checks, all passing in local mode).
+- `npm test`: 100 tests over the dummy API, router, status, simulation, exporters, contrast and the guard.
+- On the published bundle (`npm run dev`), headless:
+  - every route loads without errors at 1440 px, and at 390 px nothing reaches past the screen edge;
+  - a scripted walkthrough clicks through the website, assistant, flows, editor, receipts, runs, connections, the six views, settings and admin: 89 checks, all passing;
+  - the exports (SVG, BPMN XML, Mermaid, PlantUML, JSON) download.
 
 ## Performance
 
-Measured headless in local mode:
+Measured headless on the published bundle in dev mode:
 
-- Moving between pages: 110 to 230 ms (330 to 560 ms before the frame was kept and the dummy latency cut).
-- First load: about 0.9 s and 70 requests (1.6 to 3.5 s and about 3,000 requests before XWUI was bundled in local mode).
-- Pages are loaded on demand and preloaded when the browser is idle.
+- Moving between pages: 114 to 207 ms. The frame is kept and only the page swaps; the dummy API waits 15 ms per read.
+- First load: about 0.9 to 1.2 s to DOMContentLoaded and 1.2 to 1.3 s to the Flows table.
+- Pages are loaded on demand and preloaded when the browser is idle. The published basic bundle is 3.96 MB (957 KB gzipped) and is loaded once.
 
 ## Assumptions
 
@@ -132,7 +155,6 @@ Measured headless in local mode:
 
 ## Known limits
 
-- The published xwui.dev bundle and theme predate this work, so `npm run dev` without `XWUI_LOCAL` shows the pages unstyled until xwui.dev is republished from `xwui-lib` `main`.
-- The published basic bundle is 3.96 MB (957 KB gzipped). Loading it per component would mean about 146 requests, so the app keeps the single bundle.
+- The workarounds above depend on the published components as they are today; when xwui.dev fixes them, the workarounds can go.
 - About 60 positions of decorative glows (halos, orbs, rings) are pixel offsets in page config, copied from the prototype's placement.
-- In `xwui-lib`, 28 tests of the date, date range and time pickers already failed before this work; they are not part of this app.
+- The app needs network access to xwui.dev for XWUI and the generic style parts.

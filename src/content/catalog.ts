@@ -1,4 +1,5 @@
 import { admin } from "./admin";
+import { project } from "./project";
 import { site } from "./site";
 import { views } from "./views";
 import { studio } from "./studio";
@@ -19,6 +20,7 @@ export const catalog = {
     action: "Go to the flows",
   },
   studio,
+  project,
   site,
   admin,
   views,

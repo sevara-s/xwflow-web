@@ -27,6 +27,16 @@ describe("router", () => {
     expect(parseLocation("#/studio/runs/r_7f39?attempt=a3")).toEqual({ zone: "studio", page: "run", runId: "r_7f39", attempt: "a3" });
   });
 
+  it("routes the project areas beside flows, with their filters", () => {
+    expect(parseLocation("#/studio/agents?q=lead&status=paused")).toEqual({ zone: "studio", page: "agents", q: "lead", status: "paused" });
+    expect(parseLocation("#/studio/agents?status=bogus")).toMatchObject({ status: "" });
+    expect(parseLocation("#/studio/tables?table=t_orders")).toEqual({ zone: "studio", page: "tables", table: "t_orders" });
+    expect(parseLocation("#/studio/forms")).toEqual({ zone: "studio", page: "forms" });
+    expect(parseLocation("#/studio/variables?scope=test")).toEqual({ zone: "studio", page: "variables", scope: "test", q: "" });
+    expect(parseLocation("#/studio/mcp")).toEqual({ zone: "studio", page: "mcp" });
+    expect(parseLocation("#/studio/agents/extra")).toMatchObject({ zone: "notFound" });
+  });
+
   it("routes admin, system and the denied state", () => {
     expect(parseLocation("#/admin")).toEqual({ zone: "admin", page: "overview" });
     expect(parseLocation("#/admin/audit")).toEqual({ zone: "admin", page: "audit" });

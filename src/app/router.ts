@@ -1,4 +1,4 @@
-import type { ConnectionHealth, FlowStatus, RunMode, RunStatus } from "../types/domain";
+import type { AgentStatus, ConnectionHealth, FlowStatus, RunMode, RunStatus, VariableScope } from "../types/domain";
 
 export type NotationView = "flowchart" | "swimlane" | "bpmn" | "sequence" | "sim" | "3d";
 
@@ -11,6 +11,11 @@ export type Route =
   | { zone: "studio"; page: "runs"; q: string; status: RunStatus | ""; mode: RunMode | ""; range: "7d" | "all" }
   | { zone: "studio"; page: "run"; runId: string; attempt: string | null }
   | { zone: "studio"; page: "connections"; q: string; health: ConnectionHealth | "" }
+  | { zone: "studio"; page: "agents"; q: string; status: AgentStatus | "" }
+  | { zone: "studio"; page: "tables"; table: string | null }
+  | { zone: "studio"; page: "forms" }
+  | { zone: "studio"; page: "variables"; scope: VariableScope | ""; q: string }
+  | { zone: "studio"; page: "mcp" }
   | { zone: "editor"; page: "editor"; flowId: string; node: string | null }
   | { zone: "editor"; page: "view"; flowId: string; view: NotationView }
   | { zone: "admin"; page: "overview" | "branding" | "audit" }
@@ -28,6 +33,11 @@ export const paths = {
   flows: "/studio/flows",
   runs: "/studio/runs",
   connections: "/studio/connections",
+  agents: "/studio/agents",
+  tables: "/studio/tables",
+  forms: "/studio/forms",
+  variables: "/studio/variables",
+  mcp: "/studio/mcp",
   admin: "/admin",
   branding: "/admin/branding",
   audit: "/admin/audit",
@@ -117,6 +127,13 @@ export function parseLocation(hash = window.location.hash): Route {
         health: oneOf(query.get("health"), ["healthy", "expiring", "broken"] as const),
       };
     }
+  }
+  if (first === "studio" && !third) {
+    if (second === "agents") return { zone: "studio", page: "agents", q: query.get("q") ?? "", status: oneOf(query.get("status"), ["live", "paused", "draft"] as const) };
+    if (second === "tables") return { zone: "studio", page: "tables", table: query.get("table") };
+    if (second === "forms") return { zone: "studio", page: "forms" };
+    if (second === "variables") return { zone: "studio", page: "variables", scope: oneOf(query.get("scope"), ["all", "production", "test"] as const), q: query.get("q") ?? "" };
+    if (second === "mcp") return { zone: "studio", page: "mcp" };
   }
   if (first === "admin" && parts.length <= 2) {
     if (!second) return { zone: "admin", page: "overview" };

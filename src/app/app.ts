@@ -47,6 +47,10 @@ const pages: Record<string, () => Promise<PageModule>> = {
   "admin/usage": () => import("../pages/admin/usage"),
   "admin/ai": () => import("../pages/admin/ai"),
   "system/health": () => import("../pages/admin/health"),
+  "system/schedules": () => import("../pages/admin/schedules"),
+  "system/workers": () => import("../pages/admin/workers"),
+  "system/executions": () => import("../pages/admin/executions"),
+  "system/config": () => import("../pages/admin/config"),
   "denied/denied": () => import("../pages/admin/denied"),
 };
 

@@ -1389,7 +1389,11 @@ export async function saveConfig(values) {
     const entry = store.console.config.find((item) => item.id === id);
     if (!entry || !entry.editable) throw consoleError("read_only", `${id} cannot be changed here.`);
     const value = Number(raw);
-    if (!Number.isInteger(value) || value < entry.min || value > entry.max) throw consoleError("out_of_range", `${id} must be a whole number from ${entry.min} to ${entry.max}.`);
+    if (!Number.isInteger(value) || value < entry.min || value > entry.max) {
+      const error = consoleError("out_of_range", `${id} must be a whole number from ${entry.min} to ${entry.max}.`);
+      error.field = { id, min: entry.min, max: entry.max };
+      throw error;
+    }
   }
   for (const [id, raw] of Object.entries(values)) {
     const entry = store.console.config.find((item) => item.id === id);

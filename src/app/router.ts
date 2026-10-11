@@ -32,7 +32,7 @@ export type Route =
 export const adminPages = ["overview", "tenants", "audit", "credentials", "registry", "adapters", "branding", "usage", "ai"] as const;
 export type AdminPage = (typeof adminPages)[number];
 /** The system rail's own screens, one page each. */
-export const systemPages = ["health"] as const;
+export const systemPages = ["health", "schedules", "workers", "executions", "config"] as const;
 export type SystemPage = (typeof systemPages)[number];
 
 export const paths = {

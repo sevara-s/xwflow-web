@@ -58,7 +58,7 @@ describe("router", () => {
     for (const page of ["tenants", "credentials", "registry", "adapters", "usage", "ai", "branding", "audit"] as const) {
       expect(parseLocation(`#${paths.adminPage(page)}`)).toEqual({ zone: "admin", page });
     }
-    for (const page of ["health"] as const) {
+    for (const page of ["health", "schedules", "workers", "executions", "config"] as const) {
       expect(parseLocation(`#${paths.systemPage(page)}`)).toEqual({ zone: "system", page });
     }
     expect(paths.adminPage("overview")).toBe("/admin");

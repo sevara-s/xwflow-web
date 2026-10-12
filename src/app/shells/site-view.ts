@@ -85,7 +85,8 @@ export function siteShell(route: Route, page: Node[]): Node[] {
       })),
       bottom: { left: "", right: "" },
     },
-    config: { bordered: false },
+    // Column titles are h2 under the page's h1 (the footer defaults to h5, which skips levels).
+    config: { bordered: false, titleLevel: 2 },
   };
 
   const wordmark = text("h1", catalog.brand, { align: "center" });
@@ -125,23 +126,37 @@ export function siteShell(route: Route, page: Node[]): Node[] {
           header,
           stack(
             [
-              ...page,
+              // The page is the main landmark; the header and footer are banner and contentinfo.
+              { tag: "xwui-box", config: { as: "main" }, slots: { children: page } },
               column(
                 stack(
                   [
                     footer,
-                    row(
-                      words.footer.tags.map((item) =>
-                        tag(
-                          item.label,
-                          item.color === "plain"
-                            ? undefined
-                            : (item.color as "lime"),
+                    // Under the footer: the licence tags, the wordmark and the legal line, in a complementary landmark.
+                    // No label: the published XWUIBox copies a label onto its host, outside the landmark.
+                    {
+                      tag: "xwui-box",
+                      config: { as: "aside" },
+                      slots: {
+                        children: stack(
+                          [
+                            row(
+                              words.footer.tags.map((item) =>
+                                tag(
+                                  item.label,
+                                  item.color === "plain"
+                                    ? undefined
+                                    : (item.color as "lime"),
+                                ),
+                              ),
+                            ),
+                            wordmark,
+                            legal,
+                          ],
+                          { gap: "xl" },
                         ),
-                      ),
-                    ),
-                    wordmark,
-                    legal,
+                      },
+                    },
                   ],
                   { gap: "xl" },
                 ),

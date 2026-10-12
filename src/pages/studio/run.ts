@@ -49,7 +49,7 @@ function hero(run: RunDetail): Node {
               stack(
                 [
                   { tag: "xwui-status-glyph", data: { tone: toneOf[view.tone], label: view.label }, config: { size: "lg" } },
-                  text("h2", fill(words.title, { flow: run.flowName, n: run.number })),
+                  text("h2", fill(words.title, { flow: run.flowName, n: run.number }), { level: 1 }),
                   row(
                     [
                       tag(mode.label, mode.color === "plain" ? undefined : (mode.color as Hue)),
@@ -105,7 +105,7 @@ function timeline(run: RunDetail): Node {
   return glass(
     stack(
       [
-        row([text("h3", words.timeline), row([text("xs", formatMs(0), { tone: "tertiary" }), text("xs", formatMs(end), { tone: "tertiary" })], { gap: "m" })], { justify: "space-between" }),
+        row([text("h3", words.timeline, { level: 2 }), row([text("xs", formatMs(0), { tone: "tertiary" }), text("xs", formatMs(end), { tone: "tertiary" })], { gap: "m" })], { justify: "space-between" }),
         // On a phone the track is too narrow for a caption beside its bar, so captions get their own column.
         { tag: "xwui-run-waterfall", data: { rows, label: words.timeline }, config: { layout: window.matchMedia("(max-width: 640px)").matches ? "columns" : "track" } },
       ],
@@ -178,7 +178,7 @@ function detail(run: RunDetail, attempt: Attempt, context: ViewContext): Node {
     [
       row(
         [
-          text("h3", attempt.step),
+          text("h3", attempt.step, { level: 2 }),
           ...(attempt.tryIndex !== null && attempt.tryCount !== null
             ? [tag(fill(words.tryTag, { n: attempt.tryIndex, total: attempt.tryCount }), attempt.result.kind === "failed" ? "red" : undefined)]
             : []),
@@ -248,7 +248,7 @@ export async function view(context: ViewContext<RunRoute>): Promise<PageResult> 
           config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 2fr) minmax(0, 1fr)" } } },
           slots: {
             children: [
-              stack([text("h3", words.ledger), glass(ledger(run, pick), { pad: "none", scroll: true })], { gap: "m" }),
+              stack([text("h3", words.ledger, { level: 2 }), glass(ledger(run, pick), { pad: "none", scroll: true })], { gap: "m" }),
               glass({ tag: "xwui-composer", key: "receipt-detail", data: { tree: attempt ? detail(run, attempt, context) : stack([], { gap: "none" }) } }, { pad: "m", gradientBorder: true }),
             ],
           },

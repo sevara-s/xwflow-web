@@ -45,7 +45,7 @@ function runsByHour(overview: AdminOverview): Node {
     stack(
       [
         row(
-          [text("h3", words.runsByHour), row([status("neutral", words.succeeded), status("error", words.failed), text("xs", words.last24, { tone: "tertiary" })], { gap: "l", wrap: true })],
+          [text("h3", words.runsByHour, { level: 2 }), row([status("neutral", words.succeeded), status("error", words.failed), text("xs", words.last24, { tone: "tertiary" })], { gap: "l", wrap: true })],
           { justify: "space-between", wrap: true },
         ),
         {
@@ -85,7 +85,7 @@ function reachability(overview: AdminOverview): Node {
   return glass(
     stack(
       [
-        row([text("h3", words.reachability), text("xs", words.perCheck, { tone: "tertiary" })], { justify: "space-between" }),
+        row([text("h3", words.reachability, { level: 2 }), text("xs", words.perCheck, { tone: "tertiary" })], { justify: "space-between" }),
         { tag: "xwui-iso-tiles", data: { tiles, label: fill(words.reachLabel, { down: down.length, total: services.length }) }, config: { width: PLANE, height: PLANE, viewHeight: 280 } },
         { tag: "xwui-alert", data: { message }, config: { variant: down.length ? "error" : "success" } },
         row([button("ghost", words.openHealth, { size: "sm", iconAfter: true, icon: "arrow-right", href: href(paths.health) })]),
@@ -103,7 +103,7 @@ function failing(overview: AdminOverview): Node {
   const columns = words.columns;
   return stack(
     [
-      row([text("h3", words.failing), ...(asOf ? [text("xs", fill(words.asOf, { when: formatAgo(asOf) }), { tone: "tertiary" })] : [])], { justify: "space-between" }),
+      row([text("h3", words.failing, { level: 2 }), ...(asOf ? [text("xs", fill(words.asOf, { when: formatAgo(asOf) }), { tone: "tertiary" })] : [])], { justify: "space-between" }),
       glass(
         {
           tag: "xwui-table",
@@ -139,7 +139,7 @@ function failing(overview: AdminOverview): Node {
 
 export async function view(context: ViewContext): Promise<PageResult> {
   const bar = adminBar(context.admin!, "admin", words.title);
-  const head = [text("h2", words.title), text("lead", words.lead)];
+  const head = [text("h2", words.title, { level: 1 }), text("lead", words.lead)];
   let overview: AdminOverview;
   try {
     overview = await api.getAdminOverview();

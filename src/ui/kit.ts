@@ -69,6 +69,13 @@ export interface TextOptions {
   caps?: boolean;
   inline?: boolean;
   key?: string;
+  /**
+   * The heading level in the page outline, when it differs from the style's own
+   * (an app page's title looks like h2 but is the page's h1).
+   */
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Read by screen readers, not shown (a page title the layout does not show). */
+  hidden?: boolean;
 }
 
 export function text(style: TextStyle, value: string, options: TextOptions = {}): Node {
@@ -81,7 +88,22 @@ export function text(style: TextStyle, value: string, options: TextOptions = {})
   if (options.align) config.align = options.align;
   if (options.caps) Object.assign(config, { textTransform: "uppercase", letterSpacing: "var(--type-caps-tracking)" });
   if (options.inline) config.inline = true;
+  if (options.level) config.component = `h${options.level}`;
+  if (options.hidden) config.srOnly = true;
   return { tag: "xwui-typography", key: options.key, data: { text: value }, config };
+}
+
+/**
+ * A page title drawn in pieces (one in the brand gradient): the pieces are shown
+ * but hidden from screen readers, which read the whole sentence once as the h1.
+ */
+export function splitTitle(style: TextStyle, pieces: Array<{ text: string; tone?: TextOptions["tone"] }>, options: { justify?: StackOptions["justify"] } = {}): Node {
+  const shown = pieces.map((piece) => {
+    const node = text(style, piece.text, { tone: piece.tone });
+    node.config = { ...node.config, component: "span", attrs: { "aria-hidden": "true" } };
+    return node;
+  });
+  return stack([text(style, pieces.map((piece) => piece.text).join(" "), { level: 1, hidden: true }), row(shown, { gap: "m", wrap: true, justify: options.justify })], { gap: "none" });
 }
 
 /** A headline whose second line is the brand gradient ("Own the workflow." / "Watch every action."). */
@@ -261,6 +283,7 @@ export function behind(shapes: Node[], content: Node): Node[] {
  * names itself only from its label and ignores ariaLabel (README, known issues).
  */
 export const quietLabel = "xwflow-quiet-label";
+
 
 /** The XWFlow components built on a page, by key, so a page can reach one (an export, a listener). */
 const mountedXWFlow = new Map<string, { destroy(): void }>();

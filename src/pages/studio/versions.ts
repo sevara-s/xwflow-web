@@ -82,7 +82,7 @@ export async function view(context: ViewContext<VersionsRoute>): Promise<PageRes
       actions: [button("gradient", words.openEditor, { size: "sm", onClick: () => navigate(paths.flow(route.flowId)) })],
     },
     body: [
-      text("h2", fill(words.crumb, { flow: history.flow.name })),
+      text("h2", fill(words.crumb, { flow: history.flow.name }), { level: 1 }),
       text("lead", words.lead),
       { tag: "xwui-composer", key: "versions-list", data: { tree: list() } },
     ],

@@ -216,7 +216,8 @@ export function appFrame(railNode: Node, workspace: Workspace, page: Node[], bar
         appBar(workspace, bar),
         {
           tag: "xwui-box",
-          config: { padding: space("page") },
+          // The page is the document's main landmark; the rail and the bar sit outside it.
+          config: { as: "main", padding: space("page") },
           slots: { children: page },
         },
       ],

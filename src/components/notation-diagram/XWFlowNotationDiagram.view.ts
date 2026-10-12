@@ -385,7 +385,8 @@ export function projectNotationDiagramView(snapshot: XWUIComponentStateSnapshot<
       'svg',
       {
         key: 'svg',
-        attrs: { role: 'img', 'aria-label': data.title ?? '', viewBox: `0 0 ${size.width} ${size.height}`, width: String(size.width), height: String(size.height), preserveAspectRatio: 'xMidYMin meet' },
+        // A drawing whose rows can be chosen (the sequence) is a group of controls, not an image.
+        attrs: { role: mode === 'sequence' && context.onSelect ? 'group' : 'img', 'aria-label': data.title ?? '', viewBox: `0 0 ${size.width} ${size.height}`, width: String(size.width), height: String(size.height), preserveAspectRatio: 'xMidYMin meet' },
       },
       defs,
       ...canvas.nodes,

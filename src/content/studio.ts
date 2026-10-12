@@ -233,6 +233,7 @@ export const studio = {
     speakUnsupported: "This browser cannot take dictation. Type your request instead.",
   },
   editor: {
+    title: "Editing {flow}",
     back: "Back to flows",
     pinned: "Pinned",
     try: "Try",

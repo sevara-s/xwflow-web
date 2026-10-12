@@ -37,7 +37,7 @@ function attention(overview: Overview): Node {
   return glass(
     stack(
       [
-        row([text("h3", words.attention), text("xs", fill(words.attentionCount, { n: items.length }), { tone: "tertiary" })], { justify: "space-between" }),
+        row([text("h3", words.attention, { level: 2 }), text("xs", fill(words.attentionCount, { n: items.length }), { tone: "tertiary" })], { justify: "space-between" }),
         items.length
           ? stack(
               items.map((item) =>
@@ -75,7 +75,7 @@ function recent(overview: Overview): Node {
   return glass(
     stack(
       [
-        row([text("h3", words.recent), button("ghost", words.allRuns, { size: "sm", href: href(paths.runs) })], { justify: "space-between" }),
+        row([text("h3", words.recent, { level: 2 }), button("ghost", words.allRuns, { size: "sm", href: href(paths.runs) })], { justify: "space-between" }),
         stack(
           overview.recent.map((run) => {
             const view = runStatusView(run.status);
@@ -118,7 +118,7 @@ export async function view(): Promise<PageResult> {
             ],
             stack(
               [
-                text("h2", greeting(overview.you.name)),
+                text("h2", greeting(overview.you.name), { level: 1 }),
                 text("lead", `${fill(words.today, { runs: overview.today.runs, failed: overview.today.failed, running: overview.today.running })} ${words.lead}`),
                 row(
                   [

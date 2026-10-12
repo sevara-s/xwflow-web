@@ -6,7 +6,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { ActorClass, AuditEvent, AuditList, AuditQuery } from "../../types/domain";
 import { hueOf } from "../../ui/flow";
-import { button, glass, iconTile, row, space, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { button, glass, iconTile, quietLabel, row, space, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUISelect } from "../../xwui";
 
 const words = catalog.admin.audit;
@@ -70,8 +70,9 @@ export async function view(context: ViewContext): Promise<PageResult> {
   };
   const filter = (key: keyof AuditQuery, label: string, any: string | null, options: Array<{ value: string; label: string }>, value = ""): Node => ({
     tag: "xwui-select",
-    data: { value, placeholder: any ?? undefined, options: any ? [{ value: "", label: any }, ...options] : options },
-    config: { ariaLabel: label },
+    // The published select names itself from its label: kept for screen readers, hidden on screen.
+    data: { value, label, placeholder: any ?? undefined, options: any ? [{ value: "", label: any }, ...options] : options },
+    config: { ariaLabel: label, className: quietLabel },
     ref: (instance) =>
       (instance as XWUISelect).onChange((next) => {
         const raw = String(next);
@@ -94,7 +95,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
   return {
     bar: adminBar(context.admin!, "admin", words.title, { actions: [button("glass", words.download, { size: "sm", icon: "download", onClick: download })] }),
     body: [
-      text("h2", words.title),
+      text("h2", words.title, { level: 1 }),
       row([text("lead", leadStart), tag(String(list.retentionDays), "lime"), text("lead", leadEnd)], { gap: "s", wrap: true }),
       glass(
         row(
@@ -125,7 +126,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
             glass(
               stack(
                 [
-                  row([text("h3", words.stream), tag(catalog.admin.branding.requires, "violet")], { justify: "space-between", wrap: true }),
+                  row([text("h3", words.stream, { level: 2 }), tag(catalog.admin.branding.requires, "violet")], { justify: "space-between", wrap: true }),
                   text("small", words.streamBody, { tone: "secondary" }),
                   row([button("glass", words.configure, { disabled: true })]),
                 ],

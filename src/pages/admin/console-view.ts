@@ -5,15 +5,16 @@ type Changeable<T> = { onChange(handler: (value: T) => void): void };
 
 /** A console page's head: its title and one line on what it is for. */
 export function pageHead(title: string, lead: string): Node[] {
-  return [text("h2", title), text("lead", lead)];
+  return [text("h2", title, { level: 1 }), text("lead", lead)];
 }
 
 /** An XWUI select whose empty "any" choice reads as its label, not "Select...". */
 export function choice(value: string, options: ReadonlyArray<{ value: string; label: string }>, label: string, onPick: (value: string) => void, extra: { fullWidth?: boolean; title?: string } = {}): Node {
   return {
     tag: "xwui-select",
-    data: { value, options: options.map((item) => ({ ...item })), placeholder: options.find((item) => item.value === "")?.label, label: extra.title },
-    config: { ariaLabel: label, fullWidth: extra.fullWidth },
+    // The published select names itself from its label; without a visible title it is kept for screen readers only.
+    data: { value, options: options.map((item) => ({ ...item })), placeholder: options.find((item) => item.value === "")?.label, label: extra.title ?? label },
+    config: { ariaLabel: label, fullWidth: extra.fullWidth, className: extra.title ? undefined : quietLabel },
     ref: (instance) => (instance as XWUISelect).onChange((picked) => onPick(String(picked))),
   };
 }
@@ -40,5 +41,5 @@ export function kpi(label: string, value: string, hue: string, note?: string): N
 
 /** A glass panel with a heading and its content. */
 export function section(title: string, children: Node[], options: { pad?: "s" | "m" | "l"; aside?: Node } = {}): Node {
-  return glass(stack([options.aside ? row([text("h3", title), options.aside], { justify: "space-between", wrap: true, gap: "m" }) : text("h3", title), ...children], { gap: "l" }), { pad: options.pad ?? "m" });
+  return glass(stack([options.aside ? row([text("h3", title, { level: 2 }), options.aside], { justify: "space-between", wrap: true, gap: "m" }) : text("h3", title, { level: 2 }), ...children], { gap: "l" }), { pad: options.pad ?? "m" });
 }

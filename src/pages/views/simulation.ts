@@ -4,7 +4,7 @@ import { notify } from "../../app/notify";
 import { averageWaitMinutes, createSimulation, finished, step, workerUse, type SimulationState } from "../../app/simulation";
 import { catalog } from "../../content/catalog";
 import type { FlowView, SimulationModel } from "../../types/domain";
-import { button, glass, grid, row, space, stack, tag, text, xwflow, type Node } from "../../ui/kit";
+import { button, glass, grid, quietLabel, row, space, stack, tag, text, xwflow, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer } from "../../xwui";
 import type { ViewPart, ViewPartContext } from "./view";
 
@@ -200,8 +200,9 @@ export function simulationPart(view: FlowView, { instance, onLeave }: ViewPartCo
             row([text("small", words.workers, { bold: true }), { tag: "xwui-composer", key: "sim-workers", data: { tree: tag(String(model.workers), "cyan") } }], { justify: "space-between" }),
             {
               tag: "xwui-slider",
-              data: { value: model.workers },
-              config: { min: 1, max: 12, step: 1, ariaLabel: words.workers },
+              // The published slider names itself only from its label: kept for screen readers, hidden on screen.
+              data: { value: model.workers, label: words.workers },
+              config: { min: 1, max: 12, step: 1, ariaLabel: words.workers, className: quietLabel },
               ref: (slider) =>
                 (slider as { onChange(handler: (value: number) => void): void }).onChange((value) => {
                   model.workers = Math.round(Number(value));

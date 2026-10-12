@@ -111,8 +111,8 @@ export function spacePart(view: FlowView, { instance, onLeave }: ViewPartContext
             row([text("small", words.tilt), { tag: "xwui-composer", key: "space-tilt", data: { tree: text("xs", fill(words.tiltValue, { n: tilt }), { mono: true }) } }], { justify: "space-between" }),
             {
               tag: "xwui-slider",
-              data: { value: tilt },
-              config: { min: 20, max: 70, step: 1, ariaLabel: words.tilt },
+              data: { value: tilt, label: words.tilt },
+              config: { min: 20, max: 70, step: 1, ariaLabel: words.tilt, className: quietLabel },
               ref: (slider) =>
                 (slider as Changeable<number>).onChange((value) => {
                   tilt = Math.round(Number(value));

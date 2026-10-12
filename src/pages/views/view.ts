@@ -193,6 +193,8 @@ export async function view(
 
   return {
     body: [
+      // The drawing has no visible title; screen readers get it as the page's h1.
+      text("h2", fill(words.titles[route.view], { flow: flowName }), { level: 1, hidden: true }),
       {
         tag: "xwui-box",
         config: { padding: space("l") },

@@ -364,7 +364,7 @@ function brand(landing: Landing): Node {
     glass(
       stack(
         [
-          row([iconTile("layers", (tenant.color as Hue) ?? "violet", "sm"), text("h4", tenant.name)]),
+          row([iconTile("layers", (tenant.color as Hue) ?? "violet", "sm"), text("h4", tenant.name, { level: 3 })]),
           row([button("glass", t.run, { size: "sm", disabled: true }), tag(t.published, tenant.color as Hue)]),
           { tag: "xwui-progress", data: { value: 72 - index * 18 }, config: { size: "sm" } },
           ...(index === 1 ? [text("xs", t.noMark, { tone: "secondary" })] : []),

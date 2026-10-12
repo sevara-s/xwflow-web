@@ -64,7 +64,7 @@ function detail(table: DataTable): Node {
         [
           stack(
             [
-              text("h3", table.name),
+              text("h3", table.name, { level: 2 }),
               text("small", table.usedBy.length ? fill(words.usedBy, { flows: formatList(table.usedBy) }) : words.unused, { tone: "secondary" }),
             ],
             { gap: "xs" },

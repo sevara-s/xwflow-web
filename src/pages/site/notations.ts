@@ -41,7 +41,7 @@ function card(notation: Notation, sample: NotationGallery["sample"]): Node {
     stack(
       [
         thumb(notation.id, sample, `${notation.name}: ${notation.summary}`),
-        row([text("h4", notation.name), tag(notation.dims, "lime")], { justify: "space-between" }),
+        row([text("h4", notation.name, { level: 3 }), tag(notation.dims, "lime")], { justify: "space-between" }),
         text("xs", notation.standard, { mono: true, tone: "tertiary" }),
         text("small", notation.summary, { tone: "secondary" }),
         row([...notation.tags.map((label) => tag(label)), ...open], { wrap: true }),

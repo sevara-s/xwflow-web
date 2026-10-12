@@ -8,7 +8,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Connection, ConnectionHealth, ConnectionQuery, StatusTone } from "../../types/domain";
 import { hueOf, toneOf } from "../../ui/flow";
-import { button, decoration, grid, iconTile, row, space, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, decoration, grid, iconTile, quietLabel, row, space, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 import { projectTabs } from "./common-view";
 
@@ -101,7 +101,7 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
             .filter((group) => group.items.length)
         : [{ title: "", items: connections }];
     return stack(
-      groups.map((group) => stack([...(group.title ? [text("h3", group.title)] : []), grid(group.items.map((item) => card(item, reload)), 360)], { gap: "m" })),
+      groups.map((group) => stack([...(group.title ? [text("h3", group.title, { level: 2 })] : []), grid(group.items.map((item) => card(item, reload)), 360)], { gap: "m" })),
       { gap: "xl" },
     );
   };
@@ -166,8 +166,9 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
   const select = (value: string, options: Array<{ value: string; label: string }>, label: string, onPick: (value: string) => void): Node => ({
     tag: "xwui-select",
     // XWUISelect reads an empty value as no choice, so the "any" option's label stands in as the placeholder.
-    data: { value, options, placeholder: options.find((item) => item.value === "")?.label },
-    config: { ariaLabel: label },
+    // The published select names itself from its label: kept for screen readers, hidden on screen.
+    data: { value, options, label, placeholder: options.find((item) => item.value === "")?.label },
+    config: { ariaLabel: label, className: quietLabel },
     ref: (instance) => (instance as XWUISelect).onChange((picked) => onPick(String(picked))),
   });
   const healths: ConnectionHealth[] = ["healthy", "expiring", "broken"];
@@ -175,7 +176,7 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
   return {
     bar: { crumbs: [{ label: workspace.project.name, href: href(paths.flows) }, { label: words.title }], sample: "data" },
     body: [
-      text("h2", words.title),
+      text("h2", words.title, { level: 1 }),
       projectTabs("connections", ["flows", "agents", "tables", "connections", "runs", "mcp"]),
       {
         tag: "xwui-box",
@@ -186,7 +187,7 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
               row(
                 [
                   { tag: "xwui-box", config: { position: "relative", width: 96, height: 96 }, slots: { children: decoration("connections.orb") } },
-                  stack([text("h3", words.vaultTitle), text("body", words.vaultBody, { tone: "secondary" })], { gap: "xs" }),
+                  stack([text("h3", words.vaultTitle, { level: 2 }), text("body", words.vaultBody, { tone: "secondary" })], { gap: "xs" }),
                 ],
                 { gap: "xl" },
               ),

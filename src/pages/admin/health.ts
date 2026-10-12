@@ -109,7 +109,7 @@ function topology(health: Health): Node {
       [
         row(
           [
-            text("h3", words.topology),
+            text("h3", words.topology, { level: 2 }),
             text("xs", words.live, { tone: "tertiary" }),
           ],
           { justify: "space-between" },
@@ -167,7 +167,7 @@ function uptime(health: Health): Node {
   return glass(
     stack(
       [
-        text("h3", fill(words.lastDays, { n: shown })),
+        text("h3", fill(words.lastDays, { n: shown }), { level: 2 }),
         ...health.uptime.map((full) => {
           const days = full.days.slice(-shown);
           const count = (state: HealthState) =>

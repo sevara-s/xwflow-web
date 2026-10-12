@@ -439,6 +439,8 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
 
   return {
     body: [
+      // The workbench shows the flow's name in its bar; screen readers get the page's h1.
+      text("h2", fill(words.title, { flow: detail.flow.name }), { level: 1, hidden: true }),
       {
         tag: "xwui-workbench",
         data: { labels: { start: words.paletteLabel, end: words.inspectorLabel, bottom: words.runPanelLabel } },

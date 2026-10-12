@@ -5,7 +5,7 @@ import { href, paths } from "../../app/router";
 import { adminBar } from "../../app/shells/admin-view";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
-import { behind, button, centred, decoration, glass, grid, measure, row, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { behind, button, centred, decoration, glass, grid, measure, row, splitTitle, stack, tag, text, type Hue, type Node } from "../../ui/kit";
 import type { XWUIButton } from "../../xwui";
 
 const words = catalog.admin.denied;
@@ -37,7 +37,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
   const panel = glass(
     stack(
       [
-        centred(row([text("h2", words.titleBefore), text("h2", denial.page, { tone: "gradient" })], { gap: "m", wrap: true, justify: "center" })),
+        centred(splitTitle("h2", [{ text: words.titleBefore }, { text: denial.page, tone: "gradient" }], { justify: "center" })),
         text("body", words.lead, { tone: "secondary", align: "center" }),
         grid(
           (

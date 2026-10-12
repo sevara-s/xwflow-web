@@ -68,7 +68,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
       stack(
         [
           row([iconTile("plug", adapter.status === "preview" ? "amber" : "cyan"), tag(adapter.status === "preview" ? words.preview : words.available, adapter.status === "preview" ? "amber" : "lime")], { justify: "space-between" }),
-          stack([text("h4", adapter.name), text("small", adapter.format, { tone: "secondary" })], { gap: "xs" }),
+          stack([text("h4", adapter.name, { level: 2 }), text("small", adapter.format, { tone: "secondary" })], { gap: "xs" }),
           row([button("glass", words.importSample, { size: "sm", icon: "download", key: `import-${adapter.id}`, onClick: () => void runImport(adapter) })]),
         ],
         { gap: "l" },

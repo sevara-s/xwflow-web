@@ -61,7 +61,8 @@ function shell(route: Route, workspace: Workspace, page: Node[], bar?: PageBar, 
   if (route.zone === "site") return siteShell(route, page);
   if (route.zone === "studio") return studioShell(workspace, route, page, bar);
   if (admin && isAdminZone(route)) return adminShell(workspace, route, admin, page, bar);
-  return page;
+  // The editor and the views have no frame: the page itself is the main landmark.
+  return [{ tag: "xwui-box", config: { as: "main" }, slots: { children: page } }];
 }
 
 function pageResult(result: Node[] | PageResult): PageResult {

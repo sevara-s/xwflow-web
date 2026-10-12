@@ -6,7 +6,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { AssistantDraft, AssistantHome } from "../../types/domain";
 import { canvasData, hueOf } from "../../ui/flow";
-import { behind, button, centred, decoration, glass, grid, iconTile, row, stack, tag, text, type Node } from "../../ui/kit";
+import { behind, button, centred, decoration, glass, grid, iconTile, row, splitTitle, stack, tag, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer, XWUIInputText } from "../../xwui";
 
 const words = catalog.studio.assistant;
@@ -51,7 +51,7 @@ function preview(draft: AssistantDraft, saveable: boolean): Node {
 function starters(home: AssistantHome): Node {
   return stack(
     [
-      text("h3", words.startDirectly),
+      text("h3", words.startDirectly, { level: 2 }),
       grid(
         home.starters.map((starter) => ({
           ...glass(
@@ -265,7 +265,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
   let shown = true;
   const recommendedHead = row(
     [
-      text("h3", words.recommended),
+      text("h3", words.recommended, { level: 2 }),
       {
         ...button("ghost", words.hide, {
           size: "sm",
@@ -298,7 +298,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
               [
                 centred(core),
                 centred(
-                  row([text("h2", words.titleBefore), { ...text("h2", words.titleHighlight, { tone: "gradient" }) }, text("h2", words.titleAfter)], { gap: "m", wrap: true, justify: "center" }),
+                  splitTitle("h2", [{ text: words.titleBefore }, { text: words.titleHighlight, tone: "gradient" }, { text: words.titleAfter }], { justify: "center" }),
                 ),
                 centred(text("body", words.lead, { tone: "secondary", align: "center" })),
                 { tag: "xwui-container", config: { maxWidth: 860, center: true, width: "100%" }, slots: { children: stack([prompt, pills], { gap: "l" }) } },

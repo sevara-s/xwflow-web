@@ -76,7 +76,7 @@ function hero(workspace: Workspace, list: FlowList): Node {
                   { tag: "xwui-icon-tile", data: { icon: "folder" }, config: { hue: "violet", size: "lg" } },
                   stack(
                     [
-                      row([text("h2", workspace.project.name), tag(catalog.studio.visibility[workspace.project.visibility])], { gap: "m", wrap: true }),
+                      row([text("h2", workspace.project.name, { level: 1 }), tag(catalog.studio.visibility[workspace.project.visibility])], { gap: "m", wrap: true }),
                       text("body", workspace.project.description, { tone: "secondary" }),
                     ],
                     { gap: "xs" },

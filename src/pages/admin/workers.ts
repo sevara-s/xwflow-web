@@ -44,7 +44,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
     glass(
       stack(
         [
-          row([row([iconTile("bot", stateHue[worker.state], "sm"), text("h4", worker.id)], { gap: "m" }), status(stateTone[worker.state], words.states[worker.state])], { justify: "space-between", wrap: true }),
+          row([row([iconTile("bot", stateHue[worker.state], "sm"), text("h4", worker.id, { level: 2 })], { gap: "m" }), status(stateTone[worker.state], words.states[worker.state])], { justify: "space-between", wrap: true }),
           row([tag(worker.region), tag(fill(words.version, { v: worker.version }), "plan")], { gap: "s", wrap: true }),
           stack(
             [

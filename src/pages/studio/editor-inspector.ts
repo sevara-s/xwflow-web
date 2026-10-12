@@ -157,7 +157,7 @@ export function inspector(context: InspectorContext): Node {
       row(
         [
           iconTile(type.icon, hueOf[node.group]),
-          stack([text("h3", node.name), row([text("xs", fill(words.renameHint, { type: type.label }), { tone: "secondary" }), keys(words.renameKeys.split(" "), "sm")], { gap: "s" })], {
+          stack([text("h3", node.name, { level: 2 }), row([text("xs", fill(words.renameHint, { type: type.label }), { tone: "secondary" }), keys(words.renameKeys.split(" "), "sm")], { gap: "s" })], {
             gap: "xs",
           }),
         ],

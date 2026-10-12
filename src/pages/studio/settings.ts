@@ -318,7 +318,7 @@ export async function view(context: ViewContext<SettingsRoute>): Promise<PageRes
   return {
     bar: { crumbs: [{ label: words.title }], sample: null },
     body: [
-      text("h2", words.title),
+      text("h2", words.title, { level: 1 }),
       text("lead", words.lead),
       {
         tag: "xwui-box",

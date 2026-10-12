@@ -240,7 +240,7 @@ export async function view(context: ViewContext<RunsRoute>): Promise<PageResult>
   return {
     bar: { crumbs: [{ label: workspace.project.name, href: href(paths.flows) }, { label: words.title }] },
     body: [
-      text("h2", words.title),
+      text("h2", words.title, { level: 1 }),
       projectTabs("runs", ["flows", "agents", "tables", "connections", "runs", "mcp"]),
       { tag: "xwui-composer", key: "runs-kpis", data: { tree: kpis(list) } },
       toolbar,

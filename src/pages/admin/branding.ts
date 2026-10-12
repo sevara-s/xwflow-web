@@ -7,7 +7,7 @@ import { siteHref } from "../../app/site-links";
 import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { BrandKit } from "../../types/domain";
-import { button, cell, decoration, glass, grid, quietLabel, row, space, stack, status, tag, text, type Node } from "../../ui/kit";
+import { button, cell, decoration, glass, grid, quietLabel, row, space, splitTitle, stack, status, tag, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 
 const words = catalog.admin.branding;
@@ -194,7 +194,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
   return {
     bar: adminBar(context.admin!, "admin", catalog.admin.rail.admin.find((item) => item.id === "branding")?.label ?? words.title, { sample: false, plan: true }),
     body: [
-      row([text("h2", words.title), text("h2", words.titleHighlight, { tone: "gradient" })], { gap: "m" }),
+      splitTitle("h2", [{ text: words.title }, { text: words.titleHighlight, tone: "gradient" }]),
       text("lead", words.lead),
       ...(core
         ? [
@@ -232,7 +232,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
                     ),
                   },
                 },
-                glass(stack([text("h3", words.contrast), { tag: "xwui-composer", key: "brand-contrast", data: { tree: contrast(draft) } }], { gap: "m" }), { pad: "m" }),
+                glass(stack([text("h3", words.contrast, { level: 2 }), { tag: "xwui-composer", key: "brand-contrast", data: { tree: contrast(draft) } }], { gap: "m" }), { pad: "m" }),
               ],
               { gap: "l" },
             ),

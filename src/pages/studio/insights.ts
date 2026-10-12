@@ -46,7 +46,7 @@ function topFlows(insights: Insights): Node {
   return glass(
     stack(
       [
-        text("h3", words.topFlows),
+        text("h3", words.topFlows, { level: 2 }),
         {
           tag: "xwui-table",
           data: {
@@ -77,7 +77,7 @@ function causes(insights: Insights): Node {
   return glass(
     stack(
       [
-        text("h3", words.causes),
+        text("h3", words.causes, { level: 2 }),
         ...insights.causes.map((item) =>
           stack(
             [
@@ -99,7 +99,7 @@ function slowSteps(insights: Insights): Node {
   return glass(
     stack(
       [
-        text("h3", words.slow),
+        text("h3", words.slow, { level: 2 }),
         ...insights.slowSteps.map((step) =>
           row(
             [stack([text("small", step.step, { bold: true }), text("xs", step.flow, { tone: "tertiary" })], { gap: "xs" }), tag(fill(words.p95, { ms: formatNumber(step.p95Ms) }), step.p95Ms > 1500 ? "orange" : "cyan")],
@@ -123,7 +123,7 @@ export async function view(context: ViewContext<InsightsRoute>): Promise<PageRes
     body: [
       row(
         [
-          stack([text("h2", words.title), text("lead", words.lead)], { gap: "s" }),
+          stack([text("h2", words.title, { level: 1 }), text("lead", words.lead)], { gap: "s" }),
           {
             tag: "xwui-segmented-control",
             data: { value: String(route.days) },
@@ -138,7 +138,7 @@ export async function view(context: ViewContext<InsightsRoute>): Promise<PageRes
         stack(
           [
             row(
-              [text("h3", words.daily), row([status("neutral", words.succeeded), status("error", words.failed)], { gap: "l" })],
+              [text("h3", words.daily, { level: 2 }), row([status("neutral", words.succeeded), status("error", words.failed)], { gap: "l" })],
               { justify: "space-between", wrap: true },
             ),
             {

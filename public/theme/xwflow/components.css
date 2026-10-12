@@ -25,3 +25,14 @@
     clip-path: inset(50%);
     white-space: nowrap;
 }
+
+/* Select and slider labels kept for screen readers (the same as the switch labels above). */
+.xwflow-quiet-label .xwui-select-label,
+.xwflow-quiet-label .xwui-slider__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}

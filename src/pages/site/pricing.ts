@@ -37,7 +37,7 @@ function tierCard(tier: PricingTier, context: ViewContext): Node {
         tier.highlighted ? [decoration("pricing.halo")] : [],
         stack(
           [
-            stack([row([tag(tier.tag.label, tier.tag.color)]), text("h3", tier.name), text("small", tier.blurb, { tone: "secondary" })], { gap: "s" }),
+            stack([row([tag(tier.tag.label, tier.tag.color)]), text("h3", tier.name, { level: 2 }), text("small", tier.blurb, { tone: "secondary" })], { gap: "s" }),
             price(tier),
             cta,
             separator(),

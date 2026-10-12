@@ -155,7 +155,7 @@ export async function view(
         slots: {
           children: behind(
             [decoration("templates.ring"), decoration("templates.cube")],
-            stack([text("h2", words.title), text("lead", words.lead)], { gap: "m" }),
+            stack([text("h2", words.title, { level: 1 }), text("lead", words.lead)], { gap: "m" }),
           ),
         },
       },

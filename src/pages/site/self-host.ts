@@ -39,7 +39,7 @@ function terminal(tokens: CodeToken[]): Node {
 
 function stepCard(number: number, title: string, items: Node[]): Node {
   return glass(
-    row([tag(String(number), stepHues[(number - 1) % stepHues.length]), stack([text("h3", title), ...items], { gap: "m" })], { gap: "l", align: "flex-start" }),
+    row([tag(String(number), stepHues[(number - 1) % stepHues.length]), stack([text("h3", title, { level: 2 }), ...items], { gap: "m" })], { gap: "l", align: "flex-start" }),
     { pad: "m" },
   );
 }

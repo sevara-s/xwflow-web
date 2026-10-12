@@ -82,7 +82,7 @@ export const project = {
     scope: { all: "All", production: "Production", test: "Test" },
     search: "Search by name",
     add: "Add variable",
-    columns: { key: "Name", value: "Value", scope: "Environment", usedBy: "Used by", updated: "Updated", actions: "" },
+    columns: { key: "Name", value: "Value", scope: "Environment", usedBy: "Used by", updated: "Updated", actions: "Actions" },
     secret: "Secret",
     hidden: "Hidden",
     usedBy: "{n} steps",

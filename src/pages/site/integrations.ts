@@ -54,7 +54,7 @@ function featured(item: NodeType): Node {
             stack(
               [
                 row([tag(words.featured, hueOf[item.group]), tag(catalog.studio.groupLabels[item.group])]),
-                text("h3", item.label),
+                text("h3", item.label, { level: 2 }),
                 text("body", item.summary, { tone: "secondary" }),
               ],
               { gap: "s" },

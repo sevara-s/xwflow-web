@@ -1,0 +1,34 @@
+# Every push and pull request: typecheck, lint, unit tests with coverage,
+# build, then the browser tests (journeys, accessibility, phone width)
+# against XWUI loaded from xwui.dev.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Typecheck, lint, unit tests with coverage, build
+        run: npm run check
+      - name: Install the browser for the e2e tests
+        run: npx playwright install --with-deps chromium
+      - name: Browser tests
+        run: npm run e2e
+      - name: Keep the Playwright report when a browser test fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

@@ -5,6 +5,7 @@ import { averageWaitMinutes, createSimulation, finished, step, workerUse, type S
 import { catalog } from "../../content/catalog";
 import type { FlowView, SimulationModel } from "../../types/domain";
 import { button, glass, grid, quietLabel, row, space, stack, tag, text, xwflow, type Node } from "../../ui/kit";
+import { columns } from "../../ui/layout";
 import type { XWUIButton, XWUIComposer } from "../../xwui";
 import type { ViewPart, ViewPartContext } from "./view";
 
@@ -91,7 +92,7 @@ function results(state: SimulationState, model: SimulationModel): Node {
           kpi(words.kpis.use, `${Math.round(workerUse(state, model) * 100)}%`, "cyan"),
           kpi(words.kpis.alerts, formatNumber(state.alerts), "pink"),
         ],
-        160,
+        "small",
         "m",
       ),
       glass(
@@ -223,7 +224,7 @@ export function simulationPart(view: FlowView, { instance, onLeave }: ViewPartCo
     footer: [
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: space("l"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 1fr) minmax(0, 2fr)" } } },
+        config: { columns: columns.one, gap: space("l"), alignItems: "start", responsive: { lg: { columns: columns.oneTwo } } },
         slots: {
           children: [
             controls,

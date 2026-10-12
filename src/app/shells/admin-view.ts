@@ -1,6 +1,7 @@
 import { catalog } from "../../content/catalog";
 import type { AdminContext, Workspace } from "../../types/domain";
 import type { Node } from "../../ui/kit";
+import { breakpoints } from "../../ui/layout";
 import { fill } from "../format";
 import { href, paths, type AdminPage, type Route, type SystemPage } from "../router";
 import type { PageBar } from "../view";
@@ -38,7 +39,7 @@ function rail(admin: AdminContext, route: Route): Node {
     tag: "xwui-app-rail",
     key: "admin-rail",
     // On a phone the rail starts closed: only its head bar shows until the toggle opens it.
-    config: { slim: true, collapsed: window.matchMedia("(max-width: 860px)").matches },
+    config: { slim: true, collapsed: window.matchMedia(breakpoints.tablet).matches },
     data: {
       selected: adminSelection(route),
       headTag: { label: words.tag, hue: "violet" },

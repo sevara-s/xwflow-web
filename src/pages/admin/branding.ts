@@ -8,6 +8,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { BrandKit } from "../../types/domain";
 import { button, cell, decoration, glass, grid, quietLabel, row, space, splitTitle, stack, status, tag, text, type Node } from "../../ui/kit";
+import { columns } from "../../ui/layout";
 import type { XWUIButton, XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 
 const words = catalog.admin.branding;
@@ -131,7 +132,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
             [words.logo, words.uploadLogo],
             [words.favicon, words.uploadFavicon],
           ].map(([label, action]) => stack([text("small", label, { bold: true }), button("glass", action, { icon: "upload", onClick: () => notify(words.uploadsOff, "info") })], { gap: "s" })),
-          160,
+          "small",
           "l",
         ),
         stack(
@@ -212,7 +213,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
         : []),
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 1fr) minmax(0, 1fr)" } } },
+        config: { columns: columns.one, gap: space("xl"), alignItems: "start", responsive: { lg: { columns: columns.oneOne } } },
         slots: {
           children: [
             form,

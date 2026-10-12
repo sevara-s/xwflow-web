@@ -5,6 +5,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { Insights } from "../../types/domain";
 import { button, cell, glass, grid, row, space, stack, status, tag, text, type Node } from "../../ui/kit";
+import { columns } from "../../ui/layout";
 
 type InsightsRoute = Extract<Route, { page: "insights" }>;
 
@@ -34,7 +35,7 @@ function kpis(insights: Insights): Node {
       kpi(words.kpis.avg, totals.avgMs === null ? words.notRecorded : formatMs(totals.avgMs), "violet"),
       kpi(words.kpis.saved, fill(words.hours, { n: formatNumber(Math.round(totals.minutesSaved / 60)) }), "lime"),
     ],
-    220,
+    "tile",
     "l",
   );
 }
@@ -159,7 +160,7 @@ export async function view(context: ViewContext<InsightsRoute>): Promise<PageRes
       topFlows(insights),
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { md: { columns: "repeat(2, minmax(0, 1fr))" } } },
+        config: { columns: columns.one, gap: space("xl"), alignItems: "start", responsive: { md: { columns: columns.halves } } },
         slots: { children: [causes(insights), slowSteps(insights)] },
       },
     ],

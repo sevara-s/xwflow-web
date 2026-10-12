@@ -6,6 +6,7 @@ import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { Cell, PricingTier } from "../../types/domain";
 import { band, behind, button, cell, centred, decoration, eyebrow, glass, grid, headline, icon, inset, measure, row, separator, sides, space, stack, tag, text, ticks, type Node } from "../../ui/kit";
+import { pageMax } from "../../ui/layout";
 import type { XWUIButton, XWUIInputText } from "../../xwui";
 
 const words = catalog.site.pricing;
@@ -108,7 +109,7 @@ function contact(): Node {
       children: stack(
         [
           decoration("pricing.cube"),
-          grid([stack([headline("h2", words.contactTitle, words.contactHighlight), text("body", words.contactBody, { tone: "secondary" })], { gap: "l" }), form], 380, "xxxl"),
+          grid([stack([headline("h2", words.contactTitle, words.contactHighlight), text("body", words.contactBody, { tone: "secondary" })], { gap: "l" }), form], "contact", "xxxl"),
         ],
         { gap: "none" },
       ),
@@ -132,7 +133,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
           decoration("pricing.orb2"),
           {
             tag: "xwui-container",
-            config: { maxWidth: 1280, center: true, padding: sides("xl") },
+            config: { maxWidth: pageMax, center: true, padding: sides("xl") },
             slots: {
               children: stack(
                 [centred(eyebrow(words.eyebrow)), headline("h1", words.title, words.titleHighlight, "center"), measure(text("lead", words.lead, { align: "center" }))],
@@ -161,7 +162,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
 
   return [
     hero,
-    band("tiers", [grid(pricing.tiers.map((tier) => tierCard(tier, context)), 300)], { tight: true }),
+    band("tiers", [grid(pricing.tiers.map((tier) => tierCard(tier, context)), "gallery")], { tight: true }),
     band("compare", [stack([eyebrow(words.compareEyebrow), text("h2", words.compareTitle), text("body", words.compareBody, { tone: "secondary" })], { gap: "m" }), glass(table, { pad: "none" })], {
       gap: "xl",
     }),

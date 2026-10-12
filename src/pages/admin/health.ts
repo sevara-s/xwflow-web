@@ -7,6 +7,7 @@ import { config } from "../../config";
 import { catalog } from "../../content/catalog";
 import type { Health, HealthCheck, HealthState } from "../../types/domain";
 import { button, decoration, glass, grid, row, space, stack, status, text, type Hue, type Node, type StatusTone } from "../../ui/kit";
+import { columns } from "../../ui/layout";
 import type { XWUIButton, XWUIComposer } from "../../xwui";
 
 const words = catalog.admin.health;
@@ -176,7 +177,7 @@ function uptime(health: Health): Node {
           return {
             tag: "xwui-grid",
             config: {
-              columns: "110px minmax(0, 1fr)",
+              columns: columns.labelValue,
               gap: space("m"),
               alignItems: "center",
             },
@@ -285,7 +286,7 @@ function checks(health: Health): Node {
         },
       ),
     ),
-    250,
+    "check",
     "l",
   );
 }
@@ -297,10 +298,10 @@ const content = (health: Health): Node =>
       {
         tag: "xwui-grid",
         config: {
-          columns: "minmax(0, 1fr)",
+          columns: columns.one,
           gap: space("xl"),
           alignItems: "start",
-          responsive: { lg: { columns: "repeat(2, minmax(0, 1fr))" } },
+          responsive: { lg: { columns: columns.halves } },
         },
         slots: { children: [topology(health), uptime(health)] },
       },

@@ -47,7 +47,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
               [words.grants, denial.grantedBy],
             ] as const
           ).map(([label, value]) => glass(stack([text("xs", label, { caps: true, bold: true, tone: "tertiary" }), text("body", value, { bold: true })], { gap: "xs" }), { pad: "s" })),
-          160,
+          "small",
           "m",
         ),
         stack(
@@ -74,7 +74,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
         slots: {
           children: behind(
             [decoration("denied.halo"), decoration("denied.halo2")],
-            stack([centred(lock), measure(panel, 760)], { gap: "xxl" }),
+            stack([centred(lock), measure(panel, "panel")], { gap: "xxl" }),
           ),
         },
       },

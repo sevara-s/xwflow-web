@@ -19,7 +19,7 @@ function kpis(forms: ProjectForm[]): Node {
   const kpi = (label: string, value: string, hue: string): Node => ({ tag: "xwui-kpi-card", data: { label, value }, config: { hue } });
   return grid(
     [kpi(words.kpis.submissions, formatNumber(submissions), "lime"), kpi(words.kpis.views, formatNumber(views), "cyan"), kpi(words.kpis.conversion, `${percent(submissions, views)}%`, "violet")],
-    210,
+    "kpiCompact",
     "l",
   );
 }
@@ -96,7 +96,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
   const { workspace } = context;
   let forms = await api.listForms();
 
-  const cards = (): Node => grid(forms.map((form) => card(form, reload)), 320);
+  const cards = (): Node => grid(forms.map((form) => card(form, reload)), "template");
   async function reload(): Promise<void> {
     forms = await api.listForms();
     context.instance<XWUIComposer>("forms-kpis")?.setTree(kpis(forms));

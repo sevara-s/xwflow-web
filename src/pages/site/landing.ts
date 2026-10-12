@@ -9,6 +9,7 @@ import { catalog } from "../../content/catalog";
 import type { AssistantDraft, Attempt, Landing, StepGroup } from "../../types/domain";
 import { canvasData, hueOf, stepType, toneOf } from "../../ui/flow";
 import { band, button, decoration, eyebrow, glass, grid, headline, icon, iconTile, inset, keys, measure, row, sides, space, stack, status, tag, text, type Hue, type Node, type StatusTone } from "../../ui/kit";
+import { pageMax } from "../../ui/layout";
 import type { XWUIComposer, XWUIFlowScene } from "../../xwui";
 
 const words = catalog.site.landing;
@@ -162,7 +163,7 @@ function hero(context: ViewContext, landing: Landing): Node {
         [
           decoration("landing.halo"),
           decoration("landing.halo2"),
-          { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: sides("xl") }, slots: { children: intro } },
+          { tag: "xwui-container", config: { maxWidth: pageMax, center: true, padding: sides("xl") }, slots: { children: intro } },
           {
             tag: "xwui-box",
             key: "band-sandbox",
@@ -197,7 +198,7 @@ function stats(landing: Landing): Node {
         : text("disp", "unit" in stat ? fill(stat.unit, { n: value }) : formatNumber(value), { tone: stat.id === "dialects" ? "gradient" : undefined });
     return stack([number, text("body", stat.label, { bold: true }), text("small", stat.note, { tone: "secondary" })], { gap: "xs" });
   });
-  return band("stats", [glass(grid(cells, 230), { pad: "l" })], { tight: true });
+  return band("stats", [glass(grid(cells, "card"), { pad: "l" })], { tight: true });
 }
 
 const tagHue: Record<StepGroup, Hue> = hueOf;
@@ -289,7 +290,7 @@ function prompt(context: ViewContext): Node {
       children: stack([decoration("landing.halo3"), glass({ tag: "xwui-composer", key: "prompt-draft", data: { tree: draftPanel(t.draft, [], 0) } }, { glow: "violet" })], { gap: "none" }),
     },
   };
-  return band("prompt", [grid([left, right], 440, "xxxl")]);
+  return band("prompt", [grid([left, right], "half", "xxxl")]);
 }
 
 /* ── built different (bento) ───────────────────────────────────────── */
@@ -374,7 +375,7 @@ function brand(landing: Landing): Node {
       { pad: "m", glow: index === 1 ? "violet" : undefined },
     ),
   );
-  return band("brand", [grid([left, stack(cards, { gap: "l" })], 440, "xxxl")]);
+  return band("brand", [grid([left, stack(cards, { gap: "l" })], "half", "xxxl")]);
 }
 
 /* ── notations, migrate, start ─────────────────────────────────────── */
@@ -405,7 +406,7 @@ function notations(landing: Landing): Node {
     {
       tag: "xwui-box",
       config: { surface: "glass", padding: space("xxl"), overflow: "clip" },
-      slots: { children: stack([decoration("landing.halo4"), grid([left, row(tags, { wrap: true })], 440, "xxxl")], { gap: "none" }) },
+      slots: { children: stack([decoration("landing.halo4"), grid([left, row(tags, { wrap: true })], "half", "xxxl")], { gap: "none" }) },
     },
   ]);
 }
@@ -427,7 +428,7 @@ function migrate(landing: Landing): Node {
   );
   return band("migrate", [
     row([stack([eyebrow(t.eyebrow), headline("h2", t.title, t.titleHighlight)], { gap: "l" }), text("body", t.body, { tone: "secondary" })], { gap: "xl", wrap: true, align: "flex-end", justify: "space-between" }),
-    grid(tiles, 220),
+    grid(tiles, "tile"),
   ]);
 }
 

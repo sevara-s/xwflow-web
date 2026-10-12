@@ -118,7 +118,7 @@ export async function view(
           current.templates.map((template) =>
             card(template, (item) => void use(item)),
           ),
-          320,
+          "template",
         )
       : {
           tag: "xwui-empty",

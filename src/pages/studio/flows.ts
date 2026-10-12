@@ -10,6 +10,7 @@ import { catalog } from "../../content/catalog";
 import type { FlowList, FlowQuery, FlowSummary, Workspace } from "../../types/domain";
 import { hueOf, toneOf } from "../../ui/flow";
 import { button, cell, decoration, glass, grid, row, space, stack, status, tag, text, type Node } from "../../ui/kit";
+import { breakpoints } from "../../ui/layout";
 import type { XWUIComposer } from "../../xwui";
 import { projectTabs } from "./common-view";
 
@@ -68,7 +69,7 @@ function hero(workspace: Workspace, list: FlowList): Node {
         [
           decoration("flows.halo"),
           // On a phone the title fills the card, so the cube would sit on the folder tile.
-          ...(window.matchMedia("(max-width: 640px)").matches ? [] : [decoration("flows.cube")]),
+          ...(window.matchMedia(breakpoints.phone).matches ? [] : [decoration("flows.cube")]),
           row(
             [
               row(
@@ -243,7 +244,7 @@ export async function view(context: ViewContext<FlowsRoute>): Promise<PageResult
           kpi(words.kpis.failed24h, counts.failed24h, "red", counts.failed24h > 0),
           kpi(words.kpis.drafts, counts.drafts, "amber"),
         ],
-        200,
+        "kpi",
       ),
       projectTabs("flows"),
       toolbar,

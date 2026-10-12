@@ -6,6 +6,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { DataColumn, DataTable, DataTableSummary } from "../../types/domain";
 import { button, cell, glass, iconTile, row, space, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { columns } from "../../ui/layout";
 import type { XWUIComposer } from "../../xwui";
 import { projectHead } from "./common-view";
 
@@ -131,7 +132,7 @@ export async function view(context: ViewContext<TablesRoute>): Promise<PageResul
         tag: "xwui-grid",
         // One column on a phone, then the picker beside a twice-as-wide table.
         // minmax(0, ...) lets the rows scroll inside their panel instead of widening the page.
-        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 1fr) minmax(0, 2fr)" } } },
+        config: { columns: columns.one, gap: space("xl"), alignItems: "start", responsive: { lg: { columns: columns.oneTwo } } },
         slots: {
           children: [
             { tag: "xwui-composer", key: "tables-picker", data: { tree: picker(tables, selected, (id) => void pick(id)) } },

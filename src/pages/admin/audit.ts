@@ -7,6 +7,7 @@ import { catalog } from "../../content/catalog";
 import type { ActorClass, AuditEvent, AuditList, AuditQuery } from "../../types/domain";
 import { hueOf } from "../../ui/flow";
 import { button, glass, iconTile, quietLabel, row, space, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { columns } from "../../ui/layout";
 import type { XWUIComposer, XWUISelect } from "../../xwui";
 
 const words = catalog.admin.audit;
@@ -119,7 +120,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
       ),
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 2fr) minmax(0, 1fr)" } } },
+        config: { columns: columns.one, gap: space("xl"), alignItems: "start", responsive: { lg: { columns: columns.twoOne } } },
         slots: {
           children: [
             { tag: "xwui-composer", key: "audit-timeline", data: { tree: timeline() } },

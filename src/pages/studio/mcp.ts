@@ -54,7 +54,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
   const { workspace } = context;
   let servers = await api.listMcpServers();
 
-  const cards = (): Node => grid(servers.map((server) => card(server, (item, enabled) => void act(item, enabled))), 340);
+  const cards = (): Node => grid(servers.map((server) => card(server, (item, enabled) => void act(item, enabled))), "agent");
   const reload = async (): Promise<void> => {
     servers = await api.listMcpServers();
     context.instance<XWUIComposer>("mcp-cards")?.setTree(cards());

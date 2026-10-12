@@ -7,6 +7,7 @@ import { catalog } from "../../content/catalog";
 import type { AttentionItem, Overview } from "../../types/domain";
 import { toneOf } from "../../ui/flow";
 import { behind, button, decoration, glass, grid, iconTile, row, space, stack, status, text, type Hue, type Node } from "../../ui/kit";
+import { columns } from "../../ui/layout";
 
 const words = catalog.workspace.overview;
 
@@ -141,12 +142,12 @@ export async function view(): Promise<PageResult> {
           kpi(words.kpis.agents, overview.counts.liveAgents, "violet"),
           kpi(words.kpis.connections, overview.counts.connections, "cyan"),
         ],
-        200,
+        "kpi",
         "l",
       ),
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 3fr) minmax(0, 2fr)" } } },
+        config: { columns: columns.one, gap: space("xl"), alignItems: "start", responsive: { lg: { columns: columns.threeTwo } } },
         slots: {
           children: [
             attention(overview),

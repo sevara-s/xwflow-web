@@ -7,6 +7,7 @@ import { catalog } from "../../content/catalog";
 import type { AssistantDraft, AssistantHome } from "../../types/domain";
 import { canvasData, hueOf } from "../../ui/flow";
 import { behind, button, centred, decoration, glass, grid, iconTile, row, splitTitle, stack, tag, text, type Node } from "../../ui/kit";
+import { measures } from "../../ui/layout";
 import type { XWUIButton, XWUIComposer, XWUIInputText } from "../../xwui";
 
 const words = catalog.studio.assistant;
@@ -64,7 +65,7 @@ function starters(home: AssistantHome): Node {
             click: () => navigate(starterTargets[starter.id] ?? paths.flows),
           },
         })),
-        150,
+        "starter",
         "m",
       ),
     ],
@@ -98,7 +99,7 @@ function recommended(home: AssistantHome, pick: (title: string) => void): Node {
         on: { click: () => pick(item.title) },
       };
     }),
-    300,
+    "gallery",
   );
 }
 
@@ -301,7 +302,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
                   splitTitle("h2", [{ text: words.titleBefore }, { text: words.titleHighlight, tone: "gradient" }, { text: words.titleAfter }], { justify: "center" }),
                 ),
                 centred(text("body", words.lead, { tone: "secondary", align: "center" })),
-                { tag: "xwui-container", config: { maxWidth: 860, center: true, width: "100%" }, slots: { children: stack([prompt, pills], { gap: "l" }) } },
+                { tag: "xwui-container", config: { maxWidth: measures.prompt, center: true, width: "100%" }, slots: { children: stack([prompt, pills], { gap: "l" }) } },
                 glass({ tag: "xwui-composer", key: "assistant-preview", data: { tree: preview(draft, false) } }, { pad: "m" }),
                 starters(home),
                 stack([recommendedHead, { tag: "xwui-composer", key: "assistant-recommended", data: { tree: recommended(home, ask) } }], { gap: "m" }),

@@ -6,6 +6,7 @@ import type { ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { CodeToken, SelfHost } from "../../types/domain";
 import { band, button, decoration, eyebrow, glass, grid, headline, iconTile, inset, keys, row, separator, sides, space, stack, tag, text, type Hue, type Node } from "../../ui/kit";
+import { pageMax } from "../../ui/layout";
 
 const words = catalog.site.selfHost;
 const stepHues: Hue[] = ["lime", "cyan", "violet", "pink", "orange"];
@@ -123,7 +124,7 @@ export async function view(_context: ViewContext): Promise<Node[]> {
       children: stack(
         [
           decoration("self-host.halo"),
-          { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: sides("xl") }, slots: { children: grid([intro, art], 440, "xxxl") } },
+          { tag: "xwui-container", config: { maxWidth: pageMax, center: true, padding: sides("xl") }, slots: { children: grid([intro, art], "half", "xxxl") } },
         ],
         { gap: "none" },
       ),

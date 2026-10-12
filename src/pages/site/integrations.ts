@@ -8,6 +8,7 @@ import { catalog } from "../../content/catalog";
 import type { NodeType, StepGroup } from "../../types/domain";
 import { hueOf, stepType } from "../../ui/flow";
 import { band, button, centred, decoration, eyebrow, glass, grid, headline, iconTile, inset, measure, row, sides, space, stack, tag, text, type Node } from "../../ui/kit";
+import { pageMax } from "../../ui/layout";
 import type { XWUIComposer, XWUIInputText, XWUINavTabs } from "../../xwui";
 
 const words = catalog.site.integrations;
@@ -77,7 +78,7 @@ function directory(items: NodeType[], filtered: boolean): Node {
   const more = glass(stack([text("disp", "+", { tone: "gradient" }), text("body", words.more, { bold: true }), text("small", words.moreBody, { tone: "secondary" })], { gap: "s" }), {
     pad: "m",
   });
-  return stack([...(first ? [featured(first)] : []), grid([...rest.map(card), ...(filtered ? [] : [more])], 230)], { gap: "xl" });
+  return stack([...(first ? [featured(first)] : []), grid([...rest.map(card), ...(filtered ? [] : [more])], "card")], { gap: "xl" });
 }
 
 export async function view(context: ViewContext): Promise<Node[]> {
@@ -134,14 +135,14 @@ export async function view(context: ViewContext): Promise<Node[]> {
           decoration("integrations.orb"),
           {
             tag: "xwui-container",
-            config: { maxWidth: 1280, center: true, padding: sides("xl") },
+            config: { maxWidth: pageMax, center: true, padding: sides("xl") },
             slots: {
               children: stack(
                 [
                   centred(eyebrow(words.eyebrow)),
                   headline("h1", words.title, words.titleHighlight, "center"),
                   measure(text("lead", fill(words.lead, { n: first.total }), { align: "center" })),
-                  measure(glass(search, { pad: "none", glow: "violet" }), 680),
+                  measure(glass(search, { pad: "none", glow: "violet" }), "search"),
                   centred(tabs),
                 ],
                 { gap: "xl", align: "stretch" },

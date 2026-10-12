@@ -6,6 +6,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { ApiKey, Member, MemberRole, NotificationPrefs, Settings } from "../../types/domain";
 import { button, cell, glass, quietLabel, row, space, stack, tag, text, type Node } from "../../ui/kit";
+import { columns } from "../../ui/layout";
 import type { XWUIComposer, XWUIInputText, XWUISelect } from "../../xwui";
 
 type SettingsRoute = Extract<Route, { page: "settings" }>;
@@ -48,7 +49,7 @@ function general(settings: Settings, refresh: () => void): Node {
         },
         {
           tag: "xwui-grid",
-          config: { columns: "minmax(0, 1fr)", gap: space("l"), responsive: { md: { columns: "repeat(2, minmax(0, 1fr))" } } },
+          config: { columns: columns.one, gap: space("l"), responsive: { md: { columns: columns.halves } } },
           slots: {
             children: [
               stack([select(draft.timezone, words.timezones, g.timezone, (value) => (draft.timezone = value)), text("xs", g.timezoneHint, { tone: "tertiary" })], { gap: "s" }),

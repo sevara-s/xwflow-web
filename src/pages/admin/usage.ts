@@ -42,7 +42,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
           kpi(k.ai, formatNumber(usage.aiCalls), "pink"),
           kpi(k.storage, fill(words.storageValue, { used: usage.storageGb }), "violet", fill(words.storageNote, { included: usage.storageIncludedGb })),
         ],
-        200,
+        "kpi",
       ),
       grid(
         [
@@ -55,7 +55,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
           ]),
           top,
         ],
-        440,
+        "half",
       ),
       row([text("small", words.upgrade, { tone: "secondary" }), button("glass", words.seePlans, { size: "sm", href: siteHref("pricing") })], { gap: "m", wrap: true }),
     ],

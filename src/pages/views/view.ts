@@ -11,6 +11,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { FlowView } from "../../types/domain";
 import { button, decoration, glass, row, space, stack, tag, text, type Node } from "../../ui/kit";
+import { columns } from "../../ui/layout";
 import { config } from "../../config";
 
 type ViewRoute = Extract<Route, { page: "view" }>;
@@ -61,10 +62,10 @@ export async function view(
     {
       tag: "xwui-grid",
       config: {
-        columns: "minmax(0, 1fr)",
+        columns: columns.one,
         gap: space("m"),
         alignItems: "center",
-        responsive: { xl: { columns: "auto minmax(0, 1fr) auto" } },
+        responsive: { xl: { columns: columns.toolbar } },
       },
       slots: {
         children: [

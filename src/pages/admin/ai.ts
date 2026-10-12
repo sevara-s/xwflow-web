@@ -68,6 +68,6 @@ export async function view(context: ViewContext): Promise<PageResult> {
 
   return {
     bar: adminBar(context.admin!, "admin", words.title),
-    body: [...pageHead(words.title, words.lead), grid([rules, log], 440)],
+    body: [...pageHead(words.title, words.lead), grid([rules, log], "half")],
   };
 }

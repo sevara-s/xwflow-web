@@ -6,6 +6,7 @@ import type { PageResult, ViewContext } from "../../app/view";
 import { catalog } from "../../content/catalog";
 import type { AdminOverview } from "../../types/domain";
 import { button, cell, glass, grid, row, space, stack, status, text, type Hue, type Node } from "../../ui/kit";
+import { columns } from "../../ui/layout";
 
 const words = catalog.admin.overview;
 const kpiHues: Record<AdminOverview["kpis"][number]["id"], Hue> = { runs24h: "cyan", failed24h: "red", overdue: "lime", queued: "violet" };
@@ -32,7 +33,7 @@ function kpis(overview: AdminOverview): Node {
       },
       config: { hue: kpiHues[kpi.id], emphasis: kpi.id === "failed24h" && (kpi.value ?? 0) > 0 },
     })),
-    210,
+    "kpiCompact",
     "l",
   );
 }
@@ -153,7 +154,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
       kpis(overview),
       {
         tag: "xwui-grid",
-        config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 3fr) minmax(0, 2fr)" } } },
+        config: { columns: columns.one, gap: space("xl"), alignItems: "start", responsive: { lg: { columns: columns.threeTwo } } },
         slots: { children: [runsByHour(overview), reachability(overview)] },
       },
       failing(overview),

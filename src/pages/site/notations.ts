@@ -7,6 +7,7 @@ import { catalog } from "../../content/catalog";
 import type { Notation, NotationFamily, NotationGallery, NotationViewId, StepGroup } from "../../types/domain";
 import { hueOf } from "../../ui/flow";
 import { band, centred, decoration, eyebrow, glass, grid, headline, iconTile, inset, measure, row, sides, stack, tag, text, xwflow, type Hue, type Node } from "../../ui/kit";
+import { pageMax } from "../../ui/layout";
 import type { XWUIComposer } from "../../xwui";
 
 const words = catalog.site.notations;
@@ -90,7 +91,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
           decoration("notations.halo2"),
           {
             tag: "xwui-container",
-            config: { maxWidth: 1280, center: true, padding: sides("xl") },
+            config: { maxWidth: pageMax, center: true, padding: sides("xl") },
             slots: {
               children: stack(
                 [
@@ -128,13 +129,13 @@ export async function view(context: ViewContext): Promise<Node[]> {
     ref: (instance) =>
       (instance as { onChange(handler: (id: string) => void): void }).onChange(async (id) => {
         const next = await api.getNotations({ family: id === "all" ? "" : (id as NotationFamily) });
-        context.instance<XWUIComposer>("notation-gallery")?.setTree(grid(next.items.map((item) => card(item, next.sample)), 300));
+        context.instance<XWUIComposer>("notation-gallery")?.setTree(grid(next.items.map((item) => card(item, next.sample)), "gallery"));
       }),
   };
 
   return [
     hero,
-    band("modes", [stack([eyebrow(words.modesEyebrow), headline("h2", words.modesTitle, `${words.modesHighlight} ${words.modesTail}`)], { gap: "s" }), grid(modeTiles, 220)], {
+    band("modes", [stack([eyebrow(words.modesEyebrow), headline("h2", words.modesTitle, `${words.modesHighlight} ${words.modesTail}`)], { gap: "s" }), grid(modeTiles, "tile")], {
       tight: true,
       gap: "xl",
     }),
@@ -142,7 +143,7 @@ export async function view(context: ViewContext): Promise<Node[]> {
       "gallery",
       [
         row([stack([eyebrow(words.galleryEyebrow), headline("h2", words.galleryTitle, words.galleryHighlight)], { gap: "m" }), families], { gap: "xl", wrap: true, justify: "space-between", align: "flex-end" }),
-        { tag: "xwui-composer", key: "notation-gallery", data: { tree: grid(gallery.items.map((item) => card(item, sample)), 300) } },
+        { tag: "xwui-composer", key: "notation-gallery", data: { tree: grid(gallery.items.map((item) => card(item, sample)), "gallery") } },
       ],
       { gap: "xl" },
     ),

@@ -101,7 +101,7 @@ export async function view(context: ViewContext<ConnectionsRoute>): Promise<Page
             .filter((group) => group.items.length)
         : [{ title: "", items: connections }];
     return stack(
-      groups.map((group) => stack([...(group.title ? [text("h3", group.title, { level: 2 })] : []), grid(group.items.map((item) => card(item, reload)), 360)], { gap: "m" })),
+      groups.map((group) => stack([...(group.title ? [text("h3", group.title, { level: 2 })] : []), grid(group.items.map((item) => card(item, reload)), "connection")], { gap: "m" })),
       { gap: "xl" },
     );
   };

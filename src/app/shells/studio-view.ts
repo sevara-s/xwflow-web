@@ -1,6 +1,7 @@
 import { catalog } from "../../content/catalog";
 import type { Workspace } from "../../types/domain";
 import { space, stack, type Node } from "../../ui/kit";
+import { breakpoints, columns } from "../../ui/layout";
 import { fill, formatDate, formatNumber } from "../format";
 import { href, navigate, paths, type Route } from "../router";
 import { debounce } from "../timing";
@@ -23,7 +24,7 @@ function rail(workspace: Workspace, route: Route): Node {
     tag: "xwui-app-rail",
     key: "studio-rail",
     // On a phone the rail starts closed: only its head bar shows until the toggle opens it.
-    config: { collapsed: window.matchMedia("(max-width: 860px)").matches },
+    config: { collapsed: window.matchMedia(breakpoints.tablet).matches },
     data: {
       selected: railSelection(route),
       labels: {
@@ -228,10 +229,10 @@ export function appFrame(railNode: Node, workspace: Workspace, page: Node[], bar
     {
       tag: "xwui-grid",
       config: {
-        columns: "minmax(0, 1fr)",
+        columns: columns.one,
         gap: space("none"),
         alignItems: "start",
-        responsive: { md: { columns: "auto minmax(0, 1fr)" } },
+        responsive: { md: { columns: columns.startRest } },
       },
       slots: { children: [railNode, main] },
     },

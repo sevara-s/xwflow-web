@@ -69,6 +69,6 @@ export async function view(context: ViewContext): Promise<PageResult> {
 
   return {
     bar: adminBar(context.admin!, "system", words.title, { actions: [button("primary", catalog.console.shared.save, { size: "sm", icon: "check", onClick: () => void save() })] }),
-    body: [...pageHead(words.title, words.lead), grid(groups, 440)],
+    body: [...pageHead(words.title, words.lead), grid(groups, "half")],
   };
 }

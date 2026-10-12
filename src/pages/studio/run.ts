@@ -9,6 +9,7 @@ import { catalog } from "../../content/catalog";
 import type { Attempt, RunDetail } from "../../types/domain";
 import { hueOf, toneOf } from "../../ui/flow";
 import { button, cell, decoration, glass, row, space, stack, status, tag, text, type Hue, type Node } from "../../ui/kit";
+import { breakpoints, columns } from "../../ui/layout";
 import type { XWUIComposer } from "../../xwui";
 
 type RunRoute = Extract<Route, { page: "run" }>;
@@ -107,7 +108,7 @@ function timeline(run: RunDetail): Node {
       [
         row([text("h3", words.timeline, { level: 2 }), row([text("xs", formatMs(0), { tone: "tertiary" }), text("xs", formatMs(end), { tone: "tertiary" })], { gap: "m" })], { justify: "space-between" }),
         // On a phone the track is too narrow for a caption beside its bar, so captions get their own column.
-        { tag: "xwui-run-waterfall", data: { rows, label: words.timeline }, config: { layout: window.matchMedia("(max-width: 640px)").matches ? "columns" : "track" } },
+        { tag: "xwui-run-waterfall", data: { rows, label: words.timeline }, config: { layout: window.matchMedia(breakpoints.phone).matches ? "columns" : "track" } },
       ],
       { gap: "l" },
     ),
@@ -245,7 +246,7 @@ export async function view(context: ViewContext<RunRoute>): Promise<PageResult> 
         {
           tag: "xwui-grid",
           // One column on a phone; minmax(0, ...) lets the ledger scroll inside its panel instead of widening the page.
-          config: { columns: "minmax(0, 1fr)", gap: space("xl"), alignItems: "start", responsive: { lg: { columns: "minmax(0, 2fr) minmax(0, 1fr)" } } },
+          config: { columns: columns.one, gap: space("xl"), alignItems: "start", responsive: { lg: { columns: columns.twoOne } } },
           slots: {
             children: [
               stack([text("h3", words.ledger, { level: 2 }), glass(ledger(run, pick), { pad: "none", scroll: true })], { gap: "m" }),

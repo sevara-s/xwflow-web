@@ -65,7 +65,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
     stack(
       [
         text("small", fill(words.summary, { alive: workers.filter((worker) => worker.state !== "draining").length, total: workers.length }), { tone: "secondary" }),
-        grid(workers.map(card), 230),
+        grid(workers.map(card), "card"),
       ],
       { gap: "l" },
     );

@@ -33,6 +33,8 @@ const forbidden: Array<[string, RegExp]> = [
   // Decorations are named presets from ui/decor.ts; their geometry lives only there.
   ["decoration geometry (shape() or px/% offsets)", /\bshape\(|\b(top|left|right|bottom)\s*:\s*["'`]-?[\d.]+(px|%)/],
   ["spacing literals (px gaps, paddings, margins)", /\b(gap|padding|margin|rowGap|columnGap)\s*:\s*["'`][^"'`]*\d|\b(padding|margin)\s*:\s*\d/],
+  // Grid widths, column splits, page widths and breakpoints are named presets from ui/layout.ts.
+  ["layout literals (grid widths, column templates, max widths, media queries)", /\bgrid\([^;]*,\s*\d+\s*[,)]|\bcolumns\s*:\s*["'`]|\bmaxWidth\s*:\s*\d|matchMedia\(\s*["'`]|\bmeasure\([^;]*,\s*\d+\s*\)/],
 ];
 
 describe("XWUI composition only", () => {

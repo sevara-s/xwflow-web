@@ -21,7 +21,7 @@ function kpis(list: AgentList): Node {
   const kpi = (label: string, value: number, hue: string): Node => ({ tag: "xwui-kpi-card", data: { label, value: formatNumber(value) }, config: { hue } });
   return grid(
     [kpi(words.kpis.live, list.counts.live, "violet"), kpi(words.kpis.conversations, list.counts.conversations7d, "cyan"), kpi(words.kpis.handoffs, list.counts.handoffs7d, "pink")],
-    210,
+    "kpiCompact",
     "l",
   );
 }
@@ -73,7 +73,7 @@ export async function view(context: ViewContext<AgentsRoute>): Promise<PageResul
 
   const cards = (): Node =>
     list.agents.length
-      ? grid(list.agents.map((agent) => card(agent, act)), 340)
+      ? grid(list.agents.map((agent) => card(agent, act)), "agent")
       : { tag: "xwui-empty", data: { icon: "search", title: words.empty.title, description: words.empty.description } };
   const redraw = (): void => {
     context.instance<XWUIComposer>("agents-kpis")?.setTree(kpis(list));

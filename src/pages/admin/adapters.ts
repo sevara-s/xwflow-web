@@ -80,7 +80,7 @@ export async function view(context: ViewContext): Promise<PageResult> {
     bar: adminBar(context.admin!, "admin", words.title),
     body: [
       ...pageHead(words.title, words.lead),
-      grid(adapters.map(card), 230),
+      grid(adapters.map(card), "card"),
       section(words.history, [{ tag: "xwui-composer", key: "import-history", data: { tree: history() } }]),
     ],
   };

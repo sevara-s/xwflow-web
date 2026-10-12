@@ -8,6 +8,7 @@
  */
 import { xwflowComponents, type XWFlowComponentName } from "../components";
 import { decorations, type Decoration, type DecorationName } from "./decor";
+import { cardWidths, measures, pageMax, type CardWidth, type Measure } from "./layout";
 import { XWUIComposer, type XWUIComposerNode } from "../xwui";
 
 export type Node = XWUIComposerNode;
@@ -153,8 +154,8 @@ export const row = (items: Node[], options: Omit<StackOptions, "row"> = {}): Nod
 export const centred = (item: Node): Node => row([item], { justify: "center" });
 
 /** Auto-fit columns never narrower than `min` (the prototype's g2 / g3 / g4). */
-export function grid(items: Node[], min: 440 | 300 | 230 | number, gap: Gap = "xl"): Node {
-  return { tag: "xwui-grid", config: { minChildWidth: `${min}px`, gap: space(gap) }, slots: { children: items } };
+export function grid(items: Node[], min: CardWidth, gap: Gap = "xl"): Node {
+  return { tag: "xwui-grid", config: { minChildWidth: `${cardWidths[min]}px`, gap: space(gap) }, slots: { children: items } };
 }
 
 export interface PanelOptions {
@@ -190,7 +191,7 @@ export function band(id: string, items: Node[], options: { tight?: boolean; gap?
 }
 
 export function column(child: Node): Node {
-  return { tag: "xwui-container", config: { maxWidth: 1280, center: true, padding: sides("xl") }, slots: { children: child } };
+  return { tag: "xwui-container", config: { maxWidth: pageMax, center: true, padding: sides("xl") }, slots: { children: child } };
 }
 
 export type ButtonLook = "primary" | "glass" | "gradient" | "ghost";
@@ -241,8 +242,8 @@ export function tag(value: string, hue?: Hue | "plan", note?: string, dot = fals
 }
 
 /** A centred reading column, for leads under a centred headline. */
-export function measure(child: Node, width = 720): Node {
-  return { tag: "xwui-container", config: { maxWidth: width, center: true, width: "100%" }, slots: { children: child } };
+export function measure(child: Node, width: Measure = "text"): Node {
+  return { tag: "xwui-container", config: { maxWidth: measures[width], center: true, width: "100%" }, slots: { children: child } };
 }
 
 export type StatusTone = "success" | "error" | "running" | "neutral" | "warning" | "pinned" | "disabled";

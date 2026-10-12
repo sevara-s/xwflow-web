@@ -77,6 +77,17 @@ test.describe("editor", () => {
     });
   }
 
+  test("the minimap draws every step inside its box", async ({ page }) => {
+    await open(page, "/studio/flows/f_order_alert");
+    const outside = await page.evaluate(() => {
+      const box = document.querySelector(".xwui-flow-canvas__minimap")!.getBoundingClientRect();
+      return Array.from(document.querySelectorAll(".xwui-flow-canvas__minimap-node"))
+        .map((bar) => bar.getBoundingClientRect())
+        .filter((bar) => bar.left < box.left || bar.right > box.right || bar.top < box.top || bar.bottom > box.bottom).length;
+    });
+    expect(outside).toBe(0);
+  });
+
   test("a click selects a step, a drag moves it without selecting", async ({ page }) => {
     await open(page, "/studio/flows/f_order_alert");
     await page.getByRole("button", { name: /^Over 500\?/ }).first().click();

@@ -51,3 +51,20 @@
 .xwflow-canvas-footed .xwui-flow-canvas__tools {
     bottom: calc(var(--xwui-flow-inset-bottom, 0px) - var(--xwflow-canvas-foot) + 16px);
 }
+
+/*
+ * XWUIFlowCanvas minimap: each step bar gets a 10px margin as the minimap's
+ * padding, but its left/top percentages are of the whole box, so the right-
+ * and bottom-most bars ended 10px past the edge. The 10px moves into a
+ * transparent border (absolute children start inside it), the bars lose the
+ * margin, and the visible line is drawn as an outline.
+ */
+.xwui-flow-canvas .xwui-flow-canvas__minimap {
+    padding: 0;
+    border: 10px solid transparent;
+    outline: 1px solid var(--border-medium);
+    outline-offset: -1px;
+}
+.xwui-flow-canvas .xwui-flow-canvas__minimap-node {
+    margin: 0;
+}

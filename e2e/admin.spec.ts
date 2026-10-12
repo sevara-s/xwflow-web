@@ -121,16 +121,19 @@ test.describe("system", () => {
 
   test("workers drain and resume, never the last one", async ({ page }) => {
     await open(page, "/system/workers");
+    // Wait on the drawn state, not on a notice: older notices stay on screen for a while.
+    const draining = page.locator("xwui-status-glyph").filter({ hasText: "Draining" });
     await page.getByRole("button", { name: "Drain" }).first().click();
-    await expectNotice(page, /is draining/);
+    await expect(draining).toHaveCount(1);
     await page.getByRole("button", { name: "Resume" }).first().click();
-    await expectNotice(page, /takes runs again/);
-    for (let i = 0; i < 3; i += 1) {
+    await expect(draining).toHaveCount(0);
+    for (let count = 1; count <= 3; count += 1) {
       await page.getByRole("button", { name: "Drain" }).first().click();
-      await expectNotice(page, /is draining/);
+      await expect(draining).toHaveCount(count);
     }
     await page.getByRole("button", { name: "Drain" }).first().click();
     await expectNotice(page, /last running worker cannot be drained/);
+    await expect(draining).toHaveCount(3);
   });
 
   test("all executions filter by tenant and open your own run", async ({ page }) => {

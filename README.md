@@ -20,7 +20,7 @@ npm run check   # typecheck, lint, coverage, build (CI runs this and e2e on ever
 npm run build   # typecheck, then dist/
 ```
 
-Start at `#/` (website), `#/studio` (assistant), `#/studio/flows` (flows and editor) or `#/admin` (operator console). More: [docs/architecture.md](docs/architecture.md) for how it is built and checked, [docs/xwui-issues.md](docs/xwui-issues.md) for the problems found in the published XWUI bundle (behaviour and accessibility) and how each is worked around.
+Start at `#/` (website), `#/studio` (assistant), `#/studio/flows` (flows and editor) or `#/admin` (operator console). More: [docs/architecture.md](docs/architecture.md) for how it is built and checked, [docs/extending.md](docs/extending.md) for adding a page, an API operation or a component, the components' own docs beside their code in `src/components/`, [docs/xwui-issues.md](docs/xwui-issues.md) for the problems found in the published XWUI bundle (behaviour and accessibility) and how each is worked around.
 
 ## Assumptions
 

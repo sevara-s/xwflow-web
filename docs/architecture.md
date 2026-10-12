@@ -37,7 +37,7 @@ Pages do not touch the DOM and do not hold copy or sample rows. A page returns X
 
 | Piece | Role |
 | --- | --- |
-| `src/api/dummy-api.js` | The local API's single entry: it re-exports the nine domain modules in `src/api/modules/` (studio, site, admin, views, project, workspace, console), 67 async operations in all |
+| `src/api/dummy-api.js` | The local API's single entry: it re-exports the seven domain modules in `src/api/modules/` (studio, site, admin, views, project, workspace, console), 86 operations in all |
 | `src/api/core.js`, `src/api/engine.js` | The session store, simulated latency and failures, ids, errors and audit; the run engine and the projections operations return |
 | `src/api/data/*.js` | Sample data. Times are offsets from the moment the page loads |
 | `src/api/client.ts` | The only data import a page is allowed |

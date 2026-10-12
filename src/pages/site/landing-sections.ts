@@ -1,0 +1,293 @@
+/**
+ * The landing bands below the hero: stats, the integrations marquee, the
+ * assistant prompt, the run truth, branding, notations, migration and the
+ * closing call to start.
+ */
+import { api } from "../../api/client";
+import { fill, formatMs, formatNumber } from "../../app/format";
+import { errorMessage, notify } from "../../app/notify";
+import { href, paths } from "../../app/router";
+import { siteHref } from "../../app/site-links";
+import type { ViewContext } from "../../app/view";
+import { catalog } from "../../content/catalog";
+import type { AssistantDraft, Landing, StepGroup } from "../../types/domain";
+import { hueOf, stepType, toneOf } from "../../ui/flow";
+import { band, button, decoration, eyebrow, glass, grid, headline, iconTile, keys, row, space, stack, status, tag, text, type Hue, type Node, type StatusTone } from "../../ui/kit";
+import type { XWUIComposer } from "../../xwui";
+
+const words = catalog.site.landing;
+
+export function stats(landing: Landing): Node {
+  const cells = words.stats.map((stat) => {
+    const value = landing.stats[stat.id as keyof Landing["stats"]];
+    const number =
+      stat.id === "connectors"
+        ? tag("N", "lime")
+        : text("disp", "unit" in stat ? fill(stat.unit, { n: value }) : formatNumber(value), { tone: stat.id === "dialects" ? "gradient" : undefined });
+    return stack([number, text("body", stat.label, { bold: true }), text("small", stat.note, { tone: "secondary" })], { gap: "xs" });
+  });
+  return band("stats", [glass(grid(cells, "card"), { pad: "l" })], { tight: true });
+}
+
+const tagHue: Record<StepGroup, Hue> = hueOf;
+
+export function marquee(landing: Landing): Node {
+  return {
+    tag: "xwui-display-marquee",
+    key: "band-marquee",
+    data: { items: landing.marquee.map((item) => ({ label: item.label, hue: tagHue[item.group] })) },
+    // The marquee takes its item gap as a number (it sizes its loop from it): the scale's 16.
+    config: { speed: 40, gap: 16, fade: true, pauseOnHover: true },
+  };
+}
+
+/* ── prompt to flow ────────────────────────────────────────────────── */
+
+function draftPanel(title: string, steps: Array<{ name: string; type: string; group: StepGroup }>, streamed: number): Node {
+  const t = words.prompt;
+  const items = steps.map((step, index) => {
+    const type = stepType(step.type, step.group);
+    const needs = step.type === "needsConnection";
+    const tone: StatusTone = index < streamed ? (needs ? "warning" : "success") : index === streamed ? "running" : "neutral";
+    return glass(
+      row([row([iconTile(type.icon, tagHue[step.group], "sm"), stack([text("small", step.name, { bold: true }), text("xs", type.label, { tone: "secondary" })], { gap: "none" })], { gap: "m" }), status(tone, "", type.label)], {
+        justify: "space-between",
+      }),
+      { pad: "s" },
+    );
+  });
+  const done = streamed >= steps.length && steps.some((step) => step.type === "needsConnection");
+  return stack(
+    [
+      row([row([text("body", t.draft, { bold: true }), tag(t.streaming, "violet")]), text("xs", fill(t.steps, { n: steps.length }), { tone: "tertiary" })], { justify: "space-between" }),
+      stack(items, { gap: "m" }),
+      ...(done ? [{ tag: "xwui-alert", data: { message: t.connect }, config: { variant: "success", size: "small" } }] : []),
+    ],
+    { gap: "l", key: title },
+  );
+}
+
+export function prompt(context: ViewContext): Node {
+  const t = words.prompt;
+  const timers: number[] = [];
+  context.onLeave(() => timers.splice(0).forEach((id) => clearTimeout(id)));
+  let request: string = t.example;
+
+  const draft = async (value: string): Promise<void> => {
+    timers.splice(0).forEach((id) => clearTimeout(id));
+    request = value;
+    context.instance<{ setData(d: object): void }>("prompt-request")?.setData({ text: value });
+    try {
+      const result: AssistantDraft = await api.draftFlow(value);
+      const steps = result.graph.nodes.map((node) => ({ name: node.name, type: node.type, group: node.group }));
+      const paint = (streamed: number) => context.instance<XWUIComposer>("prompt-draft")?.setTree(draftPanel(result.title, steps, streamed));
+      steps.forEach((_, index) => timers.push(window.setTimeout(() => paint(index), index * 450)));
+      timers.push(window.setTimeout(() => paint(steps.length), steps.length * 450));
+    } catch (error) {
+      notify(errorMessage(error), "danger");
+    }
+  };
+  timers.push(window.setTimeout(() => void draft(t.example), 0));
+
+  const left = stack(
+    [
+      eyebrow(t.eyebrow),
+      headline("h2", t.title, t.titleHighlight),
+      text("lead", t.lead),
+      glass(
+        stack(
+          [
+            { ...text("small", t.example), key: "prompt-request" },
+            row([tag(t.project), button("primary", t.build, { size: "sm", onClick: () => void draft(request) })], { justify: "space-between" }),
+          ],
+          { gap: "m" },
+        ),
+        { pad: "s" },
+      ),
+      row(
+        t.chips.map((chip) => button("glass", chip, { size: "sm", onClick: () => void draft(chip) })),
+        { wrap: true },
+      ),
+    ],
+    { gap: "xl" },
+  );
+  const right: Node = {
+    tag: "xwui-box",
+    config: { position: "relative" },
+    slots: {
+      children: stack([decoration("landing.halo3"), glass({ tag: "xwui-composer", key: "prompt-draft", data: { tree: draftPanel(t.draft, [], 0) } }, { glow: "violet" })], { gap: "none" }),
+    },
+  };
+  return band("prompt", [grid([left, right], "half", "xxxl")]);
+}
+
+/* ── built different (bento) ───────────────────────────────────────── */
+
+export function truth(landing: Landing): Node {
+  const t = words.truth;
+  const attempts = landing.receipt?.attempts.filter((item) => item.result.kind !== "notRun") ?? [];
+  const tile = (label: string, hue: Hue, items: Node[]): Node => glass(stack([row([tag(label, hue)]), ...items], { gap: "l" }), { pad: "l" });
+
+  const receipt = tile(t.receiptTag, "cyan", [
+    stack([text("h3", t.receiptTitle), text("body", t.receiptBody, { tone: "secondary" })], { gap: "s" }),
+    {
+      tag: "xwui-run-waterfall",
+      data: {
+        label: t.receiptTitle,
+        rows: attempts.map((item) => ({
+          id: item.id,
+          label: item.tryCount && item.tryCount > 1 ? `${item.step}, try ${item.tryIndex}` : item.step,
+          startMs: item.result.kind === "disabled" ? null : item.offsetMs ?? 0,
+          durationMs: item.result.kind === "disabled" ? null : item.durationMs ?? 0,
+          caption: item.result.kind === "failed" ? String(item.result.code) : item.durationMs !== null ? formatMs(item.durationMs) : "",
+          hue: item.group === "integration" ? "gradient" : hueOf[item.group],
+          failed: item.result.kind === "failed",
+          muted: item.result.kind === "disabled",
+        })),
+      },
+      config: { layout: "columns" },
+    },
+  ]);
+  const states = tile(t.statesTag, "violet", [
+    text("h3", t.statesTitle),
+    stack(t.states.map((state) => glass(status(toneOf[state.tone as keyof typeof toneOf], state.label), { pad: "s" })), { gap: "s" }),
+  ]);
+  const keyboard = tile(t.keysTag, "lime", [text("h3", t.keysTitle), row(t.keys.map((key) => keys([key])), { wrap: true }), text("small", t.keysBody, { tone: "secondary" })]);
+  const languageWord = text("disp", t.languageWord, { tone: "gradient" });
+  languageWord.config = { ...languageWord.config, fontSize: "var(--type-showcase-size)", attrs: { lang: "ar", dir: "rtl" } };
+  const language = tile(t.languageTag, "pink", [languageWord, text("small", t.languageBody, { tone: "secondary" })]);
+  const host = tile(t.hostTag, "orange", [
+    text("h3", t.hostTitle),
+    {
+      tag: "xwui-iso-stack",
+      data: { layers: [{ hue: "cyan" }, { hue: "violet" }, { hue: "green" }], label: t.hostRack.join(", ") },
+      config: { size: 150, spacing: 34, height: 220 },
+    },
+  ]);
+
+  return band("truth", [
+    stack([eyebrow(t.eyebrow), headline("h2", t.title, t.titleHighlight, "center")], { gap: "l", align: "center" }),
+    { tag: "xwui-grid", data: { spans: [4, 2, 2, 2, 2] }, config: { columns: 6, gap: space("xl"), equalRowHeights: true }, slots: { children: [receipt, states, keyboard, language, host] } },
+  ]);
+}
+
+/* ── white-label ───────────────────────────────────────────────────── */
+
+export function brand(landing: Landing): Node {
+  const t = words.brand;
+  const hues: Hue[] = ["cyan", "pink", "lime", "violet"];
+  const left = stack(
+    [
+      eyebrow(t.eyebrow),
+      headline("h2", t.title, t.titleHighlight),
+      text("lead", t.lead),
+      stack(
+        t.items.map((item, index) => row([row([iconTile(item.icon, hues[index % hues.length], "sm", true), text("body", item.label)], { gap: "m" }), tag(t.planned, "plan")], { justify: "space-between" })),
+        { gap: "m" },
+      ),
+      row([button("gradient", t.cta, { href: siteHref("pricing") })]),
+    ],
+    { gap: "xl" },
+  );
+  const cards = landing.tenants.map((tenant, index) =>
+    glass(
+      stack(
+        [
+          row([iconTile("layers", (tenant.color as Hue) ?? "violet", "sm"), text("h4", tenant.name, { level: 3 })]),
+          row([button("glass", t.run, { size: "sm", disabled: true }), tag(t.published, tenant.color as Hue)]),
+          { tag: "xwui-progress", data: { value: 72 - index * 18 }, config: { size: "sm" } },
+          ...(index === 1 ? [text("xs", t.noMark, { tone: "secondary" })] : []),
+        ],
+        { gap: "l" },
+      ),
+      { pad: "m", glow: index === 1 ? "violet" : undefined },
+    ),
+  );
+  return band("brand", [grid([left, stack(cards, { gap: "l" })], "half", "xxxl")]);
+}
+
+/* ── notations, migrate, start ─────────────────────────────────────── */
+
+export function notations(landing: Landing): Node {
+  const t = words.notations;
+  const family: Record<string, Hue | "plan"> = { automation: "lime", process: "orange", software: "pink", simulation: "amber", analysis: "plan", views: "cyan" };
+  const target = (view: string): string =>
+    view === "editor"
+      ? href(paths.flow(landing.flow.id))
+      : view === "receipt"
+        ? href(paths.run(landing.receipt?.id ?? ""))
+        : href(paths.flowView(landing.flow.id, view as never));
+  const tags = landing.notations.map((notation) => {
+    const node = tag(notation.name, notation.view ? family[notation.family] ?? "plan" : "plan");
+    return notation.view ? { ...node, on: { click: () => (window.location.hash = target(notation.view as string)) } } : node;
+  });
+  const left = stack(
+    [
+      eyebrow(t.eyebrow),
+      headline("h2", t.title, fill(t.titleHighlight, { n: landing.notations.length })),
+      text("lead", t.lead),
+      row([button("primary", t.gallery, { href: siteHref("notations") }), button("gradient", t.open3d, { href: href(paths.flowView(landing.flow.id, "3d")) })], { gap: "m", wrap: true }),
+    ],
+    { gap: "l" },
+  );
+  return band("notations", [
+    {
+      tag: "xwui-box",
+      config: { surface: "glass", padding: space("xxl"), overflow: "clip" },
+      slots: { children: stack([decoration("landing.halo4"), grid([left, row(tags, { wrap: true })], "half", "xxxl")], { gap: "none" }) },
+    },
+  ]);
+}
+
+export function migrate(landing: Landing): Node {
+  const t = words.migrate;
+  const hues: Hue[] = ["lime", "cyan", "violet", "pink", "orange"];
+  const tiles = landing.dialects.map((dialect, index) =>
+    glass(
+      stack(
+        [
+          row([{ tag: "xwui-icon-tile", data: { icon: "git-merge", label: dialect.code }, config: { hue: hues[index % hues.length], size: "sm" } }, text("body", dialect.name, { bold: true })], { gap: "m" }),
+          row([text("xs", t.depth, { tone: "secondary" }), tag(dialect.depth ?? t.pending, "lime")]),
+        ],
+        { gap: "m" },
+      ),
+      { pad: "m" },
+    ),
+  );
+  return band("migrate", [
+    row([stack([eyebrow(t.eyebrow), headline("h2", t.title, t.titleHighlight)], { gap: "l" }), text("body", t.body, { tone: "secondary" })], { gap: "xl", wrap: true, align: "flex-end", justify: "space-between" }),
+    grid(tiles, "tile"),
+  ]);
+}
+
+export function start(context: ViewContext): Node {
+  const t = words.start;
+  const content = stack(
+    [
+      eyebrow(t.eyebrow),
+      headline("h1", t.title, t.titleHighlight),
+      text("lead", t.lead),
+      row(
+        [
+          button("primary", t.primary, {
+            size: "lg",
+            onClick: () => {
+              context.instance<{ getElement(): HTMLElement | null }>("sandbox-scene")?.getElement()?.scrollIntoView({ behavior: "smooth", block: "center" });
+              (context.instance<{ getElement(): HTMLElement | null }>("sandbox-run")?.getElement() as HTMLElement | null)?.click();
+            },
+          }),
+          button("glass", t.secondary, { size: "lg", href: siteHref("selfHost") }),
+        ],
+        { gap: "m", wrap: true },
+      ),
+    ],
+    { gap: "xl" },
+  );
+  return band("start", [
+    {
+      tag: "xwui-box",
+      config: { surface: "glass", gradientBorder: true, padding: space("xxxl"), overflow: "clip" },
+      slots: { children: stack([decoration("landing.ring"), decoration("landing.orb3"), content], { gap: "none" }) },
+    },
+  ]);
+}

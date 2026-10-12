@@ -22,13 +22,23 @@ Each follows XWUI's structure: `*.types.ts` (data and config), `*.json` (schema)
 
 The published `XWUIComposer` only mounts `xwui-` tags. Rather than register an `xwui-` tag of its own, the app places a component with the kit's `xwflow(name, { data, config, slots, key })`: a published `xwui-box` is mounted and the component is built in its element, as every XWUI component takes its container. `xwflowInstance(key)` reaches it (for example for the SVG export).
 
+## The dummy API
+
+Every operation is asynchronous and returns a copy, so the UI can never change the store by accident. Data lives for the browser session (sessionStorage); clearing site data restores the samples.
+
+- Latency: 15 ms per read and 40 ms per write by default. `?api-latency=none|fast|slow` changes it (slow is 600 ms and 1.2 s), to watch spinners and loading states.
+- Failures: `?api-failures=0.3` makes that share of writes fail before changing anything, as a dropped request would; the app shows the error and the data stays as it was. `?api-failures=1` fails every write.
+- Errors carry a `code` (`not_found`, `invalid`, `exists`, `in_use`, `requires_commercial`, `unavailable` and others) and a message the page shows as it is.
+- Tests set the same knobs with `configureApi()` from `src/api/core.js`.
+
 ## How it is built
 
 Pages do not touch the DOM and do not hold copy or sample rows. A page returns XWUI composer nodes. The frame (rail, bar, header) is built once and kept; a page change swaps only the page area.
 
 | Piece | Role |
 | --- | --- |
-| `src/api/dummy-api.js` | The local API: 67 async operations, a token latency (15 ms reads, 40 ms writes), a small run engine, and session persistence |
+| `src/api/dummy-api.js` | The local API's single entry: it re-exports the nine domain modules in `src/api/modules/` (studio, site, admin, views, project, workspace, console), 67 async operations in all |
+| `src/api/core.js`, `src/api/engine.js` | The session store, simulated latency and failures, ids, errors and audit; the run engine and the projections operations return |
 | `src/api/data/*.js` | Sample data. Times are offsets from the moment the page loads |
 | `src/api/client.ts` | The only data import a page is allowed |
 | `src/content/*.ts` | Every visible string |

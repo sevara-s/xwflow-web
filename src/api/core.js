@@ -86,3 +86,15 @@ export function consoleError(code, message) {
 export function logAudit(kind, group, title, object) {
   store.admin.audit.unshift({ id: nextId("e"), kind, group, title, object, actor: { name: "You", class: "person" }, onBehalfOf: null, at: Date.now() });
 }
+
+export function findIn(list, kind, id) {
+  const item = list.find((entry) => entry.id === id);
+  if (!item) throw notFound(kind, id);
+  return item;
+}
+
+export function invalid(message) {
+  const error = new Error(message);
+  error.code = "invalid";
+  return error;
+}

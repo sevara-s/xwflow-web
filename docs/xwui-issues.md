@@ -13,3 +13,19 @@ Each was reproduced on the published bundle and has a workaround in this repo.
 | Notations, views | No layer stack in the basic tier; the published notation diagram lacks start and end terminators, retry loops, fixed columns and rows and the block notation, so the flowchart drew crossing lines without its end node | The prototype's drawings | `XWFlowLayerStack` and `XWFlowNotationDiagram` (see [architecture.md](architecture.md)) |
 
 `XWUIComponent` also fetches a stylesheet for every component class from xwui.dev; the two XWFlow components bundle their own and skip that request (`loadComponentCSS()`).
+
+## Accessibility defects inside published components
+
+Found by the axe scan in `e2e/a11y.spec.ts` (WCAG 2.1 A/AA and best practice). Our own markup passes on all 42 routes; these elements sit inside published components, so the scan leaves exactly them out.
+
+| Component | What axe reports | Workaround here |
+| --- | --- | --- |
+| `XWUITable` | Every table host carries `role="tab"` with no tablist (aria-required-parent) | None possible from outside; the rule is disabled for tables only |
+| `XWUIProgress` | A second `progressbar` without a name inside the named host | None; the host is named |
+| `XWUISlider` | The thumb is nested inside another control (nested-interactive) | The slider is named through its label, kept for screen readers only |
+| `XWUIFlowScene` | `role="img"` around focusable controls (nested-interactive) | None |
+| `XWUITooltip` | Tooltips are attached to `<body>`, outside every landmark (region) | None |
+| `XWUIAvatar` | Initials on some generated colours fall below a 4.5:1 contrast | None; names sit beside the avatars |
+| `XWUICodeBlock` | The scroll area takes no keyboard focus (scrollable-region-focusable) | None |
+| `XWUIBox` | A `role` or `ariaLabel` is copied to both the host and the inner element, so a labelled region becomes two | Landmarks use the element itself (`as: "main"`, `as: "aside"`), without a label |
+| `XWUISelect`, `XWUISlider` | `ariaLabel` is ignored; the control is named only by its label | The label is passed with the `quietLabel` class, which keeps it for screen readers |

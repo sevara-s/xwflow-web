@@ -61,11 +61,10 @@ Decorative glows are named presets in `src/ui/decor.ts`; a page names one with `
 
 ## Tests and checks
 
-- `npm test`: 131 tests over the dummy API (studio, admin and operator console), the XWFlow components, router, formatting, status, simulation, exporters, contrast and the guard.
-- On the published bundle (`npm run dev`), headless:
-  - every route loads without errors at 1440 px, and at 390 px nothing reaches past the screen edge;
-  - a scripted walkthrough clicks through the website, assistant, flows, editor, receipts, runs, connections, the six views, settings, admin and every admin and system page and action: 111 checks, all passing;
-  - the exports (SVG, BPMN XML, Mermaid, PlantUML, JSON) download.
+- `npm test`: 131 unit and component tests over the dummy API (studio, admin and operator console), the XWFlow components (layout, views, renderer), router, formatting, status, simulation, exporters, contrast and the guard. `npm run test:coverage` holds coverage above 75% of statements and lines.
+- `npm run lint`: ESLint with the recommended JavaScript and TypeScript rules.
+- `npm run e2e`: Playwright browser tests against XWUI from xwui.dev (129 tests): every journey on the website, studio, notation views, admin and system pages; an axe scan (WCAG 2.1 A/AA and best practice) of all 42 routes; and nothing past the screen edge at 390 px on every route.
+- `npm run check` runs typecheck, lint, coverage and build. GitHub Actions (`.github/workflows/ci.yml`) runs it and the browser tests on every push and pull request.
 
 ## Performance
 

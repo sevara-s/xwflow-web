@@ -14,11 +14,13 @@ Node.js 20 or newer, and a browser with internet access (XWUI loads from xwui.de
 ```bash
 npm install
 npm run dev     # http://127.0.0.1:4173
-npm test        # 131 tests
+npm test        # 131 unit and component tests
+npm run e2e     # browser tests: every journey, an axe scan of every route, phone width
+npm run check   # typecheck, lint, coverage, build (CI runs this and e2e on every push)
 npm run build   # typecheck, then dist/
 ```
 
-Start at `#/` (website), `#/studio` (assistant), `#/studio/flows` (flows and editor) or `#/admin` (operator console). More: [docs/architecture.md](docs/architecture.md) for how it is built and checked, [docs/xwui-issues.md](docs/xwui-issues.md) for six problems found in the published XWUI bundle and how each is worked around.
+Start at `#/` (website), `#/studio` (assistant), `#/studio/flows` (flows and editor) or `#/admin` (operator console). More: [docs/architecture.md](docs/architecture.md) for how it is built and checked, [docs/xwui-issues.md](docs/xwui-issues.md) for the problems found in the published XWUI bundle (behaviour and accessibility) and how each is worked around.
 
 ## Assumptions
 

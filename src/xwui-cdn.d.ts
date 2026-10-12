@@ -39,6 +39,13 @@ declare module "https://xwui.dev/esm/basic.bundle.js" {
     on<K extends keyof E & string>(type: K, listener: (event: Event) => void): () => void;
   }
 
+  /** Registers an XWUI component class as a custom element, with the attributes that feed its data and config. */
+  export function createXWUIElement(
+    component: unknown,
+    tag: string,
+    options?: { flatAttrsToConfig?: string[]; flatAttrsToData?: string[] },
+  ): unknown;
+
   export class XWUIButton extends XWUIComponent {
     onClick(handler: (event: MouseEvent) => void): void;
     updateConfig(config: object): void;

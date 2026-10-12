@@ -69,17 +69,19 @@ describe("XWUI composition only", () => {
     expect(adapters.length).toBeGreaterThan(0);
     for (const path of adapters) {
       const base = path.replace(/\.ts$/, "");
-      // XWUI's split: types, JSON schema, headless logic, pure view, stylesheet, adapter.
-      for (const part of [".types.ts", ".json", ".logic.ts", ".view.ts", ".css"]) expect(Object.keys(components), `${base}${part}`).toContain(`${base}${part}`);
+      // XWUI's split: types, JSON schema, headless logic, pure view, stylesheet, adapter, docs and examples.
+      for (const part of [".types.ts", ".json", ".logic.ts", ".view.ts", ".css", ".md", ".examples.ts"]) expect(Object.keys(components), `${base}${part}`).toContain(`${base}${part}`);
       expect(components[path], path).toMatch(/extends XWUIComponent\b/);
       expect(components[path], path).toMatch(/from "\.\.\/\.\.\/xwui"/);
     }
   });
 
-  it("names app components XWFlow and never registers an xwui- tag of its own", () => {
+  it("names app components XWFlow and registers only xwflow- tags", () => {
     for (const [path, code] of Object.entries(components)) {
       expect(path, path).not.toMatch(/\/XWUI[A-Z]/);
-      expect(code, path).not.toMatch(/createXWUIElement\(|customElements\.define\(/);
+      // Registered the XWUI way, under the app's own xwflow- names only.
+      expect(code, path).not.toMatch(/customElements\.define\(/);
+      for (const [, tag] of code.matchAll(/createXWUIElement\(\s*\w+,\s*"([^"]+)"/g)) expect(tag, path).toMatch(/^xwflow-/);
       expect(code, path).not.toMatch(/class XWUI[A-Z]/);
       expect(code, path).not.toMatch(/["'`]\.?xwui-(?!hue)[a-z-]+/);
     }

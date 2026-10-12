@@ -57,4 +57,19 @@ test.describe("notation views", () => {
     expect(svg.suggestedFilename()).toBe("order-alert-bpmn.svg");
     await expectNotice(page, /exported|saved|order-alert/i);
   });
+
+  test("the XWFlow components are custom elements plain HTML can use", async ({ page }) => {
+    await open(page, `${flow}/flowchart`);
+    const drawn = await page.evaluate(async () => {
+      const element = document.createElement("xwflow-notation-diagram") as HTMLElement & { config: object; data: object };
+      element.config = { mode: "flowchart" };
+      element.data = { title: "Two steps", steps: [{ id: "a", name: "First", shape: "terminal", hue: "lime" }, { id: "b", name: "Second", shape: "process", hue: "cyan" }], edges: [{ from: "a", to: "b" }] };
+      document.body.append(element);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return element.querySelector("svg")?.textContent ?? "";
+    });
+    expect(drawn).toContain("First");
+    expect(drawn).toContain("Second");
+    expect(await page.evaluate(() => Boolean(customElements.get("xwflow-layer-stack")))).toBe(true);
+  });
 });

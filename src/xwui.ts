@@ -9,6 +9,7 @@ export {
   XWUICodeBlock,
   XWUIComponent,
   XWUIComponentLogic,
+  createXWUIElement,
   XWUIComposer,
   XWUIFlowCanvas,
   XWUIFlowScene,

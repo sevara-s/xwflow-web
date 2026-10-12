@@ -124,3 +124,24 @@ describe("XWFlow view renderer", () => {
     expect(host.innerHTML).toBe("<span>again</span>");
   });
 });
+
+describe("XWFlow component examples", () => {
+  it("every notation diagram example draws its steps or messages", async () => {
+    const { examples } = await import("../src/components/notation-diagram/XWFlowNotationDiagram.examples");
+    expect(examples.map((example) => example.config.mode)).toEqual(["flowchart", "swimlane", "bpmn", "sequence", "simulation"]);
+    for (const example of examples) {
+      const view = projectNotationDiagramView({ data: example.data, config: example.config }, { onSelect: () => undefined });
+      const words = texts(view.node);
+      for (const step of example.data.steps ?? []) expect(words, example.name).toContain(step.name);
+      for (const message of example.data.messages ?? []) expect(words.join(" "), example.name).toContain(message.label);
+    }
+  });
+
+  it("every layer stack example draws its layers", async () => {
+    const { examples } = await import("../src/components/layer-stack/XWFlowLayerStack.examples");
+    for (const example of examples) {
+      const view = projectLayerStackView({ data: example.data, config: example.config });
+      expect(texts(view.node), example.name).toEqual(expect.arrayContaining((example.data.layers ?? []).map((layer) => layer.label)));
+    }
+  });
+});

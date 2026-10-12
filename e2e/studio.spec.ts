@@ -45,6 +45,22 @@ test.describe("flows", () => {
 });
 
 test.describe("editor", () => {
+  for (const [width, height, free] of [[1440, 900, 1440 - 282 - 372], [1024, 768, 1024 - 2 * 16]]) {
+    test(`the flow fills the canvas at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
+      await open(page, "/studio/flows/f_order_alert");
+      // Steps span most of the room the panels leave, not a thumbnail at the top.
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const boxes = Array.from(document.querySelectorAll(".xwui-flow-canvas__node")).map((node) => node.getBoundingClientRect());
+            return Math.max(...boxes.map((box) => box.right)) - Math.min(...boxes.map((box) => box.left));
+          }),
+        )
+        .toBeGreaterThan(free * 0.7);
+    });
+  }
+
   test("a click selects a step, a drag moves it without selecting", async ({ page }) => {
     await open(page, "/studio/flows/f_order_alert");
     await page.getByRole("button", { name: /^Over 500\?/ }).first().click();

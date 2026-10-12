@@ -9,6 +9,7 @@ import type { FlowDetail, RunDetail } from "../../types/domain";
 import { canvasData } from "../../ui/flow";
 import { button, keys, row, space, stack, status, text, type Node } from "../../ui/kit";
 import type { XWUIButton, XWUIComposer, XWUIFlowCanvas, XWUIInputText } from "../../xwui";
+import { breakpoints } from "../../ui/layout";
 import { inspector, pinToggle, type InspectorContext } from "./editor-inspector";
 import { latestFailure, palette, runBody, statusTags } from "./editor-panels";
 
@@ -262,6 +263,18 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
   );
 
   let pressed: { id: string | undefined; x: number; y: number } | null = null;
+  // Beside the stage the panels float over it, so the fit keeps clear of them;
+  // stacked under it (narrow screens) only the gap is left.
+  const stacked = window.matchMedia(breakpoints.workbench);
+  const insets = (): { top: number; left: number; right: number; bottom: number } =>
+    stacked.matches
+      ? { top: PANEL.gap, left: PANEL.gap, right: PANEL.gap, bottom: PANEL.gap }
+      : {
+          top: PANEL.gap * 2 + PANEL.header,
+          left: PANEL.gap * 2 + PANEL.start,
+          right: PANEL.gap * 2 + PANEL.end,
+          bottom: PANEL.gap * 2 + PANEL.bottom,
+        };
   const stage: Node = {
     tag: "xwui-flow-canvas",
     key: "editor-canvas",
@@ -272,12 +285,7 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
       minimap: true,
       flush: true,
       maxFitScale: 1.15,
-      insets: {
-        top: PANEL.gap * 2 + PANEL.header,
-        left: PANEL.gap * 2 + PANEL.start,
-        right: PANEL.gap * 2 + PANEL.end,
-        bottom: PANEL.gap * 2 + PANEL.bottom,
-      },
+      insets: insets(),
     },
     // The published XWUIFlowCanvas captures the pointer on its viewport, so Chrome
     // sends a mouse click to the viewport, not the step card, and the canvas
@@ -299,6 +307,17 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
     },
     ref: (instance) => {
       const board = instance as XWUIFlowCanvas;
+      // The published canvas fits once when it mounts, before the workbench has
+      // sized the stage, so the flow came up small at the top. Fit again once
+      // the first layout is done, and whenever the panels move beside or under
+      // the stage (docs/xwui-issues.md).
+      requestAnimationFrame(() => requestAnimationFrame(() => board.fit()));
+      const refit = (): void => {
+        board.updateConfig({ insets: insets() });
+        board.fit();
+      };
+      stacked.addEventListener("change", refit);
+      context.onLeave(() => stacked.removeEventListener("change", refit));
       // The canvas marks the clicked card itself; selecting again would re-emit.
       board.on("select", (({ id: nodeId }: { id: string }) => {
         selectedId = nodeId;

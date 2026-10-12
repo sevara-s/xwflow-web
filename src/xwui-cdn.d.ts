@@ -147,6 +147,7 @@ declare module "https://xwui.dev/esm/basic.bundle.js" {
     getInstanceByKey<T = unknown>(key: string): T | undefined;
   }
   export class XWUIFlowCanvas extends XWUIComponent {
+    updateConfig(config: object): void;
     fit(): void;
     zoom(factor: number): void;
     tidy(): void;

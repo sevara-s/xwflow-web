@@ -82,4 +82,6 @@ export const breakpoints = {
   phone: "(max-width: 640px)",
   /** Below this the rails start collapsed. */
   tablet: "(max-width: 860px)",
+  /** At or below this the published XWUIWorkbench stacks its panels under the stage. */
+  workbench: "(max-width: 1100px)",
 } as const;

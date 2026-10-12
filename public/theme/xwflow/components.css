@@ -36,3 +36,18 @@
     clip-path: inset(50%);
     white-space: nowrap;
 }
+
+/*
+ * XWUIFlowCanvas places its tools and minimap 16px inside the bottom fit inset,
+ * that is over the flow, so the minimap covered steps. The editor's fit leaves
+ * a strip of --xwflow-canvas-foot at the bottom of the free area (its PANEL.foot)
+ * and the overlays sit in that strip (the editor sets this class;
+ * docs/xwui-issues.md).
+ */
+.xwflow-canvas-footed {
+    --xwflow-canvas-foot: 112px;
+}
+.xwflow-canvas-footed .xwui-flow-canvas__minimap,
+.xwflow-canvas-footed .xwui-flow-canvas__tools {
+    bottom: calc(var(--xwui-flow-inset-bottom, 0px) - var(--xwflow-canvas-foot) + 16px);
+}

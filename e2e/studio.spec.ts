@@ -45,19 +45,35 @@ test.describe("flows", () => {
 });
 
 test.describe("editor", () => {
-  for (const [width, height, free] of [[1440, 900, 1440 - 282 - 372], [1024, 768, 1024 - 2 * 16]]) {
-    test(`the flow fills the canvas at ${width} px`, async ({ page }) => {
+  for (const [width, height] of [[1440, 900], [1024, 768], [390, 844]]) {
+    test(`the flow opens fitted to the canvas at ${width} px`, async ({ page }) => {
       await page.setViewportSize({ width, height });
       await open(page, "/studio/flows/f_order_alert");
-      // Steps span most of the room the panels leave, not a thumbnail at the top.
+      const scale = (): Promise<number> =>
+        page.evaluate(() => Number((document.querySelector(".xwui-flow-canvas__stage") as HTMLElement).style.transform.match(/scale\(([\d.]+)\)/)?.[1] ?? 0));
+      await expect.poll(scale).toBeGreaterThan(0);
+      await page.waitForTimeout(500);
+      // As drawn on open, the flow matches what Fit view gives; before the fix
+      // it opened as a thumbnail (scale 0.35 against 0.95 at 1440 px).
+      const opened = await scale();
+      await page.getByRole("button", { name: /^Fit/ }).click();
+      expect(await scale()).toBeCloseTo(opened, 2);
+    });
+  }
+
+  for (const [width, height] of [[1440, 900], [1024, 768], [390, 844]]) {
+    test(`no step sits under the canvas tools or minimap at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
+      await open(page, "/studio/flows/f_order_alert");
       await expect
         .poll(() =>
           page.evaluate(() => {
-            const boxes = Array.from(document.querySelectorAll(".xwui-flow-canvas__node")).map((node) => node.getBoundingClientRect());
-            return Math.max(...boxes.map((box) => box.right)) - Math.min(...boxes.map((box) => box.left));
+            const overlays = [".xwui-flow-canvas__minimap", ".xwui-flow-canvas__tools"].map((selector) => document.querySelector(selector)!.getBoundingClientRect());
+            const hit = (a: DOMRect, b: DOMRect): boolean => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+            return Array.from(document.querySelectorAll(".xwui-flow-canvas__node")).filter((node) => overlays.some((overlay) => hit(node.getBoundingClientRect(), overlay))).length;
           }),
         )
-        .toBeGreaterThan(free * 0.7);
+        .toBe(0);
     });
   }
 

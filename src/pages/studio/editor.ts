@@ -19,7 +19,9 @@ const words = catalog.studio.editor;
 
 /** Panel sizes; the canvas fit keeps clear of them. */
 // Pixel numbers for the canvas insets below; the gap is the scale's 16 the workbench uses.
-const PANEL = { gap: 16, header: 62, start: 250, end: 340, bottom: 250 } as const;
+// `foot` is the strip under the flow for the canvas tools and minimap
+// (84px minimap, its 16px offset, a gap); --xwflow-canvas-foot in components.css.
+const PANEL = { gap: 16, header: 62, start: 250, end: 340, bottom: 250, foot: 112 } as const;
 
 /** A press that moves further than this is a drag, not a click. */
 const CLICK_SLOP = 4;
@@ -264,16 +266,17 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
 
   let pressed: { id: string | undefined; x: number; y: number } | null = null;
   // Beside the stage the panels float over it, so the fit keeps clear of them;
-  // stacked under it (narrow screens) only the gap is left.
+  // stacked under it (narrow screens) only the gap is left. Either way the fit
+  // leaves the foot strip, where the theme keeps the tools and minimap.
   const stacked = window.matchMedia(breakpoints.workbench);
   const insets = (): { top: number; left: number; right: number; bottom: number } =>
     stacked.matches
-      ? { top: PANEL.gap, left: PANEL.gap, right: PANEL.gap, bottom: PANEL.gap }
+      ? { top: PANEL.gap, left: PANEL.gap, right: PANEL.gap, bottom: PANEL.gap + PANEL.foot }
       : {
           top: PANEL.gap * 2 + PANEL.header,
           left: PANEL.gap * 2 + PANEL.start,
           right: PANEL.gap * 2 + PANEL.end,
-          bottom: PANEL.gap * 2 + PANEL.bottom,
+          bottom: PANEL.gap * 2 + PANEL.bottom + PANEL.foot,
         };
   const stage: Node = {
     tag: "xwui-flow-canvas",
@@ -286,6 +289,7 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
       flush: true,
       maxFitScale: 1.15,
       insets: insets(),
+      className: "xwflow-canvas-footed",
     },
     // The published XWUIFlowCanvas captures the pointer on its viewport, so Chrome
     // sends a mouse click to the viewport, not the step card, and the canvas
@@ -308,16 +312,21 @@ export async function view(context: ViewContext<EditorRoute>): Promise<PageResul
     ref: (instance) => {
       const board = instance as XWUIFlowCanvas;
       // The published canvas fits once when it mounts, before the workbench has
-      // sized the stage, so the flow came up small at the top. Fit again once
-      // the first layout is done, and whenever the panels move beside or under
-      // the stage (docs/xwui-issues.md).
-      requestAnimationFrame(() => requestAnimationFrame(() => board.fit()));
-      const refit = (): void => {
+      // sized the stage, so the flow came up small at the top. Fit again each
+      // time the canvas changes size: when the workbench lays it out, and when
+      // the panels move beside or under the stage (docs/xwui-issues.md).
+      let size = "";
+      const resized = new ResizeObserver(([entry]) => {
+        const next = `${Math.round(entry.contentRect.width)}x${Math.round(entry.contentRect.height)}`;
+        if (next === size || !entry.contentRect.width || !entry.contentRect.height) return;
+        size = next;
         board.updateConfig({ insets: insets() });
         board.fit();
-      };
-      stacked.addEventListener("change", refit);
-      context.onLeave(() => stacked.removeEventListener("change", refit));
+      });
+      // The host tag is inline, which a ResizeObserver never reports; its root
+      // block is what fit() measures.
+      resized.observe(board.container.querySelector(".xwui-flow-canvas") ?? board.container);
+      context.onLeave(() => resized.disconnect());
       // The canvas marks the clicked card itself; selecting again would re-emit.
       board.on("select", (({ id: nodeId }: { id: string }) => {
         selectedId = nodeId;

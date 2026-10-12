@@ -114,7 +114,7 @@ export async function mountApplication(root: HTMLElement): Promise<void> {
   // The whole screen is one XWUIComposer tree: the frame (rail, bar, header) and,
   // inside it, the page area - a nested composer, so a page change swaps only the page.
   const composer = new XWUIComposer(root, { tree: [toastNode] });
-  let leave: Array<() => void> = [];
+  const leave: Array<() => void> = [];
   let workspace: Workspace | null = null;
   let generation = 0;
   let mountedKind: string | null = null;

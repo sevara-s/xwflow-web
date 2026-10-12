@@ -76,3 +76,13 @@ export function nextId(prefix) {
 export function matches(text, q) {
   return !q || text.toLowerCase().includes(q.trim().toLowerCase());
 }
+
+export function consoleError(code, message) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
+
+export function logAudit(kind, group, title, object) {
+  store.admin.audit.unshift({ id: nextId("e"), kind, group, title, object, actor: { name: "You", class: "person" }, onBehalfOf: null, at: Date.now() });
+}

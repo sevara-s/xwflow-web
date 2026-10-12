@@ -7,6 +7,8 @@ export default mergeConfig(
   defineConfig({
     test: {
       include: ["tests/**/*.test.ts"],
+      // The app runs in a browser: tests get its DOM and sessionStorage on every Node version.
+      environment: "happy-dom",
       coverage: {
         provider: "v8",
         include: ["src/**/*.{ts,js}"],

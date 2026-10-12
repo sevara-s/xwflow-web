@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { describe, expect, it } from "vitest";
 import { layerPlaces, projectLayerStackView } from "../src/components/layer-stack/XWFlowLayerStack.view";
 import { branchRows, columns, connector, extent, layout } from "../src/components/notation-diagram/XWFlowNotationDiagram.layout";

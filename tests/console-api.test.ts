@@ -5,7 +5,7 @@ async function freshApi() {
   return import("../src/api/dummy-api.js");
 }
 
-beforeEach(() => sessionStorage.clear());
+beforeEach(() => globalThis.sessionStorage?.clear());
 
 describe("operator console API", () => {
   it("filters tenants, adds one, refuses a duplicate and suspending your own", async () => {

@@ -5,7 +5,7 @@ async function freshApi() {
   return import("../src/api/dummy-api.js");
 }
 
-beforeEach(() => sessionStorage.clear());
+beforeEach(() => globalThis.sessionStorage?.clear());
 
 describe("workspace pages API", () => {
   it("puts failures before warnings in the overview and counts today", async () => {

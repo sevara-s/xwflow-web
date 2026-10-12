@@ -5,7 +5,7 @@ async function freshApi() {
   return import("../src/api/dummy-api.js");
 }
 
-beforeEach(() => sessionStorage.clear());
+beforeEach(() => globalThis.sessionStorage?.clear());
 
 describe("project areas API", () => {
   it("lists agents with workspace counts, and filters by text and status", async () => {

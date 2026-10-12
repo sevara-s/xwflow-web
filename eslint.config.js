@@ -8,7 +8,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     files: ["**/*.{ts,js}"],
-    languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: { window: "readonly", document: "readonly", console: "readonly", setTimeout: "readonly", clearTimeout: "readonly", setInterval: "readonly", clearInterval: "readonly", requestAnimationFrame: "readonly", sessionStorage: "readonly", structuredClone: "readonly", performance: "readonly", URL: "readonly", Blob: "readonly", HTMLElement: "readonly", Element: "readonly", Event: "readonly", CustomEvent: "readonly", XMLSerializer: "readonly", navigator: "readonly", process: "readonly" } },
+    languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: { window: "readonly", document: "readonly", console: "readonly", setTimeout: "readonly", clearTimeout: "readonly", setInterval: "readonly", clearInterval: "readonly", requestAnimationFrame: "readonly", sessionStorage: "readonly", structuredClone: "readonly", performance: "readonly", URL: "readonly", URLSearchParams: "readonly", Blob: "readonly", HTMLElement: "readonly", Element: "readonly", Event: "readonly", CustomEvent: "readonly", XMLSerializer: "readonly", navigator: "readonly", process: "readonly" } },
     rules: {
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", ignoreRestSiblings: true }],
     },

@@ -1,7 +1,7 @@
 /**
  * Dummy API: admin and system: the admin shell, overview, branding, audit, health, access.
  */
-import { LATENCY_MS, clone, consoleError, logAudit, nextId, save, store, wait } from "../core.js";
+import { clone, consoleError, logAudit, nextId, read, save, store, write } from "../core.js";
 
 function commercialOnly() {
   const error = new Error("Per-tenant branding requires Commercial.");
@@ -11,25 +11,25 @@ function commercialOnly() {
 
 /** Tenant, plan and the worst service state, for the admin shell. */
 export async function getAdminContext() {
-  await wait(LATENCY_MS.read);
+  await read();
   const { tenant, services } = store.admin;
   const worst = services.some((item) => item.state === "err") ? "err" : services.some((item) => item.state === "warn") ? "warn" : "ok";
   return clone({ tenant, health: worst });
 }
 
 export async function getAdminOverview() {
-  await wait(LATENCY_MS.read);
+  await read();
   const { overview, services } = store.admin;
   return clone({ ...overview, reachability: services.filter((item) => item.reach) });
 }
 
 export async function getBranding() {
-  await wait(LATENCY_MS.read);
+  await read();
   return clone({ ...store.admin.branding, plan: store.admin.tenant.plan });
 }
 
 export async function saveBranding(kit) {
-  await wait(LATENCY_MS.write);
+  await write();
   if (store.admin.tenant.plan !== "commercial") throw commercialOnly();
   store.admin.branding = { ...store.admin.branding, ...kit };
   save();
@@ -37,7 +37,7 @@ export async function saveBranding(kit) {
 }
 
 export async function listAudit(query = {}) {
-  await wait(LATENCY_MS.read);
+  await read();
   const days = query.days ?? store.admin.auditRetentionDays;
   const since = Date.now() - days * 24 * 60 * 60 * 1000;
   const all = store.admin.audit;
@@ -58,7 +58,7 @@ export async function listAudit(query = {}) {
 }
 
 export async function getHealth() {
-  await wait(LATENCY_MS.read);
+  await read();
   const { checks, uptime, log, services } = store.admin;
   return clone({ checks, uptime, log, services });
 }
@@ -68,7 +68,7 @@ export async function getHealth() {
  * so "Check again" shows a recovery; the scheduler heartbeat stays late.
  */
 export async function recheckHealth() {
-  await wait(LATENCY_MS.write + 300);
+  await write(300);
   const now = Date.now();
   const { admin } = store;
   for (const check of admin.checks) check.checkedAt = now;
@@ -88,7 +88,7 @@ export async function recheckHealth() {
 }
 
 export async function pauseSchedules() {
-  await wait(LATENCY_MS.write);
+  await write();
   const scheduled = store.flows.filter((flow) => flow.trigger.kind !== "webhook" && flow.status !== "draft");
   for (const schedule of store.console.schedules) schedule.enabled = false;
   store.admin.audit.unshift({
@@ -106,7 +106,7 @@ export async function pauseSchedules() {
 }
 
 export async function drainWorker(workerId) {
-  await wait(LATENCY_MS.write);
+  await write();
   const pool = store.console.workers;
   const target = (workerId && pool.find((item) => item.id === workerId)) || [...pool].reverse().find((item) => item.state !== "draining");
   if (!target) throw consoleError("no_worker", "Every worker is already draining.");
@@ -121,12 +121,12 @@ export async function drainWorker(workerId) {
 }
 
 export async function getAccessDenial() {
-  await wait(LATENCY_MS.read);
+  await read();
   return clone({ ...store.admin.denied, yourRole: store.admin.you.role });
 }
 
 export async function requestAccess(role) {
-  await wait(LATENCY_MS.write);
+  await write();
   store.sequence += 1;
   save();
   return { role, reference: `AR-${store.sequence.toString(16).toUpperCase()}` };

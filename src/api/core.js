@@ -1,5 +1,6 @@
 /**
- * Dummy API: store, timing and shared helpers: the session store, simulated latency, ids, matching, errors.
+ * Dummy API core: the session store, simulated latency and failures, ids,
+ * matching, errors and the audit trail every module shares.
  */
 import { seedAdmin } from "./data/admin.js";
 import { seedConsole } from "./data/console.js";
@@ -10,17 +11,60 @@ import { seedWorkspace } from "./data/workspace.js";
 export const STORE_KEY = "xwflow.dummy.v4";
 export const GROUP_ORDER = ["trigger", "control", "data", "ai", "integration"];
 /**
- * A token delay so every call stays asynchronous, as a real API's would. It
- * was 180 ms per read and 420 ms per write, which made every page change wait
- * on purpose; the local stand-in has no network to simulate that well.
+ * How the stand-in network behaves. By default a token delay keeps every call
+ * asynchronous, as a real API's would (15 ms to read, 40 ms to write), and
+ * nothing fails. The address can ask for more (see settingsFromQuery), and
+ * tests set it directly with configureApi.
  */
-export const LATENCY_MS = { read: 15, write: 40 };
+const settings = { readMs: 15, writeMs: 40, failureRate: 0 };
+
+/** Named latencies for ?api-latency=. */
+const LATENCY_PRESETS = { none: [0, 0], fast: [15, 40], slow: [600, 1200] };
+
+/**
+ * Settings from an address query: ?api-latency=none|fast|slow and
+ * ?api-failures=<0 to 1>, the share of writes that fail. Unknown values are
+ * ignored.
+ */
+export function settingsFromQuery(search) {
+  const query = new URLSearchParams(search);
+  const out = {};
+  const latency = LATENCY_PRESETS[query.get("api-latency") ?? ""];
+  if (latency) [out.readMs, out.writeMs] = latency;
+  const failures = Number(query.get("api-failures"));
+  if (query.has("api-failures") && failures >= 0 && failures <= 1) out.failureRate = failures;
+  return out;
+}
+
+/** Change how the stand-in network behaves; returns the settings now in force. */
+export function configureApi(patch = {}) {
+  Object.assign(settings, patch);
+  return { ...settings };
+}
+
+configureApi(settingsFromQuery(globalThis.location?.search ?? ""));
+
+/** Wait as a read would. */
+export function read() {
+  return wait(settings.readMs);
+}
+
+/**
+ * Wait as a write would (plus `extraMs` for slower work), and fail at the
+ * configured rate before anything changes, as a dropped request would.
+ */
+export async function write(extraMs = 0) {
+  await wait(settings.writeMs + extraMs);
+  if (settings.failureRate && Math.random() < settings.failureRate) {
+    throw consoleError("unavailable", "The server did not answer. Nothing was changed; try again.");
+  }
+}
 /** How long one step takes when the dummy engine plays a new run. */
 export const STEP_MS = 650;
 /** How long the seeded "running now" run keeps running after load. */
 export const SEEDED_RUN_MS = 10 * 60_000;
 
-export let store = load();
+export const store = load();
 export const listeners = new Set();
 
 export function wait(ms) {

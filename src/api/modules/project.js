@@ -1,10 +1,10 @@
 /**
  * Dummy API: project areas: agents, tables, forms, variables, MCP servers.
  */
-import { LATENCY_MS, clone, findIn, invalid, matches, nextId, save, store, wait } from "../core.js";
+import { clone, findIn, invalid, matches, nextId, read, save, store, write } from "../core.js";
 
 export async function listAgents(query = {}) {
-  await wait(LATENCY_MS.read);
+  await read();
   const agents = store.project.agents.filter((agent) => matches(`${agent.name} ${agent.description}`, query.q ?? "") && (!query.status || agent.status === query.status));
   const all = store.project.agents;
   return clone({
@@ -19,7 +19,7 @@ export async function listAgents(query = {}) {
 
 /** Go live, pause or return to draft. A draft has to be published to go live. */
 export async function setAgentStatus(agentId, status) {
-  await wait(LATENCY_MS.write);
+  await write();
   const agent = findIn(store.project.agents, "Agent", agentId);
   if (!["live", "paused", "draft"].includes(status)) throw invalid(`Unknown agent status ${status}.`);
   agent.status = status;
@@ -29,7 +29,7 @@ export async function setAgentStatus(agentId, status) {
 }
 
 export async function createAgent({ name, description = "" }) {
-  await wait(LATENCY_MS.write);
+  await write();
   if (!name?.trim()) throw invalid("An agent needs a name.");
   const agent = {
     id: nextId("ag"),
@@ -51,22 +51,22 @@ export async function createAgent({ name, description = "" }) {
 }
 
 export async function listTables() {
-  await wait(LATENCY_MS.read);
+  await read();
   return clone(store.project.tables.map(({ records, ...table }) => ({ ...table, columnCount: table.columns.length })));
 }
 
 export async function getTable(tableId) {
-  await wait(LATENCY_MS.read);
+  await read();
   return clone(findIn(store.project.tables, "Table", tableId));
 }
 
 export async function listForms() {
-  await wait(LATENCY_MS.read);
+  await read();
   return clone(store.project.forms);
 }
 
 export async function setFormStatus(formId, status) {
-  await wait(LATENCY_MS.write);
+  await write();
   const form = findIn(store.project.forms, "Form", formId);
   if (status === "live" && !form.flow) throw invalid(`${form.name} needs a flow before it can go live.`);
   form.status = status;
@@ -77,7 +77,7 @@ export async function setFormStatus(formId, status) {
 
 /** Secret values never leave the store: the list carries a mask instead. */
 export async function listVariables(query = {}) {
-  await wait(LATENCY_MS.read);
+  await read();
   const scope = query.scope ?? "";
   return clone(
     store.project.variables
@@ -88,7 +88,7 @@ export async function listVariables(query = {}) {
 }
 
 export async function addVariable({ key, value, secret = false, scope = "all" }) {
-  await wait(LATENCY_MS.write);
+  await write();
   const name = key?.trim().toUpperCase().replace(/[^A-Z0-9_]/g, "_");
   if (!name) throw invalid("A variable needs a name.");
   if (store.project.variables.some((variable) => variable.key === name && (variable.scope === scope || variable.scope === "all" || scope === "all"))) {
@@ -102,7 +102,7 @@ export async function addVariable({ key, value, secret = false, scope = "all" })
 }
 
 export async function deleteVariable(variableId) {
-  await wait(LATENCY_MS.write);
+  await write();
   const variable = findIn(store.project.variables, "Variable", variableId);
   if (variable.usedBy > 0) throw invalid(`${variable.key} is used by ${variable.usedBy} step(s). Remove it from them first.`);
   store.project.variables = store.project.variables.filter((item) => item.id !== variableId);
@@ -111,13 +111,13 @@ export async function deleteVariable(variableId) {
 }
 
 export async function listMcpServers() {
-  await wait(LATENCY_MS.read);
+  await read();
   return clone(store.project.mcpServers);
 }
 
 /** Enable or disable a server; enabling reconnects (an errored server recovers). */
 export async function setMcpServerEnabled(serverId, enabled) {
-  await wait(LATENCY_MS.write);
+  await write();
   const server = findIn(store.project.mcpServers, "MCP server", serverId);
   server.status = enabled ? "connected" : "disabled";
   server.lastError = null;
@@ -127,7 +127,7 @@ export async function setMcpServerEnabled(serverId, enabled) {
 }
 
 export async function addMcpServer({ name, url }) {
-  await wait(LATENCY_MS.write);
+  await write();
   if (!name?.trim()) throw invalid("A server needs a name.");
   if (!/^(https?|stdio):\/\//.test(url ?? "")) throw invalid("Use an https:// or stdio:// address.");
   const server = {

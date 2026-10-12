@@ -1,7 +1,7 @@
 /**
  * Dummy API: notation views of a flow.
  */
-import { LATENCY_MS, clone, store, wait } from "../core.js";
+import { clone, read, store } from "../core.js";
 import { findFlow, runDetail, settleRuns, summarize, walkOrder } from "../engine.js";
 
 /** Which outside system each step type talks to: the lanes of the swimlane, BPMN, sequence and 3D views. */
@@ -29,7 +29,7 @@ const SYSTEMS = {
 
 /** Everything a notation view needs: steps in walk order with their system, edges, and recorded runs. */
 export async function getFlowView(flowId) {
-  await wait(LATENCY_MS.read);
+  await read();
   settleRuns();
   const flow = findFlow(flowId);
   const names = SYSTEMS[flowId] ?? { source: "Source", engine: "xwflow", api: "API", chat: "Chat", table: "Table" };

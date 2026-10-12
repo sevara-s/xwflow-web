@@ -3,12 +3,12 @@
  */
 import { linearGraph } from "../data/studio.js";
 import { templates } from "../data/workspace.js";
-import { LATENCY_MS, clone, findIn, invalid, matches, nextId, notFound, save, store, wait } from "../core.js";
+import { clone, findIn, invalid, matches, nextId, notFound, read, save, store, write } from "../core.js";
 import { findFlow, settleRuns, summarize } from "../engine.js";
 
 /** What needs a person today, worst first, plus today's numbers and the latest runs. */
 export async function getOverview() {
-  await wait(LATENCY_MS.read);
+  await read();
   settleRuns();
   const today = store.extras.insightDays.at(-1);
   const running = store.runs.filter((run) => run.status === "running").length;
@@ -47,7 +47,7 @@ export async function getOverview() {
 }
 
 export async function listTemplates(query = {}) {
-  await wait(LATENCY_MS.read);
+  await read();
   const category = query.category ?? "";
   const list = templates.filter((template) => (!category || template.category === category) && matches(`${template.name} ${template.summary}`, query.q ?? ""));
   return clone({ templates: list, categories: [...new Set(templates.map((template) => template.category))] });
@@ -55,7 +55,7 @@ export async function listTemplates(query = {}) {
 
 /** A new draft flow built from a template's steps, ready to open in the editor. */
 export async function useTemplate(templateId) {
-  await wait(LATENCY_MS.write);
+  await write();
   const template = templates.find((item) => item.id === templateId);
   if (!template) throw notFound("Template", templateId);
   const flow = {
@@ -76,7 +76,7 @@ export async function useTemplate(templateId) {
 const FLOW_SHARE = { f_order_alert: 0.34, f_sync_customers: 0.3, f_lead_intake: 0.18, f_invoice_digest: 0.1, f_refund: 0.08 };
 
 export async function getInsights(query = {}) {
-  await wait(LATENCY_MS.read);
+  await read();
   const days = query.days === 7 ? 7 : 14;
   const series = store.extras.insightDays.slice(-days);
   const runs = series.reduce((sum, day) => sum + day.succeeded + day.failed, 0);
@@ -105,12 +105,12 @@ export async function getInsights(query = {}) {
 }
 
 export async function getSettings() {
-  await wait(LATENCY_MS.read);
+  await read();
   return clone(store.extras.settings);
 }
 
 export async function saveGeneral(patch) {
-  await wait(LATENCY_MS.write);
+  await write();
   const general = store.extras.settings.general;
   if (patch.name !== undefined && !String(patch.name).trim()) throw invalid("The workspace needs a name.");
   if (patch.retentionDays !== undefined && ![7, 30, 90].includes(Number(patch.retentionDays))) throw invalid("Keep runs for 7, 30 or 90 days.");
@@ -121,7 +121,7 @@ export async function saveGeneral(patch) {
 }
 
 export async function inviteMember({ email, role = "editor" }) {
-  await wait(LATENCY_MS.write);
+  await write();
   const address = String(email ?? "").trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address)) throw invalid("Enter an email address.");
   const members = store.extras.settings.members;
@@ -133,7 +133,7 @@ export async function inviteMember({ email, role = "editor" }) {
 }
 
 export async function setMemberRole(memberId, role) {
-  await wait(LATENCY_MS.write);
+  await write();
   const member = findIn(store.extras.settings.members, "Member", memberId);
   if (member.role === "owner") throw invalid("The owner's role cannot change.");
   if (!["editor", "viewer"].includes(role)) throw invalid(`Unknown role ${role}.`);
@@ -143,7 +143,7 @@ export async function setMemberRole(memberId, role) {
 }
 
 export async function removeMember(memberId) {
-  await wait(LATENCY_MS.write);
+  await write();
   const member = findIn(store.extras.settings.members, "Member", memberId);
   if (member.role === "owner") throw invalid("The owner cannot be removed.");
   store.extras.settings.members = store.extras.settings.members.filter((item) => item.id !== memberId);
@@ -153,7 +153,7 @@ export async function removeMember(memberId) {
 
 /** The full token is returned once, here; the list only ever shows its prefix. */
 export async function createApiKey({ name, scopes = ["runs:read"] }) {
-  await wait(LATENCY_MS.write);
+  await write();
   if (!name?.trim()) throw invalid("A key needs a name.");
   const secret = `xwf_live_${Math.random().toString(16).slice(2, 10)}${Math.random().toString(16).slice(2, 10)}`;
   const key = { id: nextId("k"), name: name.trim(), prefix: secret.slice(0, 13), createdAt: Date.now(), lastUsedAt: null, scopes };
@@ -163,7 +163,7 @@ export async function createApiKey({ name, scopes = ["runs:read"] }) {
 }
 
 export async function revokeApiKey(keyId) {
-  await wait(LATENCY_MS.write);
+  await write();
   findIn(store.extras.settings.apiKeys, "API key", keyId);
   store.extras.settings.apiKeys = store.extras.settings.apiKeys.filter((key) => key.id !== keyId);
   save();
@@ -171,7 +171,7 @@ export async function revokeApiKey(keyId) {
 }
 
 export async function setNotification(name, enabled) {
-  await wait(LATENCY_MS.write);
+  await write();
   const notifications = store.extras.settings.notifications;
   if (!(name in notifications)) throw invalid(`Unknown notification ${name}.`);
   notifications[name] = Boolean(enabled);
@@ -180,7 +180,7 @@ export async function setNotification(name, enabled) {
 }
 
 export async function listVersions(flowId) {
-  await wait(LATENCY_MS.read);
+  await read();
   const flow = findFlow(flowId);
   const versions = store.extras.versions[flowId] ?? [
     { id: `${flowId}_v1`, number: 1, label: flow.status === "draft" ? "Draft" : "Live", note: "First version.", author: flow.owner, at: flow.updatedAt, published: flow.status !== "draft", changes: { added: flow.graph.nodes.length, changed: 0, removed: 0 } },
@@ -190,7 +190,7 @@ export async function listVersions(flowId) {
 
 /** Restoring writes a new draft version on top; history is never rewritten. */
 export async function restoreVersion(flowId, versionId) {
-  await wait(LATENCY_MS.write);
+  await write();
   const flow = findFlow(flowId);
   const versions = (store.extras.versions[flowId] ??= []);
   const source = versions.find((version) => version.id === versionId);

@@ -3,11 +3,11 @@
  */
 import { nodeTypes } from "../data/site.js";
 import { linearGraph } from "../data/studio.js";
-import { GROUP_ORDER, LATENCY_MS, STEP_MS, clone, listeners, matches, nextId, notFound, save, store, wait } from "../core.js";
+import { clone, GROUP_ORDER, listeners, matches, nextId, notFound, read, save, STEP_MS, store, write } from "../core.js";
 import { findFlow, flowCounts, runCounts, runDetail, runSummary, scheduleSettle, settleRuns, summarize, walkOrder } from "../engine.js";
 
 export async function getWorkspace() {
-  await wait(LATENCY_MS.read);
+  await read();
   const { usage, ...rest } = store.workspace;
   return clone({ ...rest, usage: { ...usage, ratio: usage.included ? usage.used / usage.included : 0 } });
 }
@@ -20,7 +20,7 @@ export function subscribe(listener) {
 
 
 export async function listFlows(query = {}) {
-  await wait(LATENCY_MS.read);
+  await read();
   settleRuns();
   const flows = store.flows
     .filter((flow) => matches(`${flow.name} ${flow.folder}`, query.q))
@@ -32,7 +32,7 @@ export async function listFlows(query = {}) {
 }
 
 export async function getFlow(flowId) {
-  await wait(LATENCY_MS.read);
+  await read();
   settleRuns();
   const flow = findFlow(flowId);
   const steps = flow.graph.nodes.map((node) => ({
@@ -55,7 +55,7 @@ export async function getFlow(flowId) {
 }
 
 export async function createFlow({ name, folder }) {
-  await wait(LATENCY_MS.write);
+  await write();
   const flow = {
     id: nextId("f"),
     name,
@@ -72,7 +72,7 @@ export async function createFlow({ name, folder }) {
 }
 
 export async function publishFlow(flowId) {
-  await wait(LATENCY_MS.write);
+  await write();
   const flow = findFlow(flowId);
   flow.status = "published";
   flow.updatedAt = Date.now();
@@ -81,7 +81,7 @@ export async function publishFlow(flowId) {
 }
 
 export async function updateStep(flowId, nodeId, patch) {
-  await wait(LATENCY_MS.write);
+  await write();
   const flow = findFlow(flowId);
   const node = flow.graph.nodes.find((item) => item.id === nodeId);
   if (!node) throw notFound("Step", nodeId);
@@ -104,7 +104,7 @@ export async function updateStep(flowId, nodeId, patch) {
 
 /** Move steps on the canvas. Layout changes do not count as unpublished changes. */
 export async function moveSteps(flowId, positions) {
-  await wait(LATENCY_MS.write);
+  await write();
   const flow = findFlow(flowId);
   for (const position of positions) {
     const node = flow.graph.nodes.find((item) => item.id === position.id);
@@ -118,7 +118,7 @@ export async function moveSteps(flowId, positions) {
 }
 
 export async function addStep(flowId, item) {
-  await wait(LATENCY_MS.write);
+  await write();
   const flow = findFlow(flowId);
   const last = walkOrder(flow.graph).at(-1);
   const node = {
@@ -141,7 +141,7 @@ export async function addStep(flowId, item) {
 
 
 export async function listRuns(query = {}) {
-  await wait(LATENCY_MS.read);
+  await read();
   settleRuns();
   const runs = store.runs
     .map(runSummary)
@@ -154,7 +154,7 @@ export async function listRuns(query = {}) {
 }
 
 export async function getRun(runId) {
-  await wait(LATENCY_MS.read);
+  await read();
   settleRuns();
   const run = store.runs.find((item) => item.id === runId);
   if (!run) throw notFound("Run", runId);
@@ -162,7 +162,7 @@ export async function getRun(runId) {
 }
 
 export async function startRun(flowId, mode = "test") {
-  await wait(LATENCY_MS.write);
+  await write();
   const flow = findFlow(flowId);
   const steps = walkOrder(flow.graph).filter((node) => node.state !== "disabled").length;
   const now = Date.now();
@@ -183,7 +183,7 @@ export async function startRun(flowId, mode = "test") {
 }
 
 export async function retryRuns(runIds) {
-  await wait(LATENCY_MS.write);
+  await write();
   const created = [];
   for (const runId of runIds) {
     const source = store.runs.find((item) => item.id === runId);
@@ -200,7 +200,7 @@ export async function retryRuns(runIds) {
 }
 
 export async function deleteRuns(runIds) {
-  await wait(LATENCY_MS.write);
+  await write();
   const ids = new Set(runIds);
   const before = store.runs.length;
   store.runs = store.runs.filter((run) => !ids.has(run.id));
@@ -210,7 +210,7 @@ export async function deleteRuns(runIds) {
 
 
 export async function listConnections(query = {}) {
-  await wait(LATENCY_MS.read);
+  await read();
   const connections = store.connections
     .filter((item) => matches(`${item.name} ${item.audience}`, query.q))
     .filter((item) => !query.health || item.health === query.health);
@@ -218,7 +218,7 @@ export async function listConnections(query = {}) {
 }
 
 export async function testConnection(connectionId) {
-  await wait(LATENCY_MS.write);
+  await write();
   const connection = store.connections.find((item) => item.id === connectionId);
   if (!connection) throw notFound("Connection", connectionId);
   connection.lastUsedAt = Date.now();
@@ -227,7 +227,7 @@ export async function testConnection(connectionId) {
 }
 
 export async function reconnectConnection(connectionId) {
-  await wait(LATENCY_MS.write);
+  await write();
   const connection = store.connections.find((item) => item.id === connectionId);
   if (!connection) throw notFound("Connection", connectionId);
   connection.health = "healthy";
@@ -238,7 +238,7 @@ export async function reconnectConnection(connectionId) {
 }
 
 export async function addConnection({ name, auth, audience }) {
-  await wait(LATENCY_MS.write);
+  await write();
   const connection = {
     id: nextId("c"),
     name,
@@ -260,7 +260,7 @@ export async function addConnection({ name, auth, audience }) {
 }
 
 export async function getConnectionNames() {
-  await wait(LATENCY_MS.read);
+  await read();
   return clone(store.connections.map(({ id, name, health }) => ({ id, name, health })));
 }
 
@@ -275,7 +275,7 @@ function draftFor(prompt) {
 }
 
 export async function getAssistantHome() {
-  await wait(LATENCY_MS.read);
+  await read();
   const { suggestions, activeSuggestion, starters, recommended } = store.assistant;
   const active = suggestions.find((item) => item.id === activeSuggestion) ?? suggestions[0];
   const preview = draftFor(active.label);
@@ -283,12 +283,12 @@ export async function getAssistantHome() {
 }
 
 export async function draftFlow(prompt) {
-  await wait(LATENCY_MS.write + 400);
+  await write(400);
   return clone(draftFor(prompt));
 }
 
 export async function saveDraft(draft) {
-  await wait(LATENCY_MS.write);
+  await write();
   const flow = {
     id: nextId("f"),
     name: draft.title,

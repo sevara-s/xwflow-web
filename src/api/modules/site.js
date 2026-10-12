@@ -2,12 +2,12 @@
  * Dummy API: the public website's data: landing, node types, pricing, self-host, notations, quotes.
  */
 import { dialects, nodeTypes, notations, pricing, selfHost, tenants } from "../data/site.js";
-import { LATENCY_MS, clone, matches, save, store, wait } from "../core.js";
+import { clone, matches, read, save, store, write } from "../core.js";
 import { findFlow, runDetail, walkOrder } from "../engine.js";
 
 /** Everything the landing page shows, including the real sample flow and its receipt. */
 export async function getLanding() {
-  await wait(LATENCY_MS.read);
+  await read();
   const flow = findFlow("f_order_alert");
   const run = store.runs.find((item) => item.id === "r_7f39");
   return clone({
@@ -22,7 +22,7 @@ export async function getLanding() {
 }
 
 export async function listNodeTypes(query = {}) {
-  await wait(LATENCY_MS.read);
+  await read();
   const items = nodeTypes
     .filter((type) => !query.group || type.group === query.group)
     .filter((type) => matches(`${type.label} ${type.summary}`, query.q));
@@ -30,18 +30,18 @@ export async function listNodeTypes(query = {}) {
 }
 
 export async function getPricing() {
-  await wait(LATENCY_MS.read);
+  await read();
   return clone(pricing);
 }
 
 export async function getSelfHost() {
-  await wait(LATENCY_MS.read);
+  await read();
   return clone(selfHost);
 }
 
 /** The gallery, plus the sample flow every thumbnail draws so each notation shows the same flow. */
 export async function getNotations(query = {}) {
-  await wait(LATENCY_MS.read);
+  await read();
   const flow = findFlow("f_order_alert");
   const run = store.runs.find((item) => item.flowId === flow.id && item.attempts);
   return clone({
@@ -57,7 +57,7 @@ export async function getNotations(query = {}) {
 
 /** The pricing contact form. The dummy API only validates and acknowledges. */
 export async function requestQuote({ email, need }) {
-  await wait(LATENCY_MS.write);
+  await write();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email ?? "")) {
     const error = new Error("Enter a work email address.");
     error.code = "invalid_email";

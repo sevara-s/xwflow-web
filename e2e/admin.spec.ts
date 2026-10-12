@@ -168,3 +168,13 @@ test.describe("system", () => {
     await expect(page.locator("#app")).toContainText("Worker drained");
   });
 });
+
+test.describe("simulated network failures", () => {
+  test("a dropped write shows a notice and changes nothing", async ({ page }) => {
+    await page.goto("/?api-failures=1#/admin/tenants");
+    await expect(rows(page)).toHaveCount(4);
+    await page.getByRole("button", { name: "Resume" }).first().click();
+    await expectNotice(page, /server did not answer/);
+    await expect(rows(page).filter({ hasText: "Acme Auto" })).toContainText("Suspended");
+  });
+});
